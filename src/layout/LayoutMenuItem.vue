@@ -17,11 +17,11 @@
 </template>
 
 <script lang="ts">
+import colors from 'material-colors';
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Theme } from '@/models/common.ts';
-import { IMenu } from '@/models/menu.ts';
-import palette from '@/models/palette.ts';
-import layout from '@/store/layout.ts';
+import { Theme } from './_data';
+import { IMenu } from './_interfaces';
+import store from './_store';
 
 @Component
 export default class LayoutMenu extends Vue {
@@ -31,19 +31,24 @@ export default class LayoutMenu extends Vue {
 
   // computed
   public menuItemStyle(menu: IMenu): object {
-    const isCurrentPage: boolean = (menu === layout.menu);
+    const isCurrentPage: boolean = (menu === store.menu);
 
     return (isCurrentPage === true) ? {
-        color: palette.default.accent.hex(layout.theme),
+        color: colors.red.a200,
         fontWeight: `bold`,
       } : {
-        color: palette.default.font.hex(layout.theme),
+        color: (store.theme === Theme.Light)
+          ? '#000' : '#fff',
       };
   }
 
   // methods
   public onClick(): void {
-    layout.setMenu(this.menu);
+    if (store.menu.name === this.menu.name) {
+      return;
+    }
+
+    store.setMenu(this.menu.name);
   }
 }
 </script>

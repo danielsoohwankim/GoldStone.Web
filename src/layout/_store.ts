@@ -1,16 +1,16 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
-import { Theme } from '@/models/common.ts';
-import { IMenu, Menu } from '@/models/menu.ts';
-import store from '@/store';
+import { menus, Theme } from './_data';
+import { ILayoutStore, IMenu } from './_interfaces';
+import store from '@/shared/_store';
 
 @Module({
   namespaced: true,
-  name: 'Setting',
+  name: 'LayoutStore',
   store,
   dynamic: true,
 })
-class LayoutModule extends VuexModule {
-  private Menu: IMenu = Menu.dashboard;
+class LayoutStore extends VuexModule implements ILayoutStore {
+  private Menu: IMenu = menus.dashboard;
   private ShowMenu: boolean = false;
   private ShowSetting: boolean = false;
   private Theme: Theme = Theme.Dark;
@@ -32,8 +32,8 @@ class LayoutModule extends VuexModule {
   }
 
   @Action({commit: 'SetMenu'})
-  public setMenu(menu: IMenu): IMenu {
-    return menu;
+  public setMenu(menuName: string): string {
+    return menuName;
   }
 
   @Action({commit: 'SetTheme'})
@@ -52,8 +52,8 @@ class LayoutModule extends VuexModule {
   }
 
   @Mutation
-  private SetMenu(menu: IMenu): void {
-    this.Menu = menu;
+  private SetMenu(menuName: string): void {
+    this.Menu = menus.getMenu(menuName);
   }
 
   @Mutation
@@ -72,4 +72,4 @@ class LayoutModule extends VuexModule {
   }
 }
 
-export default getModule(LayoutModule);
+export default getModule(LayoutStore);

@@ -1,11 +1,11 @@
 <template>
   <div>
     <md-toolbar class="md-transparent" md-elevation="0">
-      <span :style="layoutStyle" style="font-size: 16px;">GoldStone</span>
+      <span :style="layoutStyle" class="title">GoldStone</span>
       <div class="md-toolbar-section-end">
         <md-button 
           class="md-icon-button md-dense" 
-          @click="toggleMenu"
+          @click.prevent="store.toggleMenu(!store.showMenu)"
         >
           <md-icon>keyboard_arrow_left</md-icon>
         </md-button>
@@ -14,15 +14,13 @@
 
     <md-list>
       <LayoutMenuItem 
-        :menu="menu.dashboard"
+        :menu="menus.dashboard"
       />
-
       <LayoutMenuItem 
-        :menu="menu.assets"
+        :menu="menus.assets"
       />
-
       <LayoutMenuItem 
-        :menu="menu.accountant"
+        :menu="menus.accountant"
       />
     </md-list>
   </div>
@@ -30,10 +28,10 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import LayoutMenuItem from '@/components/LayoutMenuItem.vue';
-import { IMenu, Menu } from '@/models/menu.ts';
-import palette from '@/models/palette.ts';
-import layout from '@/store/layout.ts';
+import { menus, Theme } from './_data';
+import { ILayoutStore, IMenu, IMenus } from './_interfaces';
+import store from './_store';
+import LayoutMenuItem from './LayoutMenuItem.vue';
 
 @Component({
   components: {
@@ -43,17 +41,18 @@ import layout from '@/store/layout.ts';
 export default class LayoutMenu extends Vue {
   @Prop(Object) public readonly layoutStyle!: object;
   // data
-  public menu: Menu = Menu;
+  public menus: IMenus = menus;
+  public store: ILayoutStore = store;
   // styles
 
   // computed
 
   // methods
-  public toggleMenu(): void {
-    layout.toggleMenu(!layout.showMenu);
-  }
 }
 </script>
 
 <style lang="scss" scoped>
+.title {
+  font-size: 16px;
+}
 </style>

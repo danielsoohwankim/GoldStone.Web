@@ -1,14 +1,18 @@
 <template>
   <div 
     class="page-container"
-    @click="onClick($event)"
+    @click.prevent="onClick($event)"
   >
-    <md-app :md-theme="toolbarTheme">
-      <md-app-toolbar class="md-primary" md-elevation="0">
+    <md-app :md-theme="store.theme">
+      <md-app-toolbar 
+        class="md-primary" 
+        md-elevation="0"
+        :style="backgroundStyle" 
+      >
         <md-button 
           class="md-icon-button" 
-          @click="toggleMenu" 
-          v-if="!showMenu"
+          @click.prevent="store.toggleMenu(!store.showMenu)" 
+          v-if="!store.showMenu"
         >
           <md-icon :style="toolbarStyle">menu</md-icon>
         </md-button>
@@ -16,17 +20,18 @@
           :style="toolbarStyle"
           class="md-title"
         >
-         {{menu.title}} 
+         {{store.menu.title}} 
         </span>
         
         <div class="md-toolbar-section-end">
-          <LayoutSetting :settingStyle="toolbarStyle" />
+          <LayoutSetting 
+            :settingStyle="toolbarStyle" />
         </div>
       </md-app-toolbar>
 
       <md-app-drawer 
-        :md-theme="toolbarTheme"
-        :md-active.sync="showMenu" 
+        :md-theme="store.theme"
+        :md-active="store.showMenu" 
         md-persistent="mini"
       >
         <LayoutMenu 
@@ -36,7 +41,6 @@
 
       <md-app-content 
         :style="contentStyle"
-        :md-theme="contentTheme"
       >
         <router-view/>
       </md-app-content>
@@ -45,13 +49,13 @@
 </template>
 
 <script lang="ts">
+import colors from 'material-colors';
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import LayoutMenu from '@/components/LayoutMenu.vue';
-import LayoutSetting from '@/components/LayoutSetting.vue';
-import { Theme } from '@/models/common.ts';
-import { IMenu, Menu } from '@/models/menu.ts';
-import palette from '@/models/palette.ts';
-import layout from '@/store/layout.ts';
+import { Theme } from './_data';
+import { ILayoutStore, IMenu } from './_interfaces';
+import store from './_store';
+import LayoutMenu from './LayoutMenu.vue';
+import LayoutSetting from './LayoutSetting.vue';
 
 @Component({
   components: {
@@ -62,6 +66,7 @@ import layout from '@/store/layout.ts';
 export default class Layout extends Vue {
   // properties
   // data
+  public store: ILayoutStore = store;
   // styles
 
   // lifecycle
@@ -71,61 +76,50 @@ export default class Layout extends Vue {
       () => this.$route,
       (route, prevRoute) => {
         const menuName: string = this.$route.name!;
-        const menu: IMenu = Menu.getMenu(menuName);
 
-        layout.setMenu(menu);
+        store.setMenu(menuName);
 
         unwatch();
       });
   }
 
   // computed
-  get menu(): IMenu {
-    return layout.menu;
-  }
-
-  get showMenu(): boolean {
-    return layout.showMenu;
+  get backgroundStyle(): object {
+    return {
+      backgroundColor: (store.theme === Theme.Light)
+        ? 'white'
+        : colors.grey[900],
+    };
   }
 
   // needs to be computed to dynamically change based on theme
   get toolbarStyle(): object {
     return {
-      color: palette.nav.accent.hex(layout.theme),
+      color: (store.theme === Theme.Light)
+        ? '#0078D4' : '#98C6FF',
       fontWeight: 'bold',
     };
   }
 
   get contentStyle(): object {
     return {
-      backgroundColor: (layout.theme === Theme.Light)
+      backgroundColor: (store.theme === Theme.Light)
         ? '#fafafa' : '#2a2a2a',
     };
   }
 
-  get toolbarTheme(): string {
-    return (layout.theme === Theme.Light) ? 'nav-default' : 'nav-default-dark';
-  }
-
-  get contentTheme(): string {
-    return (layout.theme === Theme.Light) ? 'default' : 'default-dark';
-  }
-
   // methods
-  public toggleMenu(): void {
-    layout.toggleMenu(!layout.showMenu);
-  }
-
   public onClick($event): void {
+    // close setting panel when the user clicks outside its layer
     const clickedSettingButton: boolean =
       document.getElementById('setting-button')!.contains($event.target) === true;
     const clickedSettingPanel: boolean =
       document.getElementById('setting-panel')!.contains($event.target) === true;
 
-    if (layout.showSetting === true &&
+    if (store.showSetting === true &&
         clickedSettingButton === false &&
         clickedSettingPanel === false) {
-      layout.toggleSetting(false);
+      store.toggleSetting(false);
     }
   }
 }

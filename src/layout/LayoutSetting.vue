@@ -2,7 +2,7 @@
   <div>
     <md-button 
       id="setting-button" 
-      @click.prevent="toggleSetting"
+      @click.prevent="store.toggleSetting(!store.showSetting)"
       class="setting-button"
     >
       <md-icon :style="settingStyle">
@@ -12,19 +12,19 @@
 
     <div id="setting-panel">
       <div 
-        :class="settingLayoutStyle" 
+        :class="settingLayoutClass" 
         class="full-control"
-        v-if="showSetting"
+        v-if="store.showSetting"
       >
         <md-list>
           <md-subheader :style="settingStyle">Settings</md-subheader>
 
           <md-list-item>
-            <md-icon>wb_sunny</md-icon>
+            <md-icon :style="iconStyle">wb_sunny</md-icon>
             <span class="md-list-item-text">Dark / Light</span>
             <md-switch 
               v-model="theme" 
-              :md-theme="switchTheme" 
+              :md-theme="theme" 
               true-value="light"
               false-value="dark"
               class="md-accent" 
@@ -44,36 +44,37 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
-import { Theme } from '@/models/common';
-import device from '@/tools/device.ts';
-import layout from '@/store/layout.ts';
+import { Theme } from './_data';
+import { ILayoutStore } from './_interfaces';
+import store from './_store';
+import { device } from '@/shared/_tools';
 
 @Component
 export default class LayoutSetting extends Vue {
   @Prop(Object) public readonly settingStyle!: object;
   // data
-  public theme: Theme = layout.theme;
+  public theme: Theme = store.theme;
+  public store: ILayoutStore = store;
 
   // styles
-  get settingLayoutStyle(): string {
-    return (device.isMobile() === false) ? 'setting-layout' : 'setting-layout-mobile';
+  get settingLayoutClass(): string {
+    return (device.isMobile() === false)
+      ? 'setting-layout' : 'setting-layout-mobile';
+  }
+
+  get iconStyle(): object {
+    return {
+      color: (store.theme === Theme.Light)
+        ? '#000' : '#fff',
+    };
   }
 
   // computed
-  get showSetting(): boolean { return layout.showSetting; }
-
-  get switchTheme(): string {
-    return (this.theme === Theme.Light) ? 'default' : 'default-dark';
-  }
 
   // methods
-  public toggleSetting(): void {
-    layout.toggleSetting(!layout.showSetting);
-  }
-
   @Watch('theme')
   public toggleTheme(curTheme: Theme, prevTheme: Theme): void {
-    layout.setTheme(curTheme);
+    store.setTheme(curTheme);
   }
 }
 </script>
