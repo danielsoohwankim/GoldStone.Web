@@ -1,6 +1,7 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
+import drawChart from './_chart';
 import { assetsConstants, assetsView, Since } from './_data';
-import { IAccount, IAsset, IAssetsStore } from './_interfaces';
+import { IAccount, IAsset, IAssetsStore, IChartSettings } from './_interfaces';
 import tools from './_tools';
 import store from '@/shared/_store';
 
@@ -80,6 +81,17 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   private SelectChartAccount(payload): void {
     const { assetName, accountId } = payload;
     const asset: IAsset = tools.getAsset(assetName);
+    const account: IAccount = tools.getAccount(asset.name, accountId);
+    const settings: IChartSettings = {
+      assetView: assetsView[assetName],
+      title: `${account.name} - ${asset.selectedChartSince}`,
+    };
+
+    drawChart(
+      asset.googleChart,
+      asset.google,
+      account.accountCatalogs,
+      settings);
 
     asset.selectedChartAccountId = accountId;
   }

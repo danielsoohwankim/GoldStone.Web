@@ -13,15 +13,17 @@ export interface IAccount {
 }
 
 export interface IAccountCatalog {
-  date: moment.Moment;
-  etag: string;
-  lastModified: number;
+  date: string;
+  etag: string | null;
+  lastModified: number | null;
   balance: number;
 }
 
 export interface IAsset {
   accounts: IAccount[];
   expandChart: boolean;
+  googleChart?: object;
+  google?: object;
   name: string;
   selectedChartAccountId?: string;
   selectedChartSince: Since;
@@ -84,14 +86,18 @@ export interface IAssetsView {
 
 export interface IAssetTools {
   convertToAssets(goldStoneAssets: GetAssetResponseContractV1[]): IAsset[];
-  createLiquidAccount(totalAsset: IAsset): IAccount;
-  createTotalAccount(accounts: IAccount[]): IAccount;
-  createTotalAsset(): IAsset;
+  createTotalAccount(accounts: IAccount[], assetName: string): IAccount;
+  createTotalAsset(assets: IAsset[]): IAsset;
   getAsset(assetName: string): IAsset;
   getAccount(assetName: string, accountId: string): IAccount;
   getDate(since: Since): Date;
   toCurrencyString(num: number): string;
   toggleExpandChart(asset: IAsset): void;
+}
+
+export interface IChartSettings {
+  assetView: IAssetView;
+  title: string;
 }
 
 export interface ISinceCatalog {

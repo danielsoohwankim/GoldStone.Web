@@ -20,7 +20,6 @@ import Asset from './Asset.vue';
 import client from '@/clients/goldStoneClient';
 import { GetAssetsResponseContractV1 } from '@/clients/IGoldStoneClient';
 import { Date, IDate } from '@/shared/Date';
-import { objectTools } from '@/shared/_tools';
 
 // todo: remove
 import testData from './testData.js';
@@ -56,43 +55,7 @@ export default class Assets extends Vue {
 
     const response: GetAssetsResponseContractV1 = (testData as unknown) as GetAssetsResponseContractV1;
     const assets: IAsset[] = tools.convertToAssets(response.assets);
-    const totalAsset: IAsset = tools.createTotalAsset();
-
-    assets.forEach((asset) => {
-      const totalAccount: IAccount =
-        tools.createTotalAccount(asset.accounts);
-      asset.accounts.push(totalAccount);
-
-      const totalAccountClone: IAccount = objectTools.clone(totalAccount);
-      totalAccountClone.id = asset.name;
-      totalAccountClone.name = asset.title;
-      totalAccountClone.symbol = assetsView[asset.name].symbol;
-      totalAsset.accounts.push(totalAccountClone);
-    });
-
-    const liquidAccount: IAccount =
-      tools.createLiquidAccount(totalAsset)!;
-    const totalTotalAccount: IAccount =
-      tools.createTotalAccount(totalAsset.accounts);
-    totalTotalAccount.name = assetsConstants.totalName;
-
-    totalAsset.accounts.push(liquidAccount);
-
-    const totalAssetAccountOrder: IAssetView[] = [
-      assetsView.investment,
-      assetsView.cash,
-      assetsView.liquid,
-      assetsView.retirement,
-    ];
-    const orderedTotalAssetAccounts: IAccount[] = [];
-    totalAssetAccountOrder.forEach((a) => {
-      const account: IAccount =
-        totalAsset.accounts.filter((ac) => ac.name === a.title)[0];
-      orderedTotalAssetAccounts.push(account);
-    });
-
-    totalAsset.accounts = orderedTotalAssetAccounts;
-    totalAsset.accounts.push(totalTotalAccount);
+    const totalAsset: IAsset = tools.createTotalAsset(assets);
 
     assets.push(totalAsset);
     store.setAssets(assets);
