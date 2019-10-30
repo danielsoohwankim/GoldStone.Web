@@ -5,10 +5,9 @@
       :assetView="assetView"
     />
     <Chart
+      :account="this.selectedChartAccount"
+      :asset="asset"
       :assetView="assetView"
-      :catalogs="this.selectedChartAccount.accountCatalogs"
-      :name="this.selectedChartAccount.name"
-      :since="this.asset.selectedChartSince"
     />
     <ChartSinceTabs
       :asset="asset"

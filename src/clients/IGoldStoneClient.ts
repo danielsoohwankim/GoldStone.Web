@@ -15,6 +15,7 @@ export interface GetAssetAccountResponseContractV1 {
   accountId: string;
   accountName: string;
   accountSymbol: string;
+  isTracked: boolean;
 }
 
 export interface GetAssetAccountCatalogResponseContractV1 {

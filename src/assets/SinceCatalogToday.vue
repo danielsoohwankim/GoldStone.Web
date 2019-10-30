@@ -68,11 +68,7 @@
                 style="margin-left: -6px;"
                 :style="updatedTimeStyle"
               >
-                {{
-                  (this.updatedStatus === this.BaseStatus.Warning)
-                    ? `Updated ${this.updatedTime}`
-                    : 'Failed to update'
-                }}
+                {{ this.updatedStatusMessage }}
               </span>
             </div>
           </div>
@@ -163,7 +159,9 @@ export default class SinceCatalogToday extends Vue {
   // computed
   get updatedStatus(): BaseStatus {
     if (!this.catalog.updatedTime) {
-      return BaseStatus.Error;
+      return (this.account.isTracked === true)
+        ? BaseStatus.Error
+        : BaseStatus.Warning;
     }
 
     const diffMinutes: number = moment().diff(this.catalog.updatedTime, 'minutes');
@@ -171,6 +169,16 @@ export default class SinceCatalogToday extends Vue {
     return (diffMinutes < assetsConstants.updateToleranceMinutes)
       ? BaseStatus.Success
       : BaseStatus.Warning;
+  }
+
+  get updatedStatusMessage(): string {
+    if (this.updatedStatus === this.BaseStatus.Warning) {
+      return (this.account.isTracked === true)
+        ? `Updated ${this.updatedTime}`
+        : `No longer tracked`;
+    }
+
+    return 'Failed to update';
   }
 
   get updatedTime(): string {

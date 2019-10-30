@@ -4,9 +4,10 @@ import { Date } from '@/shared/Date';
 import { GetAssetResponseContractV1 } from '@/clients/IGoldStoneClient';
 
 export interface IAccount {
-  accountCatalogs: IAccountCatalog[];
+  accountCatalogMap: IAccountCatalogMap;
   expand: boolean;
   id: string;
+  isTracked?: boolean;
   name: string;
   sinceCatalogs: ISinceCatalog[];
   symbol: string;
@@ -17,6 +18,12 @@ export interface IAccountCatalog {
   etag: string | null;
   lastModified: number | null;
   balance: number;
+}
+
+export interface IAccountCatalogMap {
+  catalogMap: Map<string, IAccountCatalog>;
+  maxDate: string | null;
+  minDate: string | null;
 }
 
 export interface IAsset {
@@ -41,12 +48,14 @@ export interface IAssetLayoutColor {
   border: string;
   background: string;
   buttonText: string;
+  chartBackground: string;
   error: string;
   minus: string;
   neutral: string;
   plus: string;
   success: string;
   warning: string;
+  text: string;
 }
 
 export interface IAssetsStore {
@@ -95,9 +104,11 @@ export interface IAssetTools {
   toggleExpandChart(asset: IAsset): void;
 }
 
-export interface IChartSettings {
-  assetView: IAssetView;
-  title: string;
+export interface IChart {
+  drawChart(
+    asset: IAsset,
+    assetView: IAssetView,
+    account: IAccount): void;
 }
 
 export interface ISinceCatalog {

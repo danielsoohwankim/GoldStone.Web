@@ -12,10 +12,12 @@
 <script lang="ts">
 import { GChart } from 'vue-google-charts';
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
-import drawChart from './_chart';
+import chart from './_chart';
 import { Since } from './_data';
-import { IAccountCatalog, IAsset, IAssetView, IChartSettings } from './_interfaces';
+import { IAccount, IAsset, IAssetView } from './_interfaces';
 import store from './_store';
+import { Theme } from '@/layout/_data';
+import layoutStore from '@/layout/_store';
 
 @Component({
   components: {
@@ -23,47 +25,49 @@ import store from './_store';
   },
 })
 export default class Chart extends Vue {
+  @Prop() public readonly account!: IAccount;
+  @Prop() public readonly asset!: IAsset;
   @Prop() public readonly assetView!: IAssetView;
-  @Prop() public readonly catalogs!: IAccountCatalog[];
-  @Prop() public readonly name!: string;
-  @Prop() public readonly since!: Since;
+  @Watch('selectedChartAccountId')
+  public onSelectedChartAccountIdChange(val: string, oldVal: string) {
+    this.drawChart();
+  }
+  @Watch('selectedChartSince')
+  public onSelectedChartSince(val: Since, oldVal: Since) {
+    this.drawChart();
+  }
+  @Watch('theme')
+  public onThemeChanged(val: Theme, oldVal: Theme) {
+    this.drawChart();
+  }
 
   // data
 
   // styles
 
   // computed
-
-  // methods
-  public onChartReady(chart, google) {
-    const asset: IAsset = store.assets.filter(
-      (a) => a.name === this.assetView.name)[0];
-    asset.googleChart = chart;
-    asset.google = google;
-    const settings: IChartSettings = {
-      assetView: this.assetView,
-      // todo, replace title: with asset
-      title: `${this.name} - ${this.since}`,
-    };
-
-    drawChart(chart, google, this.catalogs, settings);
+  get selectedChartAccountId() {
+    return this.asset.selectedChartAccountId;
   }
 
-  private setAnnotations(data, numDataPoints) {
-    const numRows = data.getNumberOfRows();
-    const valIndex = 1;
-    const annotIndex = 2;
+  get selectedChartSince() {
+    return this.asset.selectedChartSince;
+  }
 
-    for (let i = 0; i < numDataPoints - 1; i++) {
-      const rowIndex = Math.floor(numRows * (i / (numDataPoints - 1)));
-      const val = data.getValue(rowIndex, valIndex);
+  get theme() {
+    return layoutStore.theme;
+  }
 
-      data.setValue(rowIndex, annotIndex, val);
-    }
-    // last row
-    const lastIndex = numRows - 1;
-    const lastVal = data.getValue(lastIndex, valIndex);
-    data.setValue(lastIndex, annotIndex, lastVal);
+  // methods
+  public onChartReady(gchart, google) {
+    this.asset.googleChart = gchart;
+    this.asset.google = google;
+
+    this.drawChart();
+  }
+
+  private drawChart(): void {
+    chart.drawChart(this.asset, this.assetView, this.account);
   }
 }
 </script>
