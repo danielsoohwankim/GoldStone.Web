@@ -21,7 +21,7 @@
     <md-list class="asset-catalog-since">
       <md-list-item>
         <span class="asset-catalog-past">
-          {{ this.catalog.since }}
+          {{ this.Sinces.toString(this.catalog.since) }}
         </span>
       </md-list-item>
     </md-list>
@@ -57,6 +57,7 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
+import { Sinces } from './_data';
 import { ISinceCatalog, IAssetTools } from './_interfaces';
 import tools from './_tools';
 import SinceCatalogChange from './SinceCatalogChange.vue';
@@ -74,6 +75,7 @@ export default class SinceCatalogPast extends Vue {
   // data
   public hover: boolean = false;
   public readonly layoutStore: ILayoutStore = layoutStore;
+  public readonly Sinces: Sinces = Sinces;
   public readonly tools: IAssetTools = tools;
 
   // styles

@@ -16,14 +16,14 @@
           :md-label="totalAccount.symbol"
           @click.prevent="onClick(totalAccount.id)"
         ></md-tab>
-        <div v-for="account in assetAccounts" :key="account.id">
-          <md-tab
-            @click.prevent="onClick(account.id)"
-            :id="account.id"
-            :md-label="account.symbol"
-          >
-          </md-tab>
-        </div>
+        <md-tab
+          v-for="account in assetAccounts"
+          @click.prevent="onClick(account.id)"
+          :id="account.id"
+          :key="account.id"
+          :md-label="account.symbol"
+        >
+        </md-tab>
       </md-tabs>
     </div>
     <md-content

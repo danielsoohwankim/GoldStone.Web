@@ -7,7 +7,7 @@
       <md-app-toolbar 
         class="md-primary" 
         md-elevation="0"
-        :style="backgroundStyle" 
+        :style="backgroundStyle"
       >
         <md-button 
           class="md-icon-button" 
@@ -20,7 +20,7 @@
           :style="toolbarStyle"
           class="md-title"
         >
-         {{store.menu.title}} 
+         {{store.menu.title}}
         </span>
         
         <div class="md-toolbar-section-end">
@@ -89,6 +89,7 @@ export default class Layout extends Vue {
       backgroundColor: (store.theme === Theme.Light)
         ? 'white'
         : colors.grey[900],
+      position: 'sticky',
     };
   }
 

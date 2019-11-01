@@ -1,5 +1,6 @@
 import colors from 'material-colors';
 import { IAssetLayout, IAssetsView, IAssetView } from './_interfaces';
+import { goldStoneException } from '@/shared/GoldStoneException';
 
 const shadeLightDefault: number = 500;
 const shadeLightFont: string = 'a700';
@@ -146,13 +147,46 @@ class AssetsView implements IAssetsView {
 export const assetsView = new AssetsView();
 
 export enum Since {
-  Today = 'Today',
-  Yesterday = 'Yesterday',
-  OneWeek = '1 Week',
-  TwoWeeks = '2 Weeks',
-  OneMonth = '1 Month',
-  ThreeMonths = '3 Months',
-  SixMonths = '6 Months',
-  OneYear = '1 Year',
-  Custom = 'Custom',
+  Custom,
+  OneYear,
+  SixMonths,
+  ThreeMonths,
+  OneMonth,
+  TwoWeeks,
+  OneWeek,
+  Yesterday,
+  Today,
 }
+// tslint:disable-next-line
+class Sinces {
+  public static size(): number {
+    // need to use !isNan to filter out string keys
+    return Object.keys(Since).filter((key) => !isNaN(Number(Since[key]))).length;
+  }
+
+  public static toString(since: Since) {
+    switch (since) {
+      case Since.Custom: return 'Custom';
+      case Since.OneYear: return '1 Year';
+      case Since.SixMonths: return '6 Months';
+      case Since.ThreeMonths: return '3 Months';
+      case Since.OneMonth: return '1 Month';
+      case Since.TwoWeeks: return '2 Weeks';
+      case Since.OneWeek: return '1 Week';
+      case Since.Yesterday: return 'Yesterday';
+      case Since.Today: return 'Today';
+    }
+
+    throw new goldStoneException(`invalid since ${since}`);
+  }
+  // get numeric values
+  public static values(): Since[] {
+    return (this.keys().map((key) => Since[key as any]) as unknown) as Since[];
+  }
+  // get enum string keys
+  private static keys(): string[] {
+    return Object.keys(Since).filter((key) => !isNaN(Number(Since[key])));
+  }
+}
+
+export { Sinces };

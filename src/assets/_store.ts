@@ -46,9 +46,23 @@ class AssetsStore extends VuexModule implements IAssetsStore {
       title: assetsView.retirement.title,
     },
   ];
+  private Sinces: Since[] = [
+    Since.Today,
+    Since.Yesterday,
+    Since.OneWeek,
+    Since.TwoWeeks,
+  ];
 
   get assets(): IAsset[] {
     return this.Assets;
+  }
+
+  get sinces(): Since[] {
+    return this.Sinces;
+  }
+
+  get maxSince(): Since {
+    return this.Sinces[this.Sinces.length - 1];
   }
 
   @Action({commit: 'SelectChartAccount'})
@@ -89,7 +103,7 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const { assetName, since } = payload;
     const asset: IAsset = tools.getAsset(assetName);
 
-    asset.selectedChartSince = since;
+    asset.selectedChartSince = (Since[since] as unknown) as Since;
   }
 
   @Mutation

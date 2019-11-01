@@ -9,7 +9,7 @@ export interface IAccount {
   id: string;
   isTracked?: boolean;
   name: string;
-  sinceCatalogs: ISinceCatalog[];
+  sinceCatalogMap: Map<Since, ISinceCatalog>;
   symbol: string;
 }
 

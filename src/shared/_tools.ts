@@ -27,13 +27,3 @@ class ArrayTools {
 }
 
 export const arrayTools = new ArrayTools();
-
-// @ts-ignore
-// tslint:disable-next-line
-class ObjectTools {
-  public clone(obj: any): any {
-    return JSON.parse(JSON.stringify(obj));
-  }
-}
-
-export const objectTools = new ObjectTools();

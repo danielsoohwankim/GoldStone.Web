@@ -32,7 +32,7 @@
                   <SinceCatalogToday
                     :account="account"
                     :assetView="assetView"
-                    :catalog="account.sinceCatalogs[0]"
+                    :catalog="getTodayCatalog(account)"
                   />
                   <div v-if="account.expand === true">
                     <div
@@ -56,6 +56,7 @@
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { Since } from './_data';
 import { IAccount, ISinceCatalog, IAsset, IAssetView } from './_interfaces';
+import store from './_store';
 import SinceCatalogHeader from './SinceCatalogHeader.vue';
 import SinceCatalogPast from './SinceCatalogPast.vue';
 import SinceCatalogToday from './SinceCatalogToday.vue';
@@ -102,7 +103,17 @@ export default class Asset extends Vue {
 
   // methods
   public getPastCatalogs(account: IAccount): ISinceCatalog[] {
-    return account.sinceCatalogs.filter((c) => c.since !== Since.Today);
+    const pastCatalogs: ISinceCatalog[] = [];
+
+    store.sinces
+      .filter((since) => since !== Since.Today)
+      .forEach((since) => pastCatalogs.push(account.sinceCatalogMap.get(since)!));
+
+    return pastCatalogs;
+  }
+
+  public getTodayCatalog(account: IAccount): ISinceCatalog {
+    return account.sinceCatalogMap.get(Since.Today)!;
   }
 }
 </script>

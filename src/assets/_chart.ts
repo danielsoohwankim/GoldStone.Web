@@ -1,4 +1,4 @@
-import { assetsView } from './_data';
+import { assetsView, Sinces } from './_data';
 import { IAccount, IAccountCatalog, IAccountCatalogMap, IAsset, IAssetView, IChart } from './_interfaces';
 import tools from './_tools';
 import layoutStore from '@/layout/_store';
@@ -107,7 +107,7 @@ class Chart implements IChart {
   private setOptions(asset: IAsset, assetView: IAssetView, account: IAccount) {
     Chart.options.backgroundColor = assetsView.layout.color[layoutStore.theme].chartBackground;
     Chart.options.series[0].color = assetView.color[layoutStore.theme].default;
-    Chart.options.title = `${account.name} - ${asset.selectedChartSince}`;
+    Chart.options.title = `${account.name} - ${Sinces.toString(asset.selectedChartSince)}`;
     Chart.options.titleTextStyle.color = assetsView.layout.color[layoutStore.theme].text;
     Chart.options.vAxis.textStyle.color = assetsView.layout.color[layoutStore.theme].text;
   }

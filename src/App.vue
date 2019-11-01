@@ -29,7 +29,7 @@ export default class App extends Vue {
 
 @include md-register-theme("dark", (
   primary: md-get-palette-color(gray, 400),
-  accent: gray,
+  accent: red,
   theme: dark,
 ));
 

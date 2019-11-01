@@ -2,7 +2,7 @@
   <div class="default">
     <md-tabs 
       md-alignment="fixed"
-      :md-active-tab="tools.getAsset(asset.name).selectedChartSince"
+      :md-active-tab="getId(tools.getAsset(asset.name).selectedChartSince)"
     >
       <template slot="md-tab" slot-scope="{ tab }">
         <ChartSinceTab
@@ -10,21 +10,21 @@
           :tab="tab" 
         />
       </template>
-      <div v-for="since in sinces" :key="since">
         <md-tab
-          :id="since"
-          :md-label="since"
+          v-for="since in chartSinces"
+          :id="getId(since)"
+          :key="since" 
+          :md-label="Sinces.toString(since)"
           @click.prevent="onClick(since)"
         >
         </md-tab>
-      </div>
     </md-tabs> 
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Since } from './_data';
+import { Since, Sinces } from './_data';
 import { IAsset, IAssetTools, IAssetView } from './_interfaces';
 import store from './_store';
 import tools from './_tools';
@@ -41,7 +41,7 @@ export default class ChartSinceTabs extends Vue {
   @Prop() public readonly asset!: IAsset;
   @Prop() public readonly assetView!: IAssetView;
   // data
-  public sinces = [
+  public chartSinces = [
     Since.TwoWeeks,
     Since.OneMonth,
     Since.ThreeMonths,
@@ -49,6 +49,7 @@ export default class ChartSinceTabs extends Vue {
     Since.OneYear,
     Since.Custom,
   ];
+  public readonly Sinces: Sinces = Sinces;
   public readonly tools: IAssetTools = tools;
 
   // styles
@@ -63,14 +64,19 @@ export default class ChartSinceTabs extends Vue {
   // computed
 
   // methods
-  public onClick(since): void {
+  // md-tabs have to be drawn in lexicographical order of id for some reason
+  public getId(since: Since): string {
+    return `${Sinces.size() - since}`;
+  }
+
+  public onClick(since: Since): void {
     if (this.asset.selectedChartSince === since) {
       return;
     }
 
     store.selectChartSince({
       assetName: this.asset.name,
-      since,
+      since: Since[since],
     });
   }
 }

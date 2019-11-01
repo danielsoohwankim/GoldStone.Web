@@ -35,7 +35,7 @@
     <md-list class="asset-catalog-since">
       <md-list-item>
         <span class="asset-catalog-today">
-          {{ this.catalog.since }}
+          {{ this.Sinces.toString(this.catalog.since) }}
         </span>
       </md-list-item>
     </md-list>
@@ -100,7 +100,7 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import moment from 'moment';
-import { assetsConstants, assetsView } from './_data';
+import { assetsConstants, assetsView, Sinces } from './_data';
 import { IAccount, ISinceCatalog, IAssetTools, IAssetView } from './_interfaces';
 import assetsStore from './_store';
 import tools from './_tools';
@@ -125,6 +125,7 @@ export default class SinceCatalogToday extends Vue {
   public readonly assetsView = assetsView;
   public readonly BaseStatus = BaseStatus;
   public readonly layoutStore: ILayoutStore = layoutStore;
+  public readonly Sinces: Sinces = Sinces;
   public readonly tools: IAssetTools = tools;
   public hover: boolean = false;
 

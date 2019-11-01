@@ -1,5 +1,6 @@
 <template>
   <div>
+    <SinceSelect />
     <div v-for="assetView in assetViews" :key="assetView.name">
       <Asset 
         :asset="tools.getAsset(assetView.name)"
@@ -17,6 +18,7 @@ import { IAccount, IAsset, IAssetTools, IAssetView, IAssetsStore } from './_inte
 import store from './_store';
 import tools from './_tools';
 import Asset from './Asset.vue';
+import SinceSelect from './SinceSelect.vue';
 import client from '@/clients/goldStoneClient';
 import { GetAssetsResponseContractV1 } from '@/clients/IGoldStoneClient';
 import { Date, IDate } from '@/shared/Date';
@@ -27,6 +29,7 @@ import testData from './testData.js';
 @Component({
   components: {
     Asset,
+    SinceSelect,
   },
 })
 export default class Assets extends Vue {
@@ -47,8 +50,8 @@ export default class Assets extends Vue {
 
   // lifecycle
   public async created() {
+    // const startDate: Date = tools.getDate(store.maxSince);
     // const endDate: Date = Date.Today();
-    // const startDate: Date = endDate.addDays(assetsConstants.startDateOffset);
     // const userId: string = await client.getAdminUserId() as string;
     // const response: GetAssetsResponseContractV1
     //   = ((await client.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
