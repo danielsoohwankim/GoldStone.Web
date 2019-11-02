@@ -75,6 +75,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     return payload;
   }
 
+  @Action({commit: 'SelectSince'})
+  public selectSince(sinceKey: string): any {
+    return sinceKey;
+  }
+
   @Action({commit: 'SetAssets'})
   public setAssets(assets: IAsset[]): any {
     return assets;
@@ -104,6 +109,16 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const asset: IAsset = tools.getAsset(assetName);
 
     asset.selectedChartSince = (Since[since] as unknown) as Since;
+  }
+
+  @Mutation
+  private SelectSince(sinceKey: string): void {
+    for (
+      let since: Since = this.Sinces[this.Sinces.length - 1] - 1;
+      since >= Since[sinceKey];
+      since--) {
+      this.Sinces.push(since);
+    }
   }
 
   @Mutation

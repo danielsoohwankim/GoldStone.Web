@@ -1,6 +1,8 @@
 <template>
   <div>
-    <SinceSelect />
+    <SinceSelect
+      :selectedSince="store.maxSince"
+    />
     <div v-for="assetView in assetViews" :key="assetView.name">
       <Asset 
         :asset="tools.getAsset(assetView.name)"

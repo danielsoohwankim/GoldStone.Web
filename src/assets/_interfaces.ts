@@ -60,8 +60,12 @@ export interface IAssetLayoutColor {
 
 export interface IAssetsStore {
   assets: IAsset[];
+  sinces: Since[];
+  maxSince: Since;
   selectChartAccount(payload: object): any;
   selectChartSince(payload: object): any;
+  selectSince(sinceKey: string): any;
+  setAssets(assets: IAsset[]): any;
   toggleExpandAccount(payload: object): any;
   toggleExpandChart(payload: object): any;
 }

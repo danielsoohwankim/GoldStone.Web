@@ -4,19 +4,23 @@
       <md-field>
         <label for="since">Since</label>
         <md-select
-          v-model="selectedSince"
+          :value="selectedSince"
           name="since"
           id="since"
           md-dense
         >
-          <md-option
+          <div
             v-for="since in sinces"
             :key="since"
-            :value="since"
-            :disabled="isDisabled(since)"
+            @click.prevent="onSelect(since)"
           >
-            {{ getSinceString(since) }}
-          </md-option>
+            <md-option
+              :value="since"
+              :disabled="isDisabled(since)"
+            >
+              {{ getSinceString(since) }}
+            </md-option>
+          </div>
         </md-select>
       </md-field>
     </div>
@@ -31,10 +35,11 @@ import store from './_store';
 @Component
 export default class SinceSelect extends Vue {
   // properties
+  @Prop() public readonly selectedSince!: Since;
 
   // data
-  public readonly selectedSince = store.maxSince;
-  public readonly sinces = Sinces.values().filter((since) => since !== Since.Custom);
+  public readonly sinces =
+    Sinces.values().filter((since) => since !== Since.Custom);
 
   // styles
 
@@ -47,6 +52,14 @@ export default class SinceSelect extends Vue {
 
   public getSinceString(since: Since): string {
     return Sinces.toString(since);
+  }
+
+  public onSelect(since: Since): void {
+    if (this.isDisabled(since) === true) {
+      return;
+    }
+
+    store.selectSince(Since[since]);
   }
 }
 </script>
