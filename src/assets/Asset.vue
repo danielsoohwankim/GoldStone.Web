@@ -26,7 +26,7 @@
                   :asset="asset"
                 />
                 <div
-                  v-for="account in this.asset.accounts"
+                  v-for="account in accounts"
                   :key="account.id"
                 >
                   <SinceCatalogToday
@@ -54,7 +54,7 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Since } from './_data';
+import { assetsConstants, assetsView, Since } from './_data';
 import { IAccount, ISinceCatalog, IAsset, IAssetView } from './_interfaces';
 import store from './_store';
 import SinceCatalogHeader from './SinceCatalogHeader.vue';
@@ -78,6 +78,13 @@ export default class Asset extends Vue {
   @Prop() public readonly assetView!: IAssetView;
   @Prop() public readonly expanded!: boolean;
   // data
+  // order for display total asset's accounts
+  private totalAssetAccountOrder: IAssetView[] = [
+    assetsView.investment,
+    assetsView.cash,
+    assetsView.liquid,
+    assetsView.retirement,
+  ];
 
   // styles
   get listStyle(): object {
@@ -100,20 +107,37 @@ export default class Asset extends Vue {
   }
 
   // computed
+  get accounts(): IAccount[] {
+    if (this.asset.name === assetsView.assets.name) {
+      // reorder total accounts
+      const accounts: IAccount[] = [];
+      if (Object.keys(this.asset.accountMap).length <= 0) {
+        return accounts;
+      }
+
+      this.totalAssetAccountOrder.forEach(
+        (a) => accounts.push(this.asset.accountMap[a.name]));
+      accounts.push(this.asset.accountMap[assetsConstants.totalAccountId]);
+
+      return accounts;
+    }
+
+    return Object.values(this.asset.accountMap);
+  }
 
   // methods
   public getPastCatalogs(account: IAccount): ISinceCatalog[] {
     const pastCatalogs: ISinceCatalog[] = [];
 
     store.sinces
-      .filter((since) => since !== Since.Today)
-      .forEach((since) => pastCatalogs.push(account.sinceCatalogMap.get(since)!));
+      .filter((since) => since !== Since[Since.Today])
+      .forEach((since) => pastCatalogs.push(account.sinceCatalogMap[since]));
 
     return pastCatalogs;
   }
 
   public getTodayCatalog(account: IAccount): ISinceCatalog {
-    return account.sinceCatalogMap.get(Since.Today)!;
+    return account.sinceCatalogMap[Since[Since.Today]];
   }
 }
 </script>

@@ -35,31 +35,31 @@ import store from './_store';
 @Component
 export default class SinceSelect extends Vue {
   // properties
-  @Prop() public readonly selectedSince!: Since;
+  @Prop() public readonly selectedSince!: string;
 
   // data
   public readonly sinces =
-    Sinces.values().filter((since) => since !== Since.Custom);
+    Sinces.keys().filter((since) => since !== Since[Since.Custom]);
 
   // styles
 
   // computed
 
   // methods
-  public isDisabled(since: Since): boolean {
-    return since >= this.selectedSince;
+  public isDisabled(since: string): boolean {
+    return Since[since] >= Since[this.selectedSince];
   }
 
-  public getSinceString(since: Since): string {
+  public getSinceString(since: string): string {
     return Sinces.toString(since);
   }
 
-  public onSelect(since: Since): void {
+  public onSelect(since: string): void {
     if (this.isDisabled(since) === true) {
       return;
     }
 
-    store.selectSince(Since[since]);
+    store.selectSince(since);
   }
 }
 </script>

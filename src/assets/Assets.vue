@@ -21,9 +21,11 @@ import store from './_store';
 import tools from './_tools';
 import Asset from './Asset.vue';
 import SinceSelect from './SinceSelect.vue';
-import client from '@/clients/goldStoneClient';
+import goldStoneClient from '@/clients/goldStoneClient';
 import { GetAssetsResponseContractV1 } from '@/clients/IGoldStoneClient';
 import { Date, IDate } from '@/shared/Date';
+import { IUser } from '@/user/_interfaces';
+import userStore from '@/user/_store';
 
 // todo: remove
 import testData from './testData.js';
@@ -54,7 +56,11 @@ export default class Assets extends Vue {
   public async created() {
     // const startDate: Date = tools.getDate(store.maxSince);
     // const endDate: Date = Date.Today();
-    // const userId: string = await client.getAdminUserId() as string;
+    const userId: string = await goldStoneClient.getAdminUserId() as string;
+    const user: IUser = {
+      id: userId,
+    };
+    await userStore.setUser(user);
     // const response: GetAssetsResponseContractV1
     //   = ((await client.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
 

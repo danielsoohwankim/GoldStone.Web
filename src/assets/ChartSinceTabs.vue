@@ -2,7 +2,7 @@
   <div class="default">
     <md-tabs 
       md-alignment="fixed"
-      :md-active-tab="getId(tools.getAsset(asset.name).selectedChartSince)"
+      :md-active-tab="tools.getAsset(asset.name).selectedChartSince"
     >
       <template slot="md-tab" slot-scope="{ tab }">
         <ChartSinceTab
@@ -12,7 +12,7 @@
       </template>
         <md-tab
           v-for="since in chartSinces"
-          :id="getId(since)"
+          :id="since"
           :key="since" 
           :md-label="Sinces.toString(since)"
           @click.prevent="onClick(since)"
@@ -42,12 +42,12 @@ export default class ChartSinceTabs extends Vue {
   @Prop() public readonly assetView!: IAssetView;
   // data
   public chartSinces = [
-    Since.TwoWeeks,
-    Since.OneMonth,
-    Since.ThreeMonths,
-    Since.SixMonths,
-    Since.OneYear,
-    Since.Custom,
+    Since[Since.TwoWeeks],
+    Since[Since.OneMonth],
+    Since[Since.ThreeMonths],
+    Since[Since.SixMonths],
+    Since[Since.OneYear],
+    Since[Since.Custom],
   ];
   public readonly Sinces: Sinces = Sinces;
   public readonly tools: IAssetTools = tools;
@@ -64,19 +64,14 @@ export default class ChartSinceTabs extends Vue {
   // computed
 
   // methods
-  // md-tabs have to be drawn in lexicographical order of id for some reason
-  public getId(since: Since): string {
-    return `${Sinces.size() - since}`;
-  }
-
-  public onClick(since: Since): void {
+  public onClick(since: string): void {
     if (this.asset.selectedChartSince === since) {
       return;
     }
 
     store.selectChartSince({
       assetName: this.asset.name,
-      since: Since[since],
+      since,
     });
   }
 }

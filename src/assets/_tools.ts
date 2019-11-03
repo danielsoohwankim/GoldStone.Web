@@ -1,15 +1,19 @@
 import _ from 'lodash';
 import moment from 'moment';
-import { assetsConstants, assetsView, Since } from './_data';
-import { IAccount, IAccountCatalog, IAccountCatalogMap, IAsset, IAssetTools, IAssetView, ISinceCatalog } from './_interfaces';
+import { assetsConstants, assetsView, Since, Sinces } from './_data';
+import { IAccount, IAccountCatalog, IAccountCatalogMap, IAccountCatalogMapWrapper,
+  IAccountMap, IAsset, IAssetTools, ISinceCatalog, ISinceCatalogMap } from './_interfaces';
 import store from './_store';
 import {
   GetAssetResponseContractV1,
+  GetAssetsResponseContractV1,
   GetAssetAccountResponseContractV1,
   GetAssetAccountCatalogResponseContractV1,
- } from '@/clients/IGoldStoneClient';
+} from '@/clients/IGoldStoneClient';
+import goldStoneClient from '@/clients/goldStoneClient';
 import { Date } from '@/shared/Date';
-import { goldStoneException } from '@/shared/GoldStoneException';
+import { IUser } from '@/user/_interfaces';
+import userStore from '@/user/_store';
 
 class AssetTools implements IAssetTools {
   public convertToAssets(goldStoneAssets: GetAssetResponseContractV1[]): IAsset[] {
@@ -18,33 +22,33 @@ class AssetTools implements IAssetTools {
             .map((asset) => this.convertToAsset(asset));
   }
 
-  public createTotalAccount(accounts: IAccount[], assetName: string): IAccount {
-    const sinceCatalogsMap: Map<Since, ISinceCatalog[]> = this.getSinceCatalogsMap(accounts);
+  public createTotalAccount(accountMap: IAccountMap, assetName: string): IAccount {
+    const sinceCatalogsMap: {[ key: string ]: ISinceCatalog[]} = this.getSinceCatalogsMap(accountMap);
     // create total catalog
-    const sinceCatalogMap = new Map<Since, ISinceCatalog>();
+    const sinceCatalogMap: ISinceCatalogMap = {};
 
     store.sinces.forEach(
       (since) =>
-      sinceCatalogMap.set(since, this.createTotalSinceCatalog(sinceCatalogsMap.get(since)!)));
+      sinceCatalogMap[since] = this.createTotalSinceCatalog(sinceCatalogsMap[since]));
 
       // calculate changePercent
-    const todayCatalog: ISinceCatalog = sinceCatalogMap.get(Since.Today)!;
+    const todayCatalog: ISinceCatalog = sinceCatalogMap[Since[Since.Today]];
     const todayBalance: number = todayCatalog.balance;
-    const yesterdayCatalog: ISinceCatalog = sinceCatalogMap.get(Since.Yesterday)!;
+    const yesterdayCatalog: ISinceCatalog = sinceCatalogMap[Since[Since.Yesterday]];
     const yesterdayBalance: number = (yesterdayCatalog) ? yesterdayCatalog.balance : 0;
 
-    for (const since of sinceCatalogMap.keys()) {
-      const sinceCatalog: ISinceCatalog = sinceCatalogMap.get(since)!;
-      if (since === Since.Today) {
+    Object.keys(sinceCatalogMap).forEach((since) => {
+      const sinceCatalog: ISinceCatalog = sinceCatalogMap[since];
+      if (since === Since[Since.Today]) {
         sinceCatalog.changePercent = this.getChangePercent(todayBalance, yesterdayBalance);
       } else {
         sinceCatalog.changePercent = this.getChangePercent(todayBalance, sinceCatalog.balance);
       }
-    }
+    });
 
     return {
       // todo
-      accountCatalogMap: this.getTotalAccountCatalogMap(accounts),
+      accountCatalogMap: this.getTotalAccountCatalogMap(accountMap),
       expand: false,
       id: assetsConstants.totalAccountId,
       name: `${assetName} ${assetsConstants.totalName}`,
@@ -55,56 +59,36 @@ class AssetTools implements IAssetTools {
 
   public createTotalAsset(assets: IAsset[]): IAsset {
     const totalAsset: IAsset = {
-      accounts: [],
+      accountMap: {},
       expandChart: false,
       name: assetsView.assets.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
-      selectedChartSince: Since.TwoWeeks,
+      selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.assets.title,
     };
 
     assets.forEach((asset) => {
       const totalAccount: IAccount =
-        this.createTotalAccount(asset.accounts, asset.title);
+        this.createTotalAccount(asset.accountMap, asset.title);
 
-      asset.accounts.push(totalAccount);
+      asset.accountMap[totalAccount.id] = totalAccount;
 
       const totalAccountClone: IAccount = _.cloneDeep(totalAccount);
       totalAccountClone.id = asset.name;
       totalAccountClone.name = asset.title;
       totalAccountClone.symbol = assetsView[asset.name].symbol;
-      totalAsset.accounts.push(totalAccountClone);
+      totalAsset.accountMap[totalAccountClone.id] = totalAccountClone;
     });
 
     // create liquid and total accounts
     const liquidAccount: IAccount =
       this.createLiquidAccount(totalAsset)!;
     const totalTotalAccount: IAccount =
-      this.createTotalAccount(totalAsset.accounts, '');
+      this.createTotalAccount(totalAsset.accountMap, '');
     totalTotalAccount.name = assetsConstants.totalName;
 
-    totalAsset.accounts.push(liquidAccount);
-    // reorder total accounts
-    const totalAssetAccountOrder: IAssetView[] = [
-      assetsView.investment,
-      assetsView.cash,
-      assetsView.liquid,
-      assetsView.retirement,
-    ];
-    const totalAssetAccountMap = {};
-    totalAsset.accounts.forEach((a) => {
-      totalAssetAccountMap[a.name] = a;
-    });
-
-    const orderedTotalAssetAccounts: IAccount[] = [];
-    totalAssetAccountOrder.forEach((a) => {
-      const account: IAccount = totalAssetAccountMap[a.title];
-
-      orderedTotalAssetAccounts.push(account);
-    });
-
-    totalAsset.accounts = orderedTotalAssetAccounts;
-    totalAsset.accounts.push(totalTotalAccount);
+    totalAsset.accountMap[liquidAccount.id] = liquidAccount;
+    totalAsset.accountMap[totalTotalAccount.id] = totalTotalAccount;
 
     return totalAsset;
   }
@@ -112,28 +96,28 @@ class AssetTools implements IAssetTools {
   public getAccount(assetName: string, accountId: string): IAccount {
     const asset: IAsset = this.getAsset(assetName);
 
-    return asset.accounts.filter((a: IAccount) => a.id === accountId)[0];
+    return asset.accountMap[accountId];
   }
 
   public getAsset(assetName: string): IAsset {
     return store.assets.filter((a: IAsset) => a.name === assetName)[0];
   }
 
-  public getDate(since: Since): Date {
-    const today: Date = Date.Today();
+  public async getAssets(since: string): Promise<IAsset[]> {
+    const user: IUser = userStore.user;
+    const userId: string = user.id;
+    const startDate: Date = Sinces.getDate(since);
+    const endDate: Date = Date.Today();
 
-    switch (since) {
-      case Since.Today: return today;
-      case Since.Yesterday: return today.addDays(-1);
-      case Since.OneWeek: return today.addWeeks(-1);
-      case Since.TwoWeeks: return today.addWeeks(-2);
-      case Since.OneMonth: return today.addMonths(-1);
-      case Since.ThreeMonths: return today.addMonths(-3);
-      case Since.SixMonths: return today.addMonths(-6);
-      case Since.OneYear: return today.addYears(-1);
-    }
+    const response: GetAssetsResponseContractV1 =
+      ((await goldStoneClient.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
 
-    throw new goldStoneException(`invalid since type ${since}`);
+    const assets: IAsset[] = this.convertToAssets(response.assets);
+    const totalAsset: IAsset = this.createTotalAsset(assets);
+
+    assets.push(totalAsset);
+
+    return assets;
   }
 
   public toCurrencyString(num: number): string {
@@ -152,24 +136,28 @@ class AssetTools implements IAssetTools {
 
   private convertToAsset(goldStoneAsset: GetAssetResponseContractV1): IAsset {
     return {
-      accounts: this.convertToAccounts(goldStoneAsset.accounts),
+      accountMap: this.convertToAccounts(goldStoneAsset.accounts),
       expandChart: false,
       name: goldStoneAsset.assetType.toLowerCase(),
       selectedChartAccountId: assetsConstants.totalAccountId,
-      selectedChartSince: Since.TwoWeeks,
+      selectedChartSince: Since[Since.TwoWeeks],
       title: goldStoneAsset.assetType,
     };
   }
 
-  private convertToAccounts(goldStoneAccounts: GetAssetAccountResponseContractV1[]): IAccount[] {
+  private convertToAccounts(goldStoneAccounts: GetAssetAccountResponseContractV1[])
+  : IAccountMap {
+    const accountMap: IAccountMap = {};
     const accounts: IAccount[] =
       goldStoneAccounts
         .filter((account) => account) // defined
-        .map((account) => this.convertToAccount(account));
+        .map((account) => this.convertToAccount(account))
+        .sort( (a, b) =>
+          b.sinceCatalogMap[Since[Since.Today]].balance - a.sinceCatalogMap[Since[Since.Today]].balance);
 
-    return accounts.sort(
-      (a, b) =>
-      b.sinceCatalogMap.get(Since.Today)!.balance - a.sinceCatalogMap.get(Since.Today)!.balance);
+    accounts.forEach((a) => accountMap[a.id] =  a);
+
+    return accountMap;
   }
 
   private convertToAccount(goldStoneAccount: GetAssetAccountResponseContractV1): IAccount {
@@ -195,11 +183,11 @@ class AssetTools implements IAssetTools {
   }
 
   private convertToAccountCatalogMap(goldStoneAccountCatalogs: GetAssetAccountCatalogResponseContractV1[])
-  : IAccountCatalogMap {
+  : IAccountCatalogMapWrapper {
     goldStoneAccountCatalogs =
       goldStoneAccountCatalogs.filter((accountCatalog) => accountCatalog);
 
-    const catalogMap = new Map<string, IAccountCatalog>();
+    const catalogMap: IAccountCatalogMap = {};
 
     if (!goldStoneAccountCatalogs || goldStoneAccountCatalogs.length <= 0) {
       return {
@@ -212,7 +200,7 @@ class AssetTools implements IAssetTools {
     goldStoneAccountCatalogs.forEach((ac) => {
       const accountCatalog: IAccountCatalog
         = this.convertToAccountCatalog(ac);
-      catalogMap.set(accountCatalog.date, accountCatalog);
+      catalogMap[accountCatalog.date] = accountCatalog;
     });
 
     return {
@@ -223,7 +211,7 @@ class AssetTools implements IAssetTools {
   }
 
   private convertToSinceCatalogMap(goldStoneAccountCatalogs: GetAssetAccountCatalogResponseContractV1[])
-  : Map<Since, ISinceCatalog> {
+  : ISinceCatalogMap {
     goldStoneAccountCatalogs =
       goldStoneAccountCatalogs.filter((accountCatalog) => accountCatalog);
 
@@ -238,21 +226,21 @@ class AssetTools implements IAssetTools {
       = goldStoneAccountCatalogs.find((ac) => ac.date === today.addDays(-1).toString());
     const yesterdayValue: number = (yesterdayCatalog) ? yesterdayCatalog.value : 0;
 
-    const map = new Map<Since, ISinceCatalog>();
+    const sinceCatalogMap: ISinceCatalogMap = {};
     const todaySinceCatalog: ISinceCatalog =
       this.getTodaySinceCatalog(
         todayValue,
         yesterdayValue,
         todayLastModified);
 
-    map.set(Since.Today, todaySinceCatalog);
+    sinceCatalogMap[Since[Since.Today]] = todaySinceCatalog;
 
     store.sinces.forEach((since) => {
-      if (since === Since.Today) {
+      if (since === Since[Since.Today]) {
         return;
       }
 
-      const date: Date = this.getDate(since);
+      const date: Date = Sinces.getDate(since);
       const catalog: GetAssetAccountCatalogResponseContractV1 | undefined
         = goldStoneAccountCatalogs.find(
           (ac) => ac.date === date.toString());
@@ -261,18 +249,18 @@ class AssetTools implements IAssetTools {
       const pastSinceCatalog: ISinceCatalog =
         this.getPastSinceCatalog(pastValue, todayValue, date, since);
 
-      map.set(since, pastSinceCatalog);
+      sinceCatalogMap[since] = pastSinceCatalog;
     });
 
-    return map;
+    return sinceCatalogMap;
   }
 
   private createLiquidAccount(totalAsset: IAsset): IAccount {
-    const liquidAccounts: IAccount[]
-      = totalAsset.accounts.filter((a) => a.name !== assetsView.retirement.title);
+    const liquidAccountMap: IAccountMap = _.cloneDeep(totalAsset.accountMap);
+    delete liquidAccountMap[assetsView.retirement.name];
 
     const liquidAccount: IAccount =
-      this.createTotalAccount(liquidAccounts, 'Liquid');
+      this.createTotalAccount(liquidAccountMap, 'Liquid');
 
     liquidAccount.id = assetsView.liquid.name;
     liquidAccount.name = assetsView.liquid.title;
@@ -322,7 +310,7 @@ class AssetTools implements IAssetTools {
     pastValue: number,
     todayValue: number,
     date: Date,
-    since: Since)
+    since: string)
   : ISinceCatalog {
     return {
       balance: pastValue,
@@ -333,20 +321,20 @@ class AssetTools implements IAssetTools {
     };
   }
 
-  private getSinceCatalogsMap(accounts: IAccount[]): Map<Since, ISinceCatalog[]> {
-    const map = new Map<Since, ISinceCatalog[]>();
-    accounts.forEach((a) => {
-      for (const since of a.sinceCatalogMap.keys()) {
-        if (map.has(since) === false) {
-          map.set(since, []);
+  private getSinceCatalogsMap(accountMap: IAccountMap)
+  : {[ key: string ]: ISinceCatalog[]} {
+    const catalogsMap: {[ key: string ]: ISinceCatalog[]} = {};
+    Object.values(accountMap).forEach((a) => {
+      Object.keys(a.sinceCatalogMap).forEach((since) => {
+        if (!catalogsMap[since]) {
+          catalogsMap[since] = [];
         }
 
-        const catalogs: ISinceCatalog[] = map.get(since)!;
-        catalogs.push(a.sinceCatalogMap.get(since)!);
-      }
+        catalogsMap[since].push(a.sinceCatalogMap[since]);
+      });
     });
 
-    return map;
+    return catalogsMap;
   }
 
   private getTodaySinceCatalog(
@@ -360,16 +348,16 @@ class AssetTools implements IAssetTools {
       changePercent: this.getChangePercent(todayValue, yesterdayValue),
       date: Date.Today().toString(),
       updatedTime: (lastModified) ? moment.unix(lastModified!) : null,
-      since: Since.Today,
+      since: Since[Since.Today],
     };
   }
 
-  private getTotalAccountCatalogMap(accounts: IAccount[]): IAccountCatalogMap {
+  private getTotalAccountCatalogMap(accountMap: IAccountMap): IAccountCatalogMapWrapper {
     const map = {};
     let totalMinDate: Date = Date.Today();
     const totalMaxDate: Date = Date.Today();
 
-    accounts.forEach((a) => {
+    Object.values(accountMap).forEach((a) => {
       const minDate: Date = new Date(a.accountCatalogMap.minDate!);
       const maxDate: Date = new Date(a.accountCatalogMap.maxDate!);
       totalMinDate = Date.Min(totalMinDate, minDate);
@@ -381,7 +369,7 @@ class AssetTools implements IAssetTools {
       ) {
         const date: string = m.toString();
         const accountCatalog: IAccountCatalog
-          = a.accountCatalogMap.catalogMap.get(date)!;
+          = a.accountCatalogMap.catalogMap[date];
 
         if (!map[date]) {
           map[date] = 0;
@@ -391,7 +379,7 @@ class AssetTools implements IAssetTools {
       }
     });
 
-    const catalogMap = new Map<string, IAccountCatalog>();
+    const catalogMap: IAccountCatalogMap = {};
 
     for (let m: Date = totalMinDate; m <= totalMaxDate; m = m.addDays(1)) {
       const date: string = m.toString();
@@ -402,7 +390,7 @@ class AssetTools implements IAssetTools {
         balance: (map[date]) ? map[date] : 0,
       };
 
-      catalogMap.set(date, catalog);
+      catalogMap[date] = catalog;
     }
 
     return {

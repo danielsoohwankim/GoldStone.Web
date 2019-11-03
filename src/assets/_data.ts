@@ -1,5 +1,6 @@
 import colors from 'material-colors';
 import { IAssetLayout, IAssetsView, IAssetView } from './_interfaces';
+import { Date } from '@/shared/Date';
 import { goldStoneException } from '@/shared/GoldStoneException';
 
 const shadeLightDefault: number = 500;
@@ -159,33 +160,86 @@ export enum Since {
 }
 // tslint:disable-next-line
 class Sinces {
+  // get enum string keys
+  public static keys(): string[] {
+    return Object.keys(Since).filter((key) => !isNaN(Number(Since[key])));
+  }
+
+  public static getDate(since: Since | string): Date {
+    const today: Date = Date.Today();
+
+    switch (since) {
+      case Since.Today:
+      case Since[Since.Today]:
+        return today;
+      case Since.Yesterday:
+      case Since[Since.Yesterday]:
+        return today.addDays(-1);
+      case Since.OneWeek:
+      case Since[Since.OneWeek]:
+        return today.addWeeks(-1);
+      case Since.TwoWeeks:
+      case Since[Since.TwoWeeks]:
+        return today.addWeeks(-2);
+      case Since.OneMonth:
+      case Since[Since.OneMonth]:
+        return today.addMonths(-1);
+      case Since.ThreeMonths:
+      case Since[Since.ThreeMonths]:
+        return today.addMonths(-3);
+      case Since.SixMonths:
+      case Since[Since.SixMonths]:
+        return today.addMonths(-6);
+      case Since.OneYear:
+      case Since[Since.OneYear]:
+        return today.addYears(-1);
+    }
+
+    throw new goldStoneException(`invalid since type ${since}`);
+  }
+
   public static size(): number {
     // need to use !isNan to filter out string keys
     return Object.keys(Since).filter((key) => !isNaN(Number(Since[key]))).length;
   }
 
-  public static toString(since: Since) {
+  public static toString(since: Since | string) {
     switch (since) {
-      case Since.Custom: return 'Custom';
-      case Since.OneYear: return '1 Year';
-      case Since.SixMonths: return '6 Months';
-      case Since.ThreeMonths: return '3 Months';
-      case Since.OneMonth: return '1 Month';
-      case Since.TwoWeeks: return '2 Weeks';
-      case Since.OneWeek: return '1 Week';
-      case Since.Yesterday: return 'Yesterday';
-      case Since.Today: return 'Today';
+      case Since.Custom:
+      case Since[Since.Custom]:
+        return 'Custom';
+      case Since.OneYear:
+      case Since[Since.OneYear]:
+        return '1 Year';
+      case Since.SixMonths:
+      case Since[Since.SixMonths]:
+        return '6 Months';
+      case Since.ThreeMonths:
+      case Since[Since.ThreeMonths]:
+        return '3 Months';
+      case Since.OneMonth:
+      case Since[Since.OneMonth]:
+        return '1 Month';
+      case Since.TwoWeeks:
+      case Since[Since.TwoWeeks]:
+        return '2 Weeks';
+      case Since.OneWeek:
+      case Since[Since.OneWeek]:
+        return '1 Week';
+      case Since.Yesterday:
+      case Since[Since.Yesterday]:
+        return 'Yesterday';
+      case Since.Today:
+      case Since[Since.Today]:
+        return 'Today';
     }
 
     throw new goldStoneException(`invalid since ${since}`);
   }
+
   // get numeric values
   public static values(): Since[] {
     return (this.keys().map((key) => Since[key as any]) as unknown) as Since[];
-  }
-  // get enum string keys
-  private static keys(): string[] {
-    return Object.keys(Since).filter((key) => !isNaN(Number(Since[key])));
   }
 }
 

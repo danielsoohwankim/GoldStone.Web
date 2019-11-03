@@ -14,54 +14,54 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   // initial state
   private Assets: IAsset[] = [
     {
-      accounts: [],
+      accountMap: {},
       expandChart: false,
       name: assetsView.assets.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
-      selectedChartSince: Since.TwoWeeks,
+      selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.assets.title,
     },
     {
-      accounts: [],
+      accountMap: {},
       expandChart: false,
       name: assetsView.investment.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
-      selectedChartSince: Since.TwoWeeks,
+      selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.investment.title,
     },
     {
-      accounts: [],
+      accountMap: {},
       expandChart: false,
       name: assetsView.cash.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
-      selectedChartSince: Since.TwoWeeks,
+      selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.cash.title,
     },
     {
-      accounts: [],
+      accountMap: {},
       expandChart: false,
       name: assetsView.retirement.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
-      selectedChartSince: Since.TwoWeeks,
+      selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.retirement.title,
     },
   ];
-  private Sinces: Since[] = [
-    Since.Today,
-    Since.Yesterday,
-    Since.OneWeek,
-    Since.TwoWeeks,
+  private Sinces: string[] = [
+    Since[Since.Today],
+    Since[Since.Yesterday],
+    Since[Since.OneWeek],
+    Since[Since.TwoWeeks],
   ];
 
   get assets(): IAsset[] {
     return this.Assets;
   }
 
-  get sinces(): Since[] {
+  get sinces(): string[] {
     return this.Sinces;
   }
 
-  get maxSince(): Since {
+  get maxSince(): string {
     return this.Sinces[this.Sinces.length - 1];
   }
 
@@ -75,9 +75,13 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     return payload;
   }
 
-  @Action({commit: 'SelectSince'})
-  public selectSince(sinceKey: string): any {
-    return sinceKey;
+  @Action
+  public async selectSince(since: string): Promise<any> {
+    this.context.commit('SelectSince', since);
+
+    const assets: IAsset[] = await tools.getAssets(since);
+
+    this.context.commit('UpdateCatalogs', assets);
   }
 
   @Action({commit: 'SetAssets'})
@@ -91,7 +95,7 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Action({commit: 'ToggleExpandChart'})
-  public toggleExpandChart(payload: object): any {
+  public async toggleExpandChart(payload: object): Promise<any> {
     return payload;
   }
 
@@ -108,16 +112,17 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const { assetName, since } = payload;
     const asset: IAsset = tools.getAsset(assetName);
 
-    asset.selectedChartSince = (Since[since] as unknown) as Since;
+    asset.selectedChartSince = since;
   }
 
   @Mutation
   private SelectSince(sinceKey: string): void {
+    // update Sinces to have sinces up to the selectedSince
     for (
-      let since: Since = this.Sinces[this.Sinces.length - 1] - 1;
+      let since: Since = Since[this.Sinces[this.Sinces.length - 1]] - 1;
       since >= Since[sinceKey];
       since--) {
-      this.Sinces.push(since);
+      this.Sinces.push(Since[since]);
     }
   }
 
@@ -140,6 +145,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const asset: IAsset = tools.getAsset(assetName);
 
     asset.expandChart = expandChart;
+  }
+
+  @Mutation
+  private UpdateCatalogs(assets: IAsset[]): void {
+    this.Assets = assets;
   }
 }
 

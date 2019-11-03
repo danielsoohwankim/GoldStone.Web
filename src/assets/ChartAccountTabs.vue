@@ -67,8 +67,9 @@ export default class ChartAccountTabs extends Vue {
   get assetAccounts(): IAccount[] {
     const asset: IAsset = tools.getAsset(this.asset.name);
     const accounts: IAccount[] =
-      asset.accounts.filter(
-        (account: IAccount) => account.id !== assetsConstants.totalAccountId);
+      Object
+        .values(asset.accountMap)
+        .filter((account: IAccount) => account.id !== assetsConstants.totalAccountId);
 
     return accounts;
   }

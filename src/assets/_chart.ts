@@ -1,5 +1,5 @@
-import { assetsView, Sinces } from './_data';
-import { IAccount, IAccountCatalog, IAccountCatalogMap, IAsset, IAssetView, IChart } from './_interfaces';
+import { assetsView, Since, Sinces } from './_data';
+import { IAccount, IAccountCatalog, IAccountCatalogMap, IAccountCatalogMapWrapper, IAsset, IAssetView, IChart } from './_interfaces';
 import tools from './_tools';
 import layoutStore from '@/layout/_store';
 import { Date as GSDate } from '@/shared/Date';
@@ -49,11 +49,11 @@ class Chart implements IChart {
     const google: any = asset.google;
     const chart: any = asset.googleChart;
     const data = new google.visualization.DataTable();
-    const accountCatalogMap: IAccountCatalogMap = account.accountCatalogMap;
-    const catalogMap: Map<string, IAccountCatalog> = accountCatalogMap.catalogMap;
+    const accountCatalogMap: IAccountCatalogMapWrapper = account.accountCatalogMap;
+    const catalogMap: IAccountCatalogMap = accountCatalogMap.catalogMap;
     const minDate: GSDate = new GSDate(accountCatalogMap.minDate!);
     const maxDate: GSDate = new GSDate(accountCatalogMap.maxDate!);
-    const sinceDate: GSDate = tools.getDate(asset.selectedChartSince);
+    const sinceDate: GSDate = Sinces.getDate(Since[asset.selectedChartSince]);
     const chartStartDate: GSDate = GSDate.Max(minDate, sinceDate);
 
     data.addColumn('date', 'Date');
@@ -65,7 +65,7 @@ class Chart implements IChart {
       curDate.toString() <= maxDate.toString();
       curDate = curDate.addDays(1)
     ) {
-      const accountCatalog: IAccountCatalog | undefined = catalogMap.get(curDate.toString());
+      const accountCatalog: IAccountCatalog | undefined = catalogMap[curDate.toString()];
       const balance: number = (accountCatalog) ? accountCatalog.balance : 0;
       const date = curDate.toJsDate();
       const row = [date, balance, null];

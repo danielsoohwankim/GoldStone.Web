@@ -39,8 +39,7 @@ export default class ChartLayout extends Vue {
 
   // computed
   get selectedChartAccount(): IAccount {
-    return this.asset.accounts.filter(
-      (a) => a.id === this.asset.selectedChartAccountId)[0];
+    return this.asset.accountMap[this.asset.selectedChartAccountId!];
   }
 
   // methods

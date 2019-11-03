@@ -1,15 +1,13 @@
 import moment from 'moment';
-import { Since } from './_data';
-import { Date } from '@/shared/Date';
 import { GetAssetResponseContractV1 } from '@/clients/IGoldStoneClient';
 
 export interface IAccount {
-  accountCatalogMap: IAccountCatalogMap;
+  accountCatalogMap: IAccountCatalogMapWrapper;
   expand: boolean;
   id: string;
   isTracked?: boolean;
   name: string;
-  sinceCatalogMap: Map<Since, ISinceCatalog>;
+  sinceCatalogMap: ISinceCatalogMap;
   symbol: string;
 }
 
@@ -21,19 +19,27 @@ export interface IAccountCatalog {
 }
 
 export interface IAccountCatalogMap {
-  catalogMap: Map<string, IAccountCatalog>;
+  [ key: string ]: IAccountCatalog;
+}
+
+export interface IAccountCatalogMapWrapper {
+  catalogMap: IAccountCatalogMap;
   maxDate: string | null;
   minDate: string | null;
 }
 
+export interface IAccountMap {
+  [key: string]: IAccount;
+}
+
 export interface IAsset {
-  accounts: IAccount[];
+  accountMap: IAccountMap;
   expandChart: boolean;
   googleChart?: object;
   google?: object;
   name: string;
   selectedChartAccountId?: string;
-  selectedChartSince: Since;
+  selectedChartSince: string;
   title: string;
 }
 
@@ -60,11 +66,11 @@ export interface IAssetLayoutColor {
 
 export interface IAssetsStore {
   assets: IAsset[];
-  sinces: Since[];
-  maxSince: Since;
+  sinces: string[];
+  maxSince: string;
   selectChartAccount(payload: object): any;
   selectChartSince(payload: object): any;
-  selectSince(sinceKey: string): any;
+  selectSince(sinceKey: string): Promise<any>;
   setAssets(assets: IAsset[]): any;
   toggleExpandAccount(payload: object): any;
   toggleExpandChart(payload: object): any;
@@ -99,11 +105,11 @@ export interface IAssetsView {
 
 export interface IAssetTools {
   convertToAssets(goldStoneAssets: GetAssetResponseContractV1[]): IAsset[];
-  createTotalAccount(accounts: IAccount[], assetName: string): IAccount;
+  createTotalAccount(accountMap: IAccountMap, assetName: string): IAccount;
   createTotalAsset(assets: IAsset[]): IAsset;
-  getAsset(assetName: string): IAsset;
   getAccount(assetName: string, accountId: string): IAccount;
-  getDate(since: Since): Date;
+  getAsset(assetName: string): IAsset;
+  getAssets(since: string): Promise<IAsset[]>;
   toCurrencyString(num: number): string;
   toggleExpandChart(asset: IAsset): void;
 }
@@ -121,5 +127,9 @@ export interface ISinceCatalog {
   changePercent: number;
   date: string;
   updatedTime?: moment.Moment | null;
-  since: Since;
+  since: string;
+}
+
+export interface ISinceCatalogMap {
+  [key: string]: ISinceCatalog;
 }
