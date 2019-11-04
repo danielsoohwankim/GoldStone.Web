@@ -194,7 +194,7 @@ export default class SinceCatalogToday extends Vue {
   // methods
   public toggleExpandAccount(): void {
     assetsStore.toggleExpandAccount({
-      assetName: this.assetView.name,
+      assetId: this.assetView.id,
       accountId: this.account.id,
       expand: !this.account.expand});
   }

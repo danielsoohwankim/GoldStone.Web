@@ -84,15 +84,15 @@ export default class ChartAccountTabs extends Vue {
     }
 
     store.selectChartAccount({
-      assetName: this.asset.name,
+      assetId: this.asset.id,
       accountId,
     });
   }
 
   public toggleExpandChart(): void {
     store.toggleExpandChart({
-      assetName: this.asset.name,
-      expandChart: !this.asset.expandChart,
+      assetId: this.asset.id,
+      expand: !this.asset.expandChart,
     });
   }
 }

@@ -73,12 +73,12 @@ export interface IAssetsStore {
   assetMap: IAssetMap;
   sinces: string[];
   maxSince: string;
-  selectChartAccount(payload: object): any;
-  selectChartSince(payload: object): any;
-  selectSince(sinceKey: string): Promise<any>;
+  selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount;
+  selectChartSince(payload: ISelectChartSince): ISelectChartSince;
+  selectSince(sinceKey: string): Promise<void>;
   setAssetMap(assetMap: IAssetMap): IAssetMap;
-  toggleExpandAccount(payload: object): any;
-  toggleExpandChart(payload: object): any;
+  toggleExpandAccount(payload: IToggleExpandAccount): IToggleExpandAccount;
+  toggleExpandChart(payload: IToggleExpandChart): IToggleExpandChart;
 }
 
 export interface IAssetView {
@@ -124,6 +124,16 @@ export interface IChart {
     account: IAccount): void;
 }
 
+export interface ISelectChartAccount {
+  assetId: string;
+  accountId: string;
+}
+
+export interface ISelectChartSince {
+  assetId: string;
+  since: string;
+}
+
 export interface ISinceCatalog {
   balance: number;
   changeAmount: number;
@@ -135,4 +145,15 @@ export interface ISinceCatalog {
 
 export interface ISinceCatalogMap {
   [key: string]: ISinceCatalog;
+}
+
+export interface IToggleExpandAccount {
+  assetId: string;
+  accountId: string;
+  expand: boolean;
+}
+
+export interface IToggleExpandChart {
+  assetId: string;
+  expand: boolean;
 }

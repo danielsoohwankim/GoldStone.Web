@@ -94,8 +94,8 @@ export default class SinceCatalogHeader extends Vue {
   // methods
   public toggleExpandChart(): void {
     store.toggleExpandChart({
-      assetName: this.asset.name,
-      expandChart: !this.asset.expandChart,
+      assetId: this.asset.id,
+      expand: !this.asset.expandChart,
     });
   }
 }

@@ -72,7 +72,7 @@ export default class ChartSinceTabs extends Vue {
     }
 
     store.selectChartSince({
-      assetName: this.asset.name,
+      assetId: this.asset.id,
       since,
     });
   }

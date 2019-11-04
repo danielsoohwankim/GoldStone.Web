@@ -1,6 +1,7 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { assetsConstants, assetsView, Since } from './_data';
-import { IAccount, IAsset, IAssetMap, IAssetsStore } from './_interfaces';
+import { IAccount, IAsset, IAssetMap, IAssetsStore, ISelectChartAccount, ISelectChartSince, IToggleExpandAccount,
+  IToggleExpandChart } from './_interfaces';
 import tools from './_tools';
 import store from '@/shared/_store';
 
@@ -70,17 +71,17 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Action({commit: 'SelectChartAccount'})
-  public selectChartAccount(payload: object): any {
+  public selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount {
     return payload;
   }
 
   @Action({commit: 'SelectChartSince'})
-  public selectChartSince(payload: object): any {
+  public selectChartSince(payload: ISelectChartSince): ISelectChartSince {
     return payload;
   }
 
   @Action
-  public async selectSince(since: string): Promise<any> {
+  public async selectSince(since: string): Promise<void> {
     this.context.commit('SelectSince', since);
 
     const assetMap: IAssetMap = await tools.getAssetMapAsync(since);
@@ -94,27 +95,27 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Action({commit: 'ToggleExpandAccount'})
-  public toggleExpandAccount(payload: object): any {
+  public toggleExpandAccount(payload: IToggleExpandAccount): IToggleExpandAccount {
     return payload;
   }
 
   @Action({commit: 'ToggleExpandChart'})
-  public async toggleExpandChart(payload: object): Promise<any> {
+  public toggleExpandChart(payload: IToggleExpandChart): IToggleExpandChart {
     return payload;
   }
-// revisit - name -> id
+
   @Mutation
-  private SelectChartAccount(payload): void {
-    const { assetName, accountId } = payload;
-    const asset: IAsset = this.AssetMap[assetName];
+  private SelectChartAccount(payload: ISelectChartAccount): void {
+    const { assetId, accountId } = payload;
+    const asset: IAsset = this.AssetMap[assetId];
 
     asset.selectedChartAccountId = accountId;
   }
-// revisit - name -> id
+
   @Mutation
-  private SelectChartSince(payload): void {
-    const { assetName, since } = payload;
-    const asset: IAsset = this.AssetMap[assetName];
+  private SelectChartSince(payload: ISelectChartSince): void {
+    const { assetId, since } = payload;
+    const asset: IAsset = this.AssetMap[assetId];
 
     asset.selectedChartSince = since;
   }
@@ -136,19 +137,19 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 // revisit - name -> id
   @Mutation
-  private ToggleExpandAccount(payload): void {
-    const { assetName, accountId, expand } = payload;
-    const account: IAccount = this.AssetMap[assetName].accountMap[accountId];
+  private ToggleExpandAccount(payload: IToggleExpandAccount): void {
+    const { assetId, accountId, expand } = payload;
+    const account: IAccount = this.AssetMap[assetId].accountMap[accountId];
 
     account.expand = expand;
   }
 
   @Mutation
-  private ToggleExpandChart(payload): void {
-    const { assetName, expandChart } = payload;
-    const asset: IAsset = this.AssetMap[assetName];
+  private ToggleExpandChart(payload: IToggleExpandChart): void {
+    const { assetId, expand } = payload;
+    const asset: IAsset = this.AssetMap[assetId];
 
-    asset.expandChart = expandChart;
+    asset.expandChart = expand;
   }
 
   @Mutation
