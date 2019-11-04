@@ -2,7 +2,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { assetsConstants, assetsView, Since, Sinces } from './_data';
 import { IAccount, IAccountCatalog, IAccountCatalogMap, IAccountCatalogMapWrapper,
-  IAccountMap, IAsset, IAssetTools, ISinceCatalog, ISinceCatalogMap } from './_interfaces';
+  IAccountMap, IAsset, IAssetMap, IAssetTools, ISinceCatalog, ISinceCatalogMap } from './_interfaces';
 import store from './_store';
 import {
   GetAssetResponseContractV1,
@@ -16,10 +16,17 @@ import { IUser } from '@/user/_interfaces';
 import userStore from '@/user/_store';
 
 class AssetTools implements IAssetTools {
-  public convertToAssets(goldStoneAssets: GetAssetResponseContractV1[]): IAsset[] {
-    return goldStoneAssets
-            .filter((asset) => asset) // defined
-            .map((asset) => this.convertToAsset(asset));
+  public convertToAssetMap(goldStoneAssets: GetAssetResponseContractV1[]): IAssetMap {
+    const assetMap: IAssetMap = {};
+
+    goldStoneAssets
+      .filter((a) => a) // defined
+      .forEach((a) => {
+        const asset: IAsset = this.convertToAsset(a);
+        assetMap[asset.id] = asset;
+      });
+
+    return assetMap;
   }
 
   public createTotalAccount(accountMap: IAccountMap, assetName: string): IAccount {
@@ -57,17 +64,18 @@ class AssetTools implements IAssetTools {
     };
   }
 
-  public createTotalAsset(assets: IAsset[]): IAsset {
+  public createTotalAsset(assetMap: IAssetMap): IAsset {
     const totalAsset: IAsset = {
       accountMap: {},
       expandChart: false,
+      id: assetsView.assets.id,
       name: assetsView.assets.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.assets.title,
     };
 
-    assets.forEach((asset) => {
+    Object.values(assetMap).forEach((asset) => {
       const totalAccount: IAccount =
         this.createTotalAccount(asset.accountMap, asset.title);
 
@@ -93,17 +101,7 @@ class AssetTools implements IAssetTools {
     return totalAsset;
   }
 
-  public getAccount(assetName: string, accountId: string): IAccount {
-    const asset: IAsset = this.getAsset(assetName);
-
-    return asset.accountMap[accountId];
-  }
-
-  public getAsset(assetName: string): IAsset {
-    return store.assets.filter((a: IAsset) => a.name === assetName)[0];
-  }
-
-  public async getAssets(since: string): Promise<IAsset[]> {
+  public async getAssetMapAsync(since: string): Promise<IAssetMap> {
     const user: IUser = userStore.user;
     const userId: string = user.id;
     const startDate: Date = Sinces.getDate(since);
@@ -112,12 +110,12 @@ class AssetTools implements IAssetTools {
     const response: GetAssetsResponseContractV1 =
       ((await goldStoneClient.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
 
-    const assets: IAsset[] = this.convertToAssets(response.assets);
-    const totalAsset: IAsset = this.createTotalAsset(assets);
+    const assetMap: IAssetMap = this.convertToAssetMap(response.assets);
+    const totalAsset: IAsset = this.createTotalAsset(assetMap);
 
-    assets.push(totalAsset);
+    assetMap[totalAsset.id] = totalAsset;
 
-    return assets;
+    return assetMap;
   }
 
   public toCurrencyString(num: number): string {
@@ -137,6 +135,7 @@ class AssetTools implements IAssetTools {
   private convertToAsset(goldStoneAsset: GetAssetResponseContractV1): IAsset {
     return {
       accountMap: this.convertToAccounts(goldStoneAsset.accounts),
+      id: goldStoneAsset.assetType.toLowerCase(),
       expandChart: false,
       name: goldStoneAsset.assetType.toLowerCase(),
       selectedChartAccountId: assetsConstants.totalAccountId,

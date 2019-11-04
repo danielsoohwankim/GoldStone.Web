@@ -3,7 +3,7 @@
     <div class="left">
       <md-tabs 
         class="md-transparent"
-        :md-active-tab="tools.getAsset(asset.name).selectedChartAccountId"
+        :md-active-tab="selectedChartAccountId"
       >
         <template slot="md-tab" slot-scope="{ tab }">
           <ChartAccountTab
@@ -60,18 +60,22 @@ export default class ChartAccountTabs extends Vue {
   // styles
 
   // computed
-  get totalAccount(): IAccount {
-    return tools.getAccount(this.asset.name, assetsConstants.totalAccountId);
-  }
-
   get assetAccounts(): IAccount[] {
-    const asset: IAsset = tools.getAsset(this.asset.name);
+    const asset: IAsset = store.assetMap[this.asset.id];
     const accounts: IAccount[] =
       Object
         .values(asset.accountMap)
         .filter((account: IAccount) => account.id !== assetsConstants.totalAccountId);
 
     return accounts;
+  }
+
+  get selectedChartAccountId(): string {
+    return store.assetMap[this.asset.id].selectedChartAccountId!;
+  }
+
+  get totalAccount(): IAccount {
+    return store.assetMap[this.asset.id].accountMap[assetsConstants.totalAccountId];
   }
 
   // methods

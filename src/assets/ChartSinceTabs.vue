@@ -2,7 +2,7 @@
   <div class="default">
     <md-tabs 
       md-alignment="fixed"
-      :md-active-tab="tools.getAsset(asset.name).selectedChartSince"
+      :md-active-tab="selectedChartSince"
     >
       <template slot="md-tab" slot-scope="{ tab }">
         <ChartSinceTab
@@ -62,6 +62,9 @@ export default class ChartSinceTabs extends Vue {
   }
 
   // computed
+  get selectedChartSince(): string {
+    return store.assetMap[this.asset.id].selectedChartSince;
+  }
 
   // methods
   public onClick(since: string): void {

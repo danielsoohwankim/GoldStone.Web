@@ -5,7 +5,7 @@
     />
     <div v-for="assetView in assetViews" :key="assetView.name">
       <Asset 
-        :asset="tools.getAsset(assetView.name)"
+        :asset="getAsset(assetView.id)"
         :assetView="assetView"
         :expanded="assetView.expanded"
       />
@@ -16,7 +16,7 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { assetsConstants, assetsView } from './_data';
-import { IAccount, IAsset, IAssetTools, IAssetView, IAssetsStore } from './_interfaces';
+import { IAccount, IAsset, IAssetMap, IAssetTools, IAssetView, IAssetsStore } from './_interfaces';
 import store from './_store';
 import tools from './_tools';
 import Asset from './Asset.vue';
@@ -47,7 +47,6 @@ export default class Assets extends Vue {
     assetsView.retirement,
   ];
 
-  public readonly tools: IAssetTools = tools;
   public readonly store: IAssetsStore = store;
 
   // styles
@@ -65,16 +64,19 @@ export default class Assets extends Vue {
     //   = ((await client.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
 
     const response: GetAssetsResponseContractV1 = (testData as unknown) as GetAssetsResponseContractV1;
-    const assets: IAsset[] = tools.convertToAssets(response.assets);
-    const totalAsset: IAsset = tools.createTotalAsset(assets);
+    const assetMap: IAssetMap = tools.convertToAssetMap(response.assets);
+    const totalAsset: IAsset = tools.createTotalAsset(assetMap);
 
-    assets.push(totalAsset);
-    store.setAssets(assets);
+    assetMap[totalAsset.id] = totalAsset;
+    store.setAssetMap(assetMap);
   }
 
   // computed
 
   // methods
+  public getAsset(id: string): IAsset {
+    return store.assetMap[id];
+  }
 }
 </script>
 

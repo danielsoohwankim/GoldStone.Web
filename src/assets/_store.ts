@@ -1,6 +1,6 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { assetsConstants, assetsView, Since } from './_data';
-import { IAccount, IAsset, IAssetsStore } from './_interfaces';
+import { IAccount, IAsset, IAssetMap, IAssetsStore } from './_interfaces';
 import tools from './_tools';
 import store from '@/shared/_store';
 
@@ -12,40 +12,44 @@ import store from '@/shared/_store';
 })
 class AssetsStore extends VuexModule implements IAssetsStore {
   // initial state
-  private Assets: IAsset[] = [
-    {
+  private AssetMap: IAssetMap = {
+    [assetsView.assets.id]: {
       accountMap: {},
       expandChart: false,
+      id: assetsView.assets.id,
       name: assetsView.assets.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.assets.title,
     },
-    {
+    [assetsView.investment.id]: {
       accountMap: {},
       expandChart: false,
+      id: assetsView.investment.id,
       name: assetsView.investment.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.investment.title,
     },
-    {
+    [assetsView.cash.id]: {
       accountMap: {},
       expandChart: false,
+      id: assetsView.cash.id,
       name: assetsView.cash.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.cash.title,
     },
-    {
+    [assetsView.retirement.id]: {
       accountMap: {},
       expandChart: false,
+      id: assetsView.retirement.id,
       name: assetsView.retirement.name,
       selectedChartAccountId: assetsConstants.totalAccountId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.retirement.title,
     },
-  ];
+  };
   private Sinces: string[] = [
     Since[Since.Today],
     Since[Since.Yesterday],
@@ -53,8 +57,8 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     Since[Since.TwoWeeks],
   ];
 
-  get assets(): IAsset[] {
-    return this.Assets;
+  get assetMap(): IAssetMap {
+    return this.AssetMap;
   }
 
   get sinces(): string[] {
@@ -79,14 +83,14 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   public async selectSince(since: string): Promise<any> {
     this.context.commit('SelectSince', since);
 
-    const assets: IAsset[] = await tools.getAssets(since);
+    const assetMap: IAssetMap = await tools.getAssetMapAsync(since);
 
-    this.context.commit('UpdateCatalogs', assets);
+    this.context.commit('UpdateCatalogs', assetMap);
   }
 
-  @Action({commit: 'SetAssets'})
-  public setAssets(assets: IAsset[]): any {
-    return assets;
+  @Action({commit: 'SetAssetMap'})
+  public setAssetMap(assetMap: IAssetMap): IAssetMap {
+    return assetMap;
   }
 
   @Action({commit: 'ToggleExpandAccount'})
@@ -98,19 +102,19 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   public async toggleExpandChart(payload: object): Promise<any> {
     return payload;
   }
-
+// revisit - name -> id
   @Mutation
   private SelectChartAccount(payload): void {
     const { assetName, accountId } = payload;
-    const asset: IAsset = tools.getAsset(assetName);
+    const asset: IAsset = this.AssetMap[assetName];
 
     asset.selectedChartAccountId = accountId;
   }
-
+// revisit - name -> id
   @Mutation
   private SelectChartSince(payload): void {
     const { assetName, since } = payload;
-    const asset: IAsset = tools.getAsset(assetName);
+    const asset: IAsset = this.AssetMap[assetName];
 
     asset.selectedChartSince = since;
   }
@@ -127,14 +131,14 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Mutation
-  private SetAssets(assets: IAsset[]): void {
-    this.Assets = assets;
+  private SetAssetMap(assetMap: IAssetMap): void {
+    this.AssetMap = assetMap;
   }
-
+// revisit - name -> id
   @Mutation
   private ToggleExpandAccount(payload): void {
     const { assetName, accountId, expand } = payload;
-    const account: IAccount = tools.getAccount(assetName, accountId);
+    const account: IAccount = this.AssetMap[assetName].accountMap[accountId];
 
     account.expand = expand;
   }
@@ -142,14 +146,14 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   @Mutation
   private ToggleExpandChart(payload): void {
     const { assetName, expandChart } = payload;
-    const asset: IAsset = tools.getAsset(assetName);
+    const asset: IAsset = this.AssetMap[assetName];
 
     asset.expandChart = expandChart;
   }
 
   @Mutation
-  private UpdateCatalogs(assets: IAsset[]): void {
-    this.Assets = assets;
+  private UpdateCatalogs(assetMap: IAssetMap): void {
+    this.AssetMap = assetMap;
   }
 }
 

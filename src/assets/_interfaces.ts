@@ -34,6 +34,7 @@ export interface IAccountMap {
 
 export interface IAsset {
   accountMap: IAccountMap;
+  id: string;
   expandChart: boolean;
   googleChart?: object;
   google?: object;
@@ -64,14 +65,18 @@ export interface IAssetLayoutColor {
   text: string;
 }
 
+export interface IAssetMap {
+  [ key: string ]: IAsset;
+}
+
 export interface IAssetsStore {
-  assets: IAsset[];
+  assetMap: IAssetMap;
   sinces: string[];
   maxSince: string;
   selectChartAccount(payload: object): any;
   selectChartSince(payload: object): any;
   selectSince(sinceKey: string): Promise<any>;
-  setAssets(assets: IAsset[]): any;
+  setAssetMap(assetMap: IAssetMap): IAssetMap;
   toggleExpandAccount(payload: object): any;
   toggleExpandChart(payload: object): any;
 }
@@ -87,8 +92,9 @@ export interface IAssetView {
       font: string,
     },
   };
-  icon: string;
   expanded: boolean;
+  icon: string;
+  id: string;
   name: string;
   symbol?: string;
   title: string;
@@ -104,12 +110,10 @@ export interface IAssetsView {
 }
 
 export interface IAssetTools {
-  convertToAssets(goldStoneAssets: GetAssetResponseContractV1[]): IAsset[];
+  convertToAssetMap(goldStoneAssets: GetAssetResponseContractV1[]): IAssetMap;
   createTotalAccount(accountMap: IAccountMap, assetName: string): IAccount;
-  createTotalAsset(assets: IAsset[]): IAsset;
-  getAccount(assetName: string, accountId: string): IAccount;
-  getAsset(assetName: string): IAsset;
-  getAssets(since: string): Promise<IAsset[]>;
+  createTotalAsset(assetMap: IAssetMap): IAsset;
+  getAssetMapAsync(since: string): Promise<IAssetMap>;
   toCurrencyString(num: number): string;
   toggleExpandChart(asset: IAsset): void;
 }
