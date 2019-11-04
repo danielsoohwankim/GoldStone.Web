@@ -50,7 +50,6 @@ export default class ChartSinceTabs extends Vue {
     Since[Since.Custom],
   ];
   public readonly Sinces: Sinces = Sinces;
-  public readonly tools: IAssetTools = tools;
 
   // styles
   get style(): object {

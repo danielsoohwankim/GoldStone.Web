@@ -27,7 +27,7 @@
       </md-tabs>
     </div>
     <md-content
-      @click.prevent="tools.toggleExpandChart(asset)"
+      @click.prevent="toggleExpandChart()"
       class="right"
     >
     </md-content>
@@ -55,7 +55,6 @@ export default class ChartAccountTabs extends Vue {
   @Prop() public readonly assetView!: IAssetView;
   // data
   public readonly layoutStore: ILayoutStore = layoutStore;
-  public readonly tools: IAssetTools = tools;
 
   // styles
 
@@ -87,6 +86,13 @@ export default class ChartAccountTabs extends Vue {
     store.selectChartAccount({
       assetName: this.asset.name,
       accountId,
+    });
+  }
+
+  public toggleExpandChart(): void {
+    store.toggleExpandChart({
+      assetName: this.asset.name,
+      expandChart: !this.asset.expandChart,
     });
   }
 }

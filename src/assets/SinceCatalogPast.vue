@@ -37,7 +37,7 @@
     <md-list class="asset-catalog-balance">
       <md-list-item>
         <span class="asset-catalog-past">
-          {{ `$${this.tools.toCurrencyString(this.catalog.balance)}` }}
+          {{ balance }}
         </span>
       </md-list-item>
     </md-list>
@@ -76,11 +76,13 @@ export default class SinceCatalogPast extends Vue {
   public hover: boolean = false;
   public readonly layoutStore: ILayoutStore = layoutStore;
   public readonly Sinces: Sinces = Sinces;
-  public readonly tools: IAssetTools = tools;
 
   // styles
 
   // computed
+  get balance(): string {
+    return `$${tools.toCurrencyString(this.catalog.balance)}`;
+  }
 
   // methods
 }

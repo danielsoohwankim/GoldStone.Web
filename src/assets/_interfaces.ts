@@ -115,7 +115,6 @@ export interface IAssetTools {
   createTotalAsset(assetMap: IAssetMap): IAsset;
   getAssetMapAsync(since: string): Promise<IAssetMap>;
   toCurrencyString(num: number): string;
-  toggleExpandChart(asset: IAsset): void;
 }
 
 export interface IChart {

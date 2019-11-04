@@ -1,7 +1,7 @@
 <template>
   <div 
     class="asset-catalog"
-    @click.prevent="tools.toggleExpandChart(asset)"
+    @click.prevent="toggleExpandChart()"
   >
     <md-list class="asset-catalog-symbol" :style="headerStyle">
       <md-list-item>
@@ -80,7 +80,6 @@ export default class SinceCatalogHeader extends Vue {
   @Prop() public readonly asset!: IAsset;
   // data
   public readonly layoutStore: ILayoutStore = layoutStore;
-  public readonly tools: IAssetTools = tools;
 
   // styles
   get headerStyle(): object {
@@ -93,6 +92,12 @@ export default class SinceCatalogHeader extends Vue {
   // computed
 
   // methods
+  public toggleExpandChart(): void {
+    store.toggleExpandChart({
+      assetName: this.asset.name,
+      expandChart: !this.asset.expandChart,
+    });
+  }
 }
 </script>
 

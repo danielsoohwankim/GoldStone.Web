@@ -125,13 +125,6 @@ class AssetTools implements IAssetTools {
     });
   }
 
-  public toggleExpandChart(asset: IAsset): void {
-    store.toggleExpandChart({
-      assetName: asset.name,
-      expandChart: !asset.expandChart,
-    });
-  }
-
   private convertToAsset(goldStoneAsset: GetAssetResponseContractV1): IAsset {
     return {
       accountMap: this.convertToAccounts(goldStoneAsset.accounts),

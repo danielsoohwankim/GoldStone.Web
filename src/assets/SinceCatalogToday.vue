@@ -79,7 +79,7 @@
     <md-list class="asset-catalog-balance">
       <md-list-item>
         <span class="asset-catalog-today">
-          {{ `$${this.tools.toCurrencyString(this.catalog.balance)}` }}
+          {{ balance }}
         </span>
       </md-list-item>
     </md-list>
@@ -126,7 +126,6 @@ export default class SinceCatalogToday extends Vue {
   public readonly BaseStatus = BaseStatus;
   public readonly layoutStore: ILayoutStore = layoutStore;
   public readonly Sinces: Sinces = Sinces;
-  public readonly tools: IAssetTools = tools;
   public hover: boolean = false;
 
   // styles
@@ -158,6 +157,10 @@ export default class SinceCatalogToday extends Vue {
   }
 
   // computed
+  get balance(): string {
+    return `$${tools.toCurrencyString(this.catalog.balance)}`;
+  }
+
   get updatedStatus(): BaseStatus {
     if (!this.catalog.updatedTime) {
       return (this.account.isTracked === true)
