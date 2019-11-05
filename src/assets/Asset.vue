@@ -130,7 +130,7 @@ export default class Asset extends Vue {
     const pastCatalogs: ISinceCatalog[] = [];
 
     store.sinces
-      .filter((since) => since !== Since[Since.Today])
+      .filter((since) => account.sinceCatalogMap[since] && since !== Since[Since.Today])
       .forEach((since) => pastCatalogs.push(account.sinceCatalogMap[since]));
 
     return pastCatalogs;

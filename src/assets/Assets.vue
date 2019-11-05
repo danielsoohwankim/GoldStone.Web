@@ -15,20 +15,15 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { assetsConstants, assetsView } from './_data';
-import { IAccount, IAsset, IAssetMap, IAssetTools, IAssetView, IAssetsStore } from './_interfaces';
+import { assetsConstants, assetsView, Sinces } from './_data';
+import { IAsset, IAssetMap, IAssetView, IAssetsStore } from './_interfaces';
 import store from './_store';
 import tools from './_tools';
 import Asset from './Asset.vue';
 import SinceSelect from './SinceSelect.vue';
-import goldStoneClient from '@/clients/goldStoneClient';
-import { GetAssetsResponseContractV1 } from '@/clients/IGoldStoneClient';
-import { Date, IDate } from '@/shared/Date';
+import { Date } from '@/shared/Date';
 import { IUser } from '@/user/_interfaces';
 import userStore from '@/user/_store';
-
-// todo: remove
-import testData from './testData.js';
 
 @Component({
   components: {
@@ -53,21 +48,30 @@ export default class Assets extends Vue {
 
   // lifecycle
   public async created() {
-    // const startDate: Date = tools.getDate(store.maxSince);
-    // const endDate: Date = Date.Today();
-    const userId: string = await goldStoneClient.getAdminUserId() as string;
-    const user: IUser = {
-      id: userId,
-    };
-    await userStore.setUser(user);
-    // const response: GetAssetsResponseContractV1
-    //   = ((await client.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
+    let user: IUser;
 
-    const response: GetAssetsResponseContractV1 = (testData as unknown) as GetAssetsResponseContractV1;
-    const assetMap: IAssetMap = tools.convertToAssetMap(response.assets);
-    const totalAsset: IAsset = tools.createTotalAsset(assetMap);
+    try {
+      user = await userStore.getUserAsync();
+    } catch (e) {
+      // tslint:disable-next-line
+      console.log(e);
+      return;
+    }
 
-    assetMap[totalAsset.id] = totalAsset;
+    userStore.setUser(user!);
+
+    const startDate: Date = Sinces.getDate(store.maxSince);
+    const endDate: Date = Date.Today();
+    let assetMap: IAssetMap;
+
+    try {
+      assetMap = await tools.getAssetMapAsync(user!.id, startDate, endDate);
+    } catch (e) {
+      // tslint:disable-next-line
+      console.log(e);
+      return;
+    }
+
     store.setAssetMap(assetMap);
   }
 

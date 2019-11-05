@@ -1,9 +1,13 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
-import { assetsConstants, assetsView, Since } from './_data';
-import { IAccount, IAsset, IAssetMap, IAssetsStore, ISelectChartAccount, ISelectChartSince, IToggleExpandAccount,
-  IToggleExpandChart } from './_interfaces';
+import _ from 'lodash';
+import { assetsConstants, assetsView, Since, Sinces } from './_data';
+import { IAccount, IAccountCatalogMap, IAsset, IAssetChanges, IAssetMap, IAssetsStore, ISelectChartAccount,
+  ISelectChartSince, ISinceCatalogMap, IToggleExpandAccount, IToggleExpandChart } from './_interfaces';
 import tools from './_tools';
 import store from '@/shared/_store';
+import { Date } from '@/shared/Date';
+import { IUser } from '@/user/_interfaces';
+import userStore from '@/user/_store';
 
 @Module({
   namespaced: true,
@@ -82,11 +86,46 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
   @Action
   public async selectSince(since: string): Promise<void> {
+    const currentSince: Since = this.context.getters.maxSince as Since;
+
     this.context.commit('SelectSince', since);
 
-    const assetMap: IAssetMap = await tools.getAssetMapAsync(since);
+    const user: IUser = userStore.user;
+    const startDate: Date = Sinces.getDate(since);
+    const endDate: Date = Sinces.getDate(currentSince).addDays(-1);
 
-    this.context.commit('UpdateCatalogs', assetMap);
+    const deltaAssetMap: IAssetMap = await tools.getAssetMapAsync(user.id, startDate, endDate);
+
+    const assetChanges: IAssetChanges = {};
+    // calculate the changes for mutation (diff)
+    Object.values(deltaAssetMap).forEach((deltaAsset: IAsset) => {
+      if (deltaAssetMap[deltaAsset.id]!) {
+        assetChanges[deltaAsset.id] = {};
+      }
+
+      Object.values(deltaAsset.accountMap).forEach((deltaAccount: IAccount) => {
+        const account: IAccount = this.AssetMap[deltaAsset.id].accountMap[deltaAccount.id];
+        const newAccountCatalogMap: IAccountCatalogMap = _.cloneDeep(account.accountCatalogMap.catalogMap);
+        const newSinceCatalogMap: ISinceCatalogMap = _.cloneDeep(account.sinceCatalogMap);
+
+        Object
+            .values(deltaAccount.accountCatalogMap.catalogMap)
+            .filter((ac) => startDate.toString() <= ac.date && ac.date <= endDate.toString())
+            .forEach((ac) => newAccountCatalogMap[ac.date] = ac);
+        Object
+          .values(deltaAccount.sinceCatalogMap)
+          .filter((sc) => sc.since === since)
+          .forEach((sc) => newSinceCatalogMap[sc.since] = sc);
+
+        assetChanges[deltaAsset.id][deltaAccount.id] = {
+          accountCatalogMap: newAccountCatalogMap,
+          minDate: deltaAccount.accountCatalogMap.minDate!,
+          sinceCatalogMap: newSinceCatalogMap,
+        };
+      });
+    });
+
+    this.context.commit('CommitAssetChanges', assetChanges);
   }
 
   @Action({commit: 'SetAssetMap'})
@@ -153,8 +192,24 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Mutation
-  private UpdateCatalogs(assetMap: IAssetMap): void {
-    this.AssetMap = assetMap;
+  private CommitAssetChanges(assetChanges: IAssetChanges): void {
+    Object.keys(assetChanges).forEach((assetId) => {
+      const accountChanges = assetChanges[assetId];
+
+      // update delta accounts
+      Object.keys(accountChanges).forEach((accountId) => {
+        const accountChange = accountChanges[accountId];
+        // update account minDate
+        this.AssetMap[assetId].accountMap[accountId].accountCatalogMap.minDate
+          = accountChange.minDate;
+        // update account catalogs
+        this.AssetMap[assetId].accountMap[accountId].accountCatalogMap.catalogMap
+          = accountChange.accountCatalogMap;
+        // update delta sinces
+        this.AssetMap[assetId].accountMap[accountId].sinceCatalogMap
+          = accountChange.sinceCatalogMap;
+      });
+    });
   }
 }
 

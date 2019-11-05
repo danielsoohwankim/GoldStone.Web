@@ -4,5 +4,6 @@ export interface IUser {
 
 export interface IUserStore {
   user: IUser;
-  setUser(user: IUser): Promise<IUser>;
+  getUserAsync(): Promise<IUser>;
+  setUser(user: IUser): IUser;
 }

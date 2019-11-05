@@ -1,5 +1,6 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { IUser, IUserStore } from './_interfaces';
+import goldStoneClient from '@/clients/goldStoneClient';
 import store from '@/shared/_store';
 
 @Module({
@@ -17,8 +18,18 @@ class UserStore extends VuexModule implements IUserStore {
     return this.User;
   }
 
+  @Action
+  public async getUserAsync(): Promise<IUser> {
+    const userId: string = await goldStoneClient.getAdminUserId() as string;
+    const user: IUser = {
+      id: userId,
+    };
+
+    return user;
+  }
+
   @Action({commit: 'SetUser'})
-  public async setUser(user: IUser): Promise<IUser> {
+  public setUser(user: IUser): IUser {
     return user;
   }
 

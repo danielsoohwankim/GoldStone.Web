@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { GetAssetResponseContractV1 } from '@/clients/IGoldStoneClient';
+import { Date } from '@/shared/Date';
 
 export interface IAccount {
   accountCatalogMap: IAccountCatalogMapWrapper;
@@ -42,6 +42,19 @@ export interface IAsset {
   selectedChartAccountId?: string;
   selectedChartSince: string;
   title: string;
+}
+
+// keeps track of only the changes (diff) made to an asset
+export interface IAssetChanges {
+  // assetId
+  [key: string]: {
+    // accountId
+    [key: string]: {
+      accountCatalogMap: IAccountCatalogMap;
+      minDate: string;
+      sinceCatalogMap: ISinceCatalogMap;
+    },
+  };
 }
 
 export interface IAssetLayout {
@@ -110,10 +123,7 @@ export interface IAssetsView {
 }
 
 export interface IAssetTools {
-  convertToAssetMap(goldStoneAssets: GetAssetResponseContractV1[]): IAssetMap;
-  createTotalAccount(accountMap: IAccountMap, assetName: string): IAccount;
-  createTotalAsset(assetMap: IAssetMap): IAsset;
-  getAssetMapAsync(since: string): Promise<IAssetMap>;
+  getAssetMapAsync(userId: string, startDate: Date, endDate: Date): Promise<IAssetMap>;
   toCurrencyString(num: number): string;
 }
 
