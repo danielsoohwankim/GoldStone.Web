@@ -48,6 +48,10 @@ export default class Assets extends Vue {
 
   // lifecycle
   public async created() {
+    if (store.isLoaded === true) {
+      return;
+    }
+
     let user: IUser;
 
     try {

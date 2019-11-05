@@ -84,6 +84,7 @@ export interface IAssetMap {
 
 export interface IAssetsStore {
   assetMap: IAssetMap;
+  isLoaded: boolean;
   sinces: string[];
   maxSince: string;
   selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount;

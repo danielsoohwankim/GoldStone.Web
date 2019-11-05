@@ -55,6 +55,7 @@ class AssetsStore extends VuexModule implements IAssetsStore {
       title: assetsView.retirement.title,
     },
   };
+  private IsLoaded: boolean = false;
   private Sinces: string[] = [
     Since[Since.Today],
     Since[Since.Yesterday],
@@ -64,6 +65,10 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
   get assetMap(): IAssetMap {
     return this.AssetMap;
+  }
+
+  get isLoaded(): boolean {
+    return this.IsLoaded;
   }
 
   get sinces(): string[] {
@@ -144,6 +149,27 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Mutation
+  private CommitAssetChanges(assetChanges: IAssetChanges): void {
+    Object.keys(assetChanges).forEach((assetId) => {
+      const accountChanges = assetChanges[assetId];
+
+      // update delta accounts
+      Object.keys(accountChanges).forEach((accountId) => {
+        const accountChange = accountChanges[accountId];
+        // update account minDate
+        this.AssetMap[assetId].accountMap[accountId].accountCatalogMap.minDate
+          = accountChange.minDate;
+        // update account catalogs
+        this.AssetMap[assetId].accountMap[accountId].accountCatalogMap.catalogMap
+          = accountChange.accountCatalogMap;
+        // update delta sinces
+        this.AssetMap[assetId].accountMap[accountId].sinceCatalogMap
+          = accountChange.sinceCatalogMap;
+      });
+    });
+  }
+
+  @Mutation
   private SelectChartAccount(payload: ISelectChartAccount): void {
     const { assetId, accountId } = payload;
     const asset: IAsset = this.AssetMap[assetId];
@@ -173,6 +199,7 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   @Mutation
   private SetAssetMap(assetMap: IAssetMap): void {
     this.AssetMap = assetMap;
+    this.IsLoaded = true;
   }
 // revisit - name -> id
   @Mutation
@@ -189,27 +216,6 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const asset: IAsset = this.AssetMap[assetId];
 
     asset.expandChart = expand;
-  }
-
-  @Mutation
-  private CommitAssetChanges(assetChanges: IAssetChanges): void {
-    Object.keys(assetChanges).forEach((assetId) => {
-      const accountChanges = assetChanges[assetId];
-
-      // update delta accounts
-      Object.keys(accountChanges).forEach((accountId) => {
-        const accountChange = accountChanges[accountId];
-        // update account minDate
-        this.AssetMap[assetId].accountMap[accountId].accountCatalogMap.minDate
-          = accountChange.minDate;
-        // update account catalogs
-        this.AssetMap[assetId].accountMap[accountId].accountCatalogMap.catalogMap
-          = accountChange.accountCatalogMap;
-        // update delta sinces
-        this.AssetMap[assetId].accountMap[accountId].sinceCatalogMap
-          = accountChange.sinceCatalogMap;
-      });
-    });
   }
 }
 

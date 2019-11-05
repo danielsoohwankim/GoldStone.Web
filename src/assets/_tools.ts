@@ -39,9 +39,11 @@ class AssetTools implements IAssetTools {
   }
 
   private convertToAsset(goldStoneAsset: GetAssetResponseContractV1): IAsset {
+    const assetId: string = goldStoneAsset.assetType.toLowerCase();
+
     return {
-      accountMap: this.convertToAccounts(goldStoneAsset.accounts),
-      id: goldStoneAsset.assetType.toLowerCase(),
+      accountMap: this.convertToAccounts(assetId, goldStoneAsset.accounts),
+      id: assetId,
       expandChart: false,
       name: goldStoneAsset.assetType.toLowerCase(),
       selectedChartAccountId: assetsConstants.totalAccountId,
@@ -50,13 +52,15 @@ class AssetTools implements IAssetTools {
     };
   }
 
-  private convertToAccounts(goldStoneAccounts: GetAssetAccountResponseContractV1[])
+  private convertToAccounts(
+    assetId: string,
+    goldStoneAccounts: GetAssetAccountResponseContractV1[])
   : IAccountMap {
     const accountMap: IAccountMap = {};
     const accounts: IAccount[] =
       goldStoneAccounts
         .filter((account) => account) // defined
-        .map((account) => this.convertToAccount(account))
+        .map((account) => this.convertToAccount(assetId, account))
         .sort( (a, b) =>
           b.sinceCatalogMap[Since[Since.Today]].balance - a.sinceCatalogMap[Since[Since.Today]].balance);
 
@@ -65,14 +69,20 @@ class AssetTools implements IAssetTools {
     return accountMap;
   }
 
-  private convertToAccount(goldStoneAccount: GetAssetAccountResponseContractV1): IAccount {
+  private convertToAccount(
+    assetId: string,
+    goldStoneAccount: GetAssetAccountResponseContractV1): IAccount {
     return {
       accountCatalogMap: this.convertToAccountCatalogMap(goldStoneAccount.accountCatalogs),
       expand: false,
       id: goldStoneAccount.accountId,
       isTracked: goldStoneAccount.isTracked,
       name: goldStoneAccount.accountName,
-      sinceCatalogMap: this.convertToSinceCatalogMap(goldStoneAccount.accountCatalogs),
+      sinceCatalogMap:
+        this.convertToSinceCatalogMap(
+          assetId,
+          goldStoneAccount.accountId,
+          goldStoneAccount.accountCatalogs),
       symbol: goldStoneAccount.accountSymbol,
     };
   }
@@ -128,16 +138,25 @@ class AssetTools implements IAssetTools {
     return assetMap;
   }
 
-  private convertToSinceCatalogMap(goldStoneAccountCatalogs: GetAssetAccountCatalogResponseContractV1[])
+  private convertToSinceCatalogMap(
+    assetId: string,
+    accountId: string,
+    goldStoneAccountCatalogs: GetAssetAccountCatalogResponseContractV1[])
   : ISinceCatalogMap {
     goldStoneAccountCatalogs =
       goldStoneAccountCatalogs.filter((accountCatalog) => accountCatalog);
 
     const today: Date = Date.Today();
+    const account: IAccount = store.assetMap[assetId].accountMap[accountId];
 
     const todayCatalog: GetAssetAccountCatalogResponseContractV1 | undefined
       = goldStoneAccountCatalogs.find((ac) => ac.date === today.toString());
-    const todayValue: number = (todayCatalog) ? todayCatalog.value : 0;
+    const todayValue: number =
+      (todayCatalog) ? todayCatalog.value
+        : (account)
+          ? account.sinceCatalogMap[Since[Since.Today]].balance
+          : 0;
+
     const todayLastModified: number | null =
       (todayCatalog) ? todayCatalog.lastModified : null;
     const yesterdayCatalog: GetAssetAccountCatalogResponseContractV1 | undefined
