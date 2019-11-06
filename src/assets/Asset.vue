@@ -217,12 +217,12 @@ $content-width: 100%;
 }
 
 .asset-catalog-since {
-  width: 13%;
+  width: 10%;
   min-width: 100px;
 }
 
 .asset-catalog-date {
-  width: 17%;
+  width: 15%;
   min-width: 150px;
 }
 
@@ -234,6 +234,11 @@ $content-width: 100%;
 .asset-catalog-balance {
   width: 15%;
   min-width: 150px;
+}
+
+.asset-catalog-edit {
+  width: 5%;
+  min-width: 50px;
 }
 
 .hover-dark > .md-list {

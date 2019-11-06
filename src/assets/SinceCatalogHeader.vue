@@ -62,6 +62,16 @@
         </span>
       </md-list-item>
     </md-list>
+
+    <md-list class="asset-catalog-edit" :style="headerStyle">
+      <md-list-item>
+        <span
+          class="title"
+          :class="layoutStore.theme"
+        >Edit
+        </span>
+      </md-list-item>
+    </md-list>
   </div>
 </template>
 

@@ -94,6 +94,20 @@
         </span>
       </md-list-item>
     </md-list>
+
+    <md-list class="asset-catalog-edit">
+      <md-list-item>
+        <span class="asset-catalog-today">
+          <md-icon v-if="showEdit">
+            <span
+              style="font-size: 18px;"
+              @click.prevent="onClick(account)"
+            >edit
+            </span>
+          </md-icon>
+        </span>
+      </md-list-item>
+    </md-list>
   </div>
 </template>
 
@@ -161,6 +175,10 @@ export default class SinceCatalogToday extends Vue {
     return `$${tools.toCurrencyString(this.catalog.balance)}`;
   }
 
+  get showEdit(): boolean {
+    return this.assetView.id !== assetsConstants.assetsId;
+  }
+
   get updatedStatus(): BaseStatus {
     if (!this.catalog.updatedTime) {
       return (this.account.isTracked === true)
@@ -192,6 +210,10 @@ export default class SinceCatalogToday extends Vue {
   }
 
   // methods
+  public onClick(account: IAccount): void {
+    // console.log(account.symbol);
+  }
+
   public toggleExpandAccount(): void {
     assetsStore.toggleExpandAccount({
       assetId: this.assetView.id,

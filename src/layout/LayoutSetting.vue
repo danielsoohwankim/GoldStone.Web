@@ -30,12 +30,6 @@
               class="md-accent" 
             />
           </md-list-item>
-
-          <!-- <md-list-item>
-            <md-icon>bluetooth</md-icon>
-            <span class="md-list-item-text">Bluetooth</span>
-            <md-switch v-model="settings.bluetooth" />
-          </md-list-item> -->
         </md-list>
       </div>
     </div>

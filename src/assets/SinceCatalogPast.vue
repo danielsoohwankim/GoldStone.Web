@@ -52,6 +52,13 @@
         </span>
       </md-list-item>
     </md-list>
+
+    <md-list class="asset-catalog-edit">
+      <md-list-item>
+        <span class="asset-catalog-past">
+        </span>
+      </md-list-item>
+    </md-list>
   </div>
 </template>
 
