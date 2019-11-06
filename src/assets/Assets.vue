@@ -1,7 +1,7 @@
 <template>
   <div>
     <SinceSelect
-      :selectedSince="store.maxSince"
+      :selectedSince="store.minSince"
     />
     <div v-for="assetView in assetViews" :key="assetView.name">
       <Asset 
@@ -64,12 +64,10 @@ export default class Assets extends Vue {
 
     userStore.setUser(user!);
 
-    const startDate: Date = Sinces.getDate(store.maxSince);
-    const endDate: Date = Date.Today();
     let assetMap: IAssetMap;
 
     try {
-      assetMap = await tools.getAssetMapAsync(user!.id, startDate, endDate);
+      assetMap = await tools.getAssetMapAsync(user!.id, store.minSince);
     } catch (e) {
       // tslint:disable-next-line
       console.log(e);

@@ -1,5 +1,4 @@
 import moment from 'moment';
-import { Date } from '@/shared/Date';
 
 export interface IAccount {
   accountCatalogMap: IAccountCatalogMapWrapper;
@@ -45,16 +44,9 @@ export interface IAsset {
 }
 
 // keeps track of only the changes (diff) made to an asset
-export interface IAssetChanges {
-  // assetId
-  [key: string]: {
-    // accountId
-    [key: string]: {
-      accountCatalogMap: IAccountCatalogMap;
-      minDate: string;
-      sinceCatalogMap: ISinceCatalogMap;
-    },
-  };
+export interface IAssetChange {
+  assetId: string;
+  accountMap: IAccountMap;
 }
 
 export interface IAssetLayout {
@@ -86,9 +78,9 @@ export interface IAssetsStore {
   assetMap: IAssetMap;
   isLoaded: boolean;
   sinces: string[];
-  maxSince: string;
+  minSince: string;
   selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount;
-  selectChartSince(payload: ISelectChartSince): ISelectChartSince;
+  selectChartSince(payload: ISelectChartSince): Promise<ISelectChartSince>;
   selectSince(sinceKey: string): Promise<void>;
   setAssetMap(assetMap: IAssetMap): IAssetMap;
   toggleExpandAccount(payload: IToggleExpandAccount): IToggleExpandAccount;
@@ -124,7 +116,7 @@ export interface IAssetsView {
 }
 
 export interface IAssetTools {
-  getAssetMapAsync(userId: string, startDate: Date, endDate: Date): Promise<IAssetMap>;
+  getAssetMapAsync(userId: string, since: string): Promise<IAssetMap>;
   toCurrencyString(num: number): string;
 }
 

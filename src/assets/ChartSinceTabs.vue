@@ -66,12 +66,12 @@ export default class ChartSinceTabs extends Vue {
   }
 
   // methods
-  public onClick(since: string): void {
+  public async onClick(since: string): Promise<void> {
     if (this.asset.selectedChartSince === since) {
       return;
     }
 
-    store.selectChartSince({
+    await store.selectChartSince({
       assetId: this.asset.id,
       since,
     });

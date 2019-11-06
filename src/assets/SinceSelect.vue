@@ -54,12 +54,12 @@ export default class SinceSelect extends Vue {
     return Sinces.toString(since);
   }
 
-  public onSelect(since: string): void {
+  public async onSelect(since: string): Promise<void> {
     if (this.isDisabled(since) === true) {
       return;
     }
 
-    store.selectSince(since);
+    await store.selectSince(since);
   }
 }
 </script>

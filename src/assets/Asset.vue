@@ -108,21 +108,34 @@ export default class Asset extends Vue {
 
   // computed
   get accounts(): IAccount[] {
+    let accounts: IAccount[] = [];
+
     if (this.asset.name === assetsView.assets.name) {
       // reorder total accounts
-      const accounts: IAccount[] = [];
       if (Object.keys(this.asset.accountMap).length <= 0) {
         return accounts;
       }
 
       this.totalAssetAccountOrder.forEach(
         (a) => accounts.push(this.asset.accountMap[a.name]));
-      accounts.push(this.asset.accountMap[assetsConstants.totalAccountId]);
+      accounts.push(this.asset.accountMap[assetsConstants.totalId]);
 
       return accounts;
     }
 
-    return Object.values(this.asset.accountMap);
+    accounts = Object.values(this.asset.accountMap);
+
+    if (accounts.length <= 0) {
+      return accounts;
+    }
+
+    accounts = accounts
+                .filter((a) => a.id !== assetsConstants.totalId)
+                .sort( (a, b) =>
+                  b.sinceCatalogMap[Since[Since.Today]].balance - a.sinceCatalogMap[Since[Since.Today]].balance);
+    accounts.push(this.asset.accountMap[assetsConstants.totalId]);
+
+    return accounts;
   }
 
   // methods

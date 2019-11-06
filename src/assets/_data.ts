@@ -9,8 +9,11 @@ const shadeDarkDefault: number = 700;
 const shadeDarkFont: string = '400';
 
 class AssetsConstants {
+  public assetsId: string = 'assets';
+  public liquidId: string = 'liquid';
+  public liquidName: string = 'Liquid';
   public startDateOffset: number = -14;
-  public totalAccountId: string = 'total';
+  public totalId: string = 'total';
   public totalName: string = 'Total';
   public totalSymbol: string = 'TOTAL';
   public updateToleranceMinutes: number = 305;
@@ -33,8 +36,8 @@ class AssetsView implements IAssetsView {
     },
     expanded: true,
     icon: 'account_balance',
-    id: 'assets',
-    name: 'assets',
+    id: assetsConstants.assetsId,
+    name: assetsConstants.assetsId,
     title: 'Assets',
   };
 
@@ -123,10 +126,10 @@ class AssetsView implements IAssetsView {
     },
     expanded: false,
     icon: 'insert_chart_outlined',
-    id: 'liquid',
-    name: 'liquid',
+    id: assetsConstants.liquidId,
+    name: assetsConstants.liquidId,
     symbol: 'LIQUID',
-    title: 'Liquid',
+    title: assetsConstants.liquidName,
   };
 
   public retirement: IAssetView = {
@@ -168,6 +171,17 @@ class Sinces {
   // get enum string keys
   public static keys(): string[] {
     return Object.keys(Since).filter((key) => !isNaN(Number(Since[key])));
+  }
+
+  // gets the list of changes (from, to]
+  public static getChanges(from: string, to: string): string[] {
+    const sinces: string[] = [];
+
+    for (let since: Since = Since[from] - 1; since >= Since[to]; since--) {
+      sinces.push(Since[since]);
+    }
+
+    return sinces;
   }
 
   public static getDate(since: Since | string): Date {

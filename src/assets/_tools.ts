@@ -17,11 +17,13 @@ import { Date } from '@/shared/Date';
 import testData from './testData.js';
 
 class AssetTools implements IAssetTools {
-  public async getAssetMapAsync(userId: string, startDate: Date, endDate: Date): Promise<IAssetMap> {
-    const response: GetAssetsResponseContractV1 =
-      ((await goldStoneClient.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
+  public async getAssetMapAsync(userId: string, since: string): Promise<IAssetMap> {
+    const startDate: Date = Sinces.getDate(since);
+    const endDate: Date = Date.Today();
+    // const response: GetAssetsResponseContractV1 =
+    //   ((await goldStoneClient.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
 
-    // const response: GetAssetsResponseContractV1 = (testData as unknown) as GetAssetsResponseContractV1;
+    const response: GetAssetsResponseContractV1 = (testData as unknown) as GetAssetsResponseContractV1;
 
     const assetMap: IAssetMap = this.convertToAssetMap(response.assets);
     const totalAsset: IAsset = this.createTotalAsset(assetMap);
@@ -46,7 +48,7 @@ class AssetTools implements IAssetTools {
       id: assetId,
       expandChart: false,
       name: goldStoneAsset.assetType.toLowerCase(),
-      selectedChartAccountId: assetsConstants.totalAccountId,
+      selectedChartAccountId: assetsConstants.totalId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: goldStoneAsset.assetType,
     };
@@ -60,9 +62,7 @@ class AssetTools implements IAssetTools {
     const accounts: IAccount[] =
       goldStoneAccounts
         .filter((account) => account) // defined
-        .map((account) => this.convertToAccount(assetId, account))
-        .sort( (a, b) =>
-          b.sinceCatalogMap[Since[Since.Today]].balance - a.sinceCatalogMap[Since[Since.Today]].balance);
+        .map((account) => this.convertToAccount(assetId, account));
 
     accounts.forEach((a) => accountMap[a.id] =  a);
 
@@ -197,7 +197,7 @@ class AssetTools implements IAssetTools {
     delete liquidAccountMap[assetsView.retirement.name];
 
     const liquidAccount: IAccount =
-      this.createTotalAccount(liquidAccountMap, 'Liquid');
+      this.createTotalAccount(liquidAccountMap, assetsConstants.liquidName);
 
     liquidAccount.id = assetsView.liquid.name;
     liquidAccount.name = assetsView.liquid.title;
@@ -218,12 +218,13 @@ class AssetTools implements IAssetTools {
       // calculate changePercent
     const todayCatalog: ISinceCatalog = sinceCatalogMap[Since[Since.Today]];
     const todayBalance: number = todayCatalog.balance;
-    const yesterdayCatalog: ISinceCatalog = sinceCatalogMap[Since[Since.Yesterday]];
-    const yesterdayBalance: number = (yesterdayCatalog) ? yesterdayCatalog.balance : 0;
 
     Object.keys(sinceCatalogMap).forEach((since) => {
       const sinceCatalog: ISinceCatalog = sinceCatalogMap[since];
       if (since === Since[Since.Today]) {
+        const yesterdayCatalog: ISinceCatalog = sinceCatalogMap[Since[Since.Yesterday]];
+        const yesterdayBalance: number = (yesterdayCatalog) ? yesterdayCatalog.balance : 0;
+
         sinceCatalog.changePercent = this.getChangePercent(todayBalance, yesterdayBalance);
       } else {
         sinceCatalog.changePercent = this.getChangePercent(todayBalance, sinceCatalog.balance);
@@ -234,7 +235,7 @@ class AssetTools implements IAssetTools {
       // todo
       accountCatalogMap: this.getTotalAccountCatalogMap(accountMap),
       expand: false,
-      id: assetsConstants.totalAccountId,
+      id: assetsConstants.totalId,
       name: `${assetName} ${assetsConstants.totalName}`,
       sinceCatalogMap,
       symbol: assetsConstants.totalSymbol,
@@ -247,7 +248,7 @@ class AssetTools implements IAssetTools {
       expandChart: false,
       id: assetsView.assets.id,
       name: assetsView.assets.name,
-      selectedChartAccountId: assetsConstants.totalAccountId,
+      selectedChartAccountId: assetsConstants.totalId,
       selectedChartSince: Since[Since.TwoWeeks],
       title: assetsView.assets.title,
     };

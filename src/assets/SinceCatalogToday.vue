@@ -130,7 +130,7 @@ export default class SinceCatalogToday extends Vue {
 
   // styles
   get buttonStyle(): object {
-    return (this.account.id !== assetsConstants.totalAccountId)
+    return (this.account.id !== assetsConstants.totalId)
       ? {
         borderColor: this.assetView.color[layoutStore.theme].font,
       } : {
@@ -140,7 +140,7 @@ export default class SinceCatalogToday extends Vue {
   }
 
   get buttonTextStyle(): object {
-    return (this.account.id !== assetsConstants.totalAccountId)
+    return (this.account.id !== assetsConstants.totalId)
       ? {
         color: this.assetView.color[layoutStore.theme].font,
       } : {
