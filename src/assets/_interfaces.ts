@@ -76,13 +76,16 @@ export interface IAssetMap {
 
 export interface IAssetsStore {
   assetMap: IAssetMap;
+  editDialogView: IEditDialogView;
   isLoaded: boolean;
   sinces: string[];
   minSince: string;
   selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount;
   selectChartSince(payload: ISelectChartSince): Promise<ISelectChartSince>;
+  selectEditItem(payload: ISelectEditItem): ISelectEditItem;
   selectSince(sinceKey: string): Promise<void>;
   setAssetMap(assetMap: IAssetMap): IAssetMap;
+  toggleEditDialog(show: boolean): boolean;
   toggleExpandAccount(payload: IToggleExpandAccount): IToggleExpandAccount;
   toggleExpandChart(payload: IToggleExpandChart): IToggleExpandChart;
 }
@@ -127,9 +130,28 @@ export interface IChart {
     account: IAccount): void;
 }
 
+export interface IEditDialogView {
+  accountId: string | undefined;
+  assetId: string | undefined;
+  date: string;
+  show: boolean;
+  value: number | undefined;
+}
+
 export interface ISelectChartAccount {
   assetId: string;
   accountId: string;
+}
+
+export interface ISelectEditItem {
+  id: string;
+  type: string;
+  value: string;
+}
+
+export interface ISelectItem {
+  id: string;
+  value: string;
 }
 
 export interface ISelectChartSince {

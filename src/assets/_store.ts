@@ -2,9 +2,10 @@ import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-dec
 import _ from 'lodash';
 import { assetsConstants, assetsView, Since, Sinces } from './_data';
 import { IAccount, IAccountMap, IAsset, IAssetChange, IAssetMap, IAssetsStore, ISelectChartAccount,
-  ISelectChartSince, IToggleExpandAccount, IToggleExpandChart } from './_interfaces';
+  IEditDialogView, ISelectChartSince, ISelectEditItem, IToggleExpandAccount, IToggleExpandChart } from './_interfaces';
 import tools from './_tools';
 import store from '@/shared/_store';
+import { Date } from '@/shared/Date';
 import { IUser } from '@/user/_interfaces';
 import userStore from '@/user/_store';
 
@@ -54,6 +55,13 @@ class AssetsStore extends VuexModule implements IAssetsStore {
       title: assetsView.retirement.title,
     },
   };
+  private EditDialogView: IEditDialogView = {
+    accountId: undefined,
+    assetId: undefined,
+    date: Date.Today().toString(),
+    show: false,
+    value: undefined,
+  };
   private IsLoaded: boolean = false;
   private Sinces: string[] = [
     Since[Since.Today],
@@ -64,6 +72,10 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
   get assetMap(): IAssetMap {
     return this.AssetMap;
+  }
+
+  get editDialogView(): IEditDialogView {
+    return this.EditDialogView;
   }
 
   get isLoaded(): boolean {
@@ -97,6 +109,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     return payload;
   }
 
+  @Action({commit: 'SelectEditItem'})
+  public selectEditItem(payload: ISelectEditItem): ISelectEditItem {
+    return payload;
+  }
+
   // @Action({ rawError: true })
   @Action
   public async selectSince(since: string): Promise<void> {
@@ -106,6 +123,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   @Action({commit: 'SetAssetMap'})
   public setAssetMap(assetMap: IAssetMap): IAssetMap {
     return assetMap;
+  }
+
+  @Action({commit: 'ToggleEditDialog'})
+  public toggleEditDialog(show: boolean): boolean {
+    return show;
   }
 
   @Action({commit: 'ToggleExpandAccount'})
@@ -169,6 +191,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Mutation
+  private ToggleEditDialog(show: boolean): void {
+    this.EditDialogView.show = show;
+  }
+
+  @Mutation
   private SelectChartAccount(payload: ISelectChartAccount): void {
     const { assetId, accountId } = payload;
     const asset: IAsset = this.AssetMap[assetId];
@@ -182,6 +209,18 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const asset: IAsset = this.AssetMap[assetId];
 
     asset.selectedChartSince = since;
+  }
+
+  @Mutation
+  private SelectEditItem(payload: ISelectEditItem): void {
+    const { type, id } = payload;
+
+    if (type === 'asset') {
+      this.EditDialogView.assetId = id;
+      this.EditDialogView.accountId = undefined;
+    } else if (type === 'account') {
+      this.EditDialogView.accountId = id;
+    }
   }
 
   @Mutation

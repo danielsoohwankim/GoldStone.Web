@@ -10,6 +10,7 @@
         :expanded="assetView.expanded"
       />
     </div>
+    <EditDialog />
   </div>
 </template>
 
@@ -20,6 +21,7 @@ import { IAsset, IAssetMap, IAssetView, IAssetsStore } from './_interfaces';
 import store from './_store';
 import tools from './_tools';
 import Asset from './Asset.vue';
+import EditDialog from './EditDialog.vue';
 import SinceSelect from './SinceSelect.vue';
 import { Date } from '@/shared/Date';
 import { IUser } from '@/user/_interfaces';
@@ -28,6 +30,7 @@ import userStore from '@/user/_store';
 @Component({
   components: {
     Asset,
+    EditDialog,
     SinceSelect,
   },
 })
