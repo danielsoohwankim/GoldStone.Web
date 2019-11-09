@@ -61,6 +61,7 @@ export interface IAssetLayoutColor {
   background: string;
   buttonText: string;
   chartBackground: string;
+  editButtonBackground: string;
   error: string;
   minus: string;
   neutral: string;
@@ -80,12 +81,13 @@ export interface IAssetsStore {
   isLoaded: boolean;
   sinces: string[];
   minSince: string;
+  resetEditView(): void;
   selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount;
   selectChartSince(payload: ISelectChartSince): Promise<ISelectChartSince>;
   selectEditItem(payload: ISelectEditItem): ISelectEditItem;
   selectSince(sinceKey: string): Promise<void>;
   setAssetMap(assetMap: IAssetMap): IAssetMap;
-  toggleEditDialog(show: boolean): boolean;
+  toggleEditDialog(payload: IToggleEditDialog): IToggleEditDialog;
   toggleExpandAccount(payload: IToggleExpandAccount): IToggleExpandAccount;
   toggleExpandChart(payload: IToggleExpandChart): IToggleExpandChart;
 }
@@ -131,11 +133,11 @@ export interface IChart {
 }
 
 export interface IEditDialogView {
-  accountId: string | undefined;
+  assetAccountMap: {
+    [ key: string ]: string | undefined,
+  };
   assetId: string | undefined;
-  date: string;
   show: boolean;
-  value: number | undefined;
 }
 
 export interface ISelectChartAccount {
@@ -146,11 +148,6 @@ export interface ISelectChartAccount {
 export interface ISelectEditItem {
   id: string;
   type: string;
-  value: string;
-}
-
-export interface ISelectItem {
-  id: string;
   value: string;
 }
 
@@ -170,6 +167,13 @@ export interface ISinceCatalog {
 
 export interface ISinceCatalogMap {
   [key: string]: ISinceCatalog;
+}
+
+export interface IToggleEditDialog {
+  assetId?: string;
+  accountId?: string;
+  accountName?: string;
+  show: boolean;
 }
 
 export interface IToggleExpandAccount {

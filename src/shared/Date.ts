@@ -17,6 +17,10 @@ export class Date implements IDate {
     return (a.toString() < b.toString()) ? a : b;
   }
 
+  public static toDate(jsDate): Date {
+    return new Date(moment(jsDate).format(DATE_FORMAT));
+  }
+
   private date!: string;
 
   constructor(date: string) {

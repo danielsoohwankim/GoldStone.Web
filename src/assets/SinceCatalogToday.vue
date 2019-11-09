@@ -100,7 +100,7 @@
         <span class="asset-catalog-today">
           <md-icon v-if="showEdit">
             <span
-              style="font-size: 18px;"
+              class="edit"
               @click.prevent="onClick(account)"
             >edit
             </span>
@@ -176,7 +176,8 @@ export default class SinceCatalogToday extends Vue {
   }
 
   get showEdit(): boolean {
-    return this.assetView.id !== assetsConstants.assetsId;
+    return this.account.id !== assetsConstants.totalId
+      && this.account.id !== assetsConstants.liquidId;
   }
 
   get updatedStatus(): BaseStatus {
@@ -211,7 +212,15 @@ export default class SinceCatalogToday extends Vue {
 
   // methods
   public onClick(account: IAccount): void {
-    // console.log(account.symbol);
+    const isAssetAccount: boolean =
+      this.assetView.id === assetsConstants.assetsId;
+
+    assetsStore.toggleEditDialog({
+      assetId: (isAssetAccount === true) ? this.account.id : this.assetView.id,
+      accountId: (isAssetAccount === true) ? undefined : this.account.id,
+      accountName: (isAssetAccount === true) ? undefined : this.account.name,
+      show: true,
+    });
   }
 
   public toggleExpandAccount(): void {
@@ -234,6 +243,11 @@ export default class SinceCatalogToday extends Vue {
   border: solid;
   border-width: 0.1em;
   border-radius: 5px;
+}
+
+.edit {
+  font-size: 18px;
+  cursor: pointer;
 }
 
 .updated-date {

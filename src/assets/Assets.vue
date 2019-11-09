@@ -11,18 +11,28 @@
       />
     </div>
     <EditDialog />
+    <div class="edit-button">
+      <md-button 
+        class="md-primary md-raised"
+        @click="toggleShow(true)"
+        :style="editButtonStyle"
+      >Edit
+      </md-button>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { assetsConstants, assetsView, Sinces } from './_data';
-import { IAsset, IAssetMap, IAssetView, IAssetsStore } from './_interfaces';
+import { IAsset, IAssetMap, IAssetView, IAssetsStore, IToggleEditDialog } from './_interfaces';
 import store from './_store';
 import tools from './_tools';
 import Asset from './Asset.vue';
 import EditDialog from './EditDialog.vue';
 import SinceSelect from './SinceSelect.vue';
+import { Theme } from '@/layout/_data';
+import layoutStore from '@/layout/_store';
 import { Date } from '@/shared/Date';
 import { IUser } from '@/user/_interfaces';
 import userStore from '@/user/_store';
@@ -48,6 +58,11 @@ export default class Assets extends Vue {
   public readonly store: IAssetsStore = store;
 
   // styles
+  get editButtonStyle(): object {
+    return {
+      backgroundColor: assetsView.layout.color[layoutStore.theme].editButtonBackground,
+    };
+  }
 
   // lifecycle
   public async created() {
@@ -86,8 +101,19 @@ export default class Assets extends Vue {
   public getAsset(id: string): IAsset {
     return store.assetMap[id];
   }
+
+  public toggleShow(show: boolean): void {
+    store.toggleEditDialog({
+      show,
+    });
+  }
 }
 </script>
 
 <style lang="scss" scoped>
+.edit-button {
+  padding-top: 10px;
+  position: absolute;
+  right: 10px;
+}
 </style>

@@ -1,6 +1,5 @@
 <template>
   <div 
-    class="page-container"
     @click.prevent="onClick($event)"
   >
     <md-app :md-theme="store.theme">
@@ -128,7 +127,7 @@ export default class Layout extends Vue {
 
 <style lang="scss" scoped>
 .md-app {
-  height: 100vh
+  height: 100vh;
 }
 
 .md-drawer {

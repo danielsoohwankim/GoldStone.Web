@@ -2,7 +2,8 @@ import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-dec
 import _ from 'lodash';
 import { assetsConstants, assetsView, Since, Sinces } from './_data';
 import { IAccount, IAccountMap, IAsset, IAssetChange, IAssetMap, IAssetsStore, ISelectChartAccount,
-  IEditDialogView, ISelectChartSince, ISelectEditItem, IToggleExpandAccount, IToggleExpandChart } from './_interfaces';
+  IEditDialogView, ISelectChartSince, ISelectEditItem,
+  IToggleEditDialog, IToggleExpandAccount, IToggleExpandChart } from './_interfaces';
 import tools from './_tools';
 import store from '@/shared/_store';
 import { Date } from '@/shared/Date';
@@ -56,11 +57,13 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     },
   };
   private EditDialogView: IEditDialogView = {
-    accountId: undefined,
+    assetAccountMap: {
+      [assetsView.cash.id]: undefined,
+      [assetsView.investment.id]: undefined,
+      [assetsView.retirement.id]: undefined,
+    },
     assetId: undefined,
-    date: Date.Today().toString(),
     show: false,
-    value: undefined,
   };
   private IsLoaded: boolean = false;
   private Sinces: string[] = [
@@ -88,6 +91,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
   get minSince(): string {
     return this.Sinces[this.Sinces.length - 1];
+  }
+
+  @Action({commit: 'ResetEditView'})
+  public resetEditView(): void {
+    //
   }
 
   @Action({commit: 'SelectChartAccount'})
@@ -126,8 +134,8 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Action({commit: 'ToggleEditDialog'})
-  public toggleEditDialog(show: boolean): boolean {
-    return show;
+  public toggleEditDialog(payload: IToggleEditDialog): IToggleEditDialog {
+    return payload;
   }
 
   @Action({commit: 'ToggleExpandAccount'})
@@ -191,8 +199,22 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   }
 
   @Mutation
-  private ToggleEditDialog(show: boolean): void {
+  private ToggleEditDialog(payload: IToggleEditDialog): void {
+    const { assetId, accountId, show } = payload;
+
     this.EditDialogView.show = show;
+
+    if (assetId) {
+      this.EditDialogView.assetId = assetId;
+      this.EditDialogView.assetAccountMap[assetId] = accountId;
+    }
+  }
+
+  @Mutation
+  private ResetEditView(): void {
+    _.keys(this.EditDialogView.assetAccountMap)
+      .forEach((key) => this.EditDialogView.assetAccountMap[key] = undefined);
+    this.EditDialogView.assetId = undefined;
   }
 
   @Mutation
@@ -217,9 +239,9 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
     if (type === 'asset') {
       this.EditDialogView.assetId = id;
-      this.EditDialogView.accountId = undefined;
     } else if (type === 'account') {
-      this.EditDialogView.accountId = id;
+      const assetId: string = this.EditDialogView.assetId!;
+      this.EditDialogView.assetAccountMap[assetId] = id;
     }
   }
 
