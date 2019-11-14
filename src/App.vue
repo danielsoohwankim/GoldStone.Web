@@ -1,17 +1,20 @@
 <template>
   <div id="app">
     <Layout />
+    <Loader />
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Component } from 'vue-property-decorator';
-import Layout from '@/layout/Layout.vue';
 import { Theme } from '@/layout/_data';
+import Layout from '@/layout/Layout.vue';
+import Loader from '@/layout/Loader.vue';
 
 @Component({
   components: {
     Layout,
+    Loader,
   },
 })
 export default class App extends Vue {

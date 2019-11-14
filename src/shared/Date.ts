@@ -57,6 +57,10 @@ export class Date implements IDate {
     return new Date(newDate);
   }
 
+  public equals(date: Date): boolean {
+    return this.date.toString() === date.toString();
+  }
+
   public toJsDate() {
     return moment(this.date).toDate();
   }
@@ -71,6 +75,7 @@ export interface IDate {
   addWeeks(weeks: number): Date;
   addMonths(months: number): Date;
   addYears(years: number): Date;
+  equals(date: Date): boolean;
   toJsDate();
   toString(): string;
 }

@@ -1,3 +1,5 @@
+import { AxiosResponse } from 'axios';
+import HttpStatus from 'http-status-codes';
 import _ from 'lodash';
 import moment from 'moment';
 import { assetsConstants, assetsView, Since, Sinces } from './_data';
@@ -11,7 +13,9 @@ import {
   GetAssetAccountCatalogResponseContractV1,
 } from '@/clients/IGoldStoneClient';
 import goldStoneClient from '@/clients/goldStoneClient';
+import layoutStore from '@/layout/_store';
 import { Date } from '@/shared/Date';
+import { goldStoneException } from '@/shared/GoldStoneException';
 
 // todo: remove
 import testData from './testData.js';
@@ -20,12 +24,23 @@ class AssetTools implements IAssetTools {
   public async getAssetMapAsync(userId: string, since: string): Promise<IAssetMap> {
     const startDate: Date = Sinces.getDate(since);
     const endDate: Date = Date.Today();
-    // const response: GetAssetsResponseContractV1 =
-    //   ((await goldStoneClient.getAssets(userId, startDate, endDate)) as unknown) as GetAssetsResponseContractV1;
 
-    const response: GetAssetsResponseContractV1 = (testData as unknown) as GetAssetsResponseContractV1;
+    layoutStore.toggleLoader(true);
 
-    const assetMap: IAssetMap = this.convertToAssetMap(response.assets);
+    const response: AxiosResponse<GetAssetsResponseContractV1>
+      = await goldStoneClient.getAssetsAsync(userId, startDate, endDate);
+
+    layoutStore.toggleLoader(false);
+
+    if (response.status !== HttpStatus.OK) {
+      // todo
+      throw new goldStoneException(`failed to get assets`);
+    }
+
+    const assets: GetAssetResponseContractV1[] = response.data.assets;
+    // const assets = testData.assets;
+
+    const assetMap: IAssetMap = this.convertToAssetMap(assets);
     const totalAsset: IAsset = this.createTotalAsset(assetMap);
 
     assetMap[totalAsset.id] = totalAsset;
@@ -38,6 +53,35 @@ class AssetTools implements IAssetTools {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
+  }
+
+  public getPastSinceCatalog(
+    pastValue: number,
+    todayValue: number,
+    since: string)
+  : ISinceCatalog {
+    return {
+      balance: pastValue,
+      changeAmount: this.getChangeAmount(todayValue, pastValue),
+      changePercent: this.getChangePercent(todayValue, pastValue),
+      date: Sinces.getDate(since).toString(),
+      since,
+    };
+  }
+
+  public getTodaySinceCatalog(
+    todayValue: number,
+    yesterdayValue: number,
+    lastModified: number | null)
+  : ISinceCatalog {
+    return {
+      balance: todayValue,
+      changeAmount: this.getChangeAmount(todayValue, yesterdayValue),
+      changePercent: this.getChangePercent(todayValue, yesterdayValue),
+      date: Date.Today().toString(),
+      updatedTime: (lastModified) ? moment.unix(lastModified!) : null,
+      since: Since[Since.Today],
+    };
   }
 
   private convertToAsset(goldStoneAsset: GetAssetResponseContractV1): IAsset {
@@ -184,7 +228,7 @@ class AssetTools implements IAssetTools {
 
       const pastValue: number = (catalog) ? catalog.value : 0;
       const pastSinceCatalog: ISinceCatalog =
-        this.getPastSinceCatalog(pastValue, todayValue, date, since);
+        this.getPastSinceCatalog(pastValue, todayValue, since);
 
       sinceCatalogMap[since] = pastSinceCatalog;
     });
@@ -316,21 +360,6 @@ class AssetTools implements IAssetTools {
     return Math.round((changePercent) * 100) / 100;
   }
 
-  private getPastSinceCatalog(
-    pastValue: number,
-    todayValue: number,
-    date: Date,
-    since: string)
-  : ISinceCatalog {
-    return {
-      balance: pastValue,
-      changeAmount: this.getChangeAmount(todayValue, pastValue),
-      changePercent: this.getChangePercent(todayValue, pastValue),
-      date: date.toString(),
-      since,
-    };
-  }
-
   private getSinceCatalogsMap(accountMap: IAccountMap)
   : {[ key: string ]: ISinceCatalog[]} {
     const catalogsMap: {[ key: string ]: ISinceCatalog[]} = {};
@@ -345,21 +374,6 @@ class AssetTools implements IAssetTools {
     });
 
     return catalogsMap;
-  }
-
-  private getTodaySinceCatalog(
-    todayValue: number,
-    yesterdayValue: number,
-    lastModified: number | null)
-  : ISinceCatalog {
-    return {
-      balance: todayValue,
-      changeAmount: this.getChangeAmount(todayValue, yesterdayValue),
-      changePercent: this.getChangePercent(todayValue, yesterdayValue),
-      date: Date.Today().toString(),
-      updatedTime: (lastModified) ? moment.unix(lastModified!) : null,
-      since: Since[Since.Today],
-    };
   }
 
   private getTotalAccountCatalogMap(accountMap: IAccountMap): IAccountCatalogMapWrapper {

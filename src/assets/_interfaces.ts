@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { Date } from '@/shared/Date';
 
 export interface IAccount {
   accountCatalogMap: IAccountCatalogMapWrapper;
@@ -90,6 +91,7 @@ export interface IAssetsStore {
   toggleEditDialog(payload: IToggleEditDialog): IToggleEditDialog;
   toggleExpandAccount(payload: IToggleExpandAccount): IToggleExpandAccount;
   toggleExpandChart(payload: IToggleExpandChart): IToggleExpandChart;
+  updateCatalog(payload: IUpdateCatalog): Promise<void>;
 }
 
 export interface IAssetView {
@@ -122,6 +124,16 @@ export interface IAssetsView {
 
 export interface IAssetTools {
   getAssetMapAsync(userId: string, since: string): Promise<IAssetMap>;
+  getPastSinceCatalog(
+    pastValue: number,
+    todayValue: number,
+    since: string)
+  : ISinceCatalog;
+  getTodaySinceCatalog(
+    todayValue: number,
+    yesterdayValue: number,
+    lastModified: number | null)
+  : ISinceCatalog;
   toCurrencyString(num: number): string;
 }
 
@@ -185,4 +197,17 @@ export interface IToggleExpandAccount {
 export interface IToggleExpandChart {
   assetId: string;
   expand: boolean;
+}
+
+export interface IUpdateCatalog {
+  assetId: string;
+  accountId: string;
+  balance: number;
+  date: Date;
+}
+
+export interface IUpdateCatalogRequest extends IUpdateCatalog {
+  etag: string;
+  lastModified: number;
+  sinces: string[];
 }

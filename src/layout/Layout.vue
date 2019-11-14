@@ -41,7 +41,7 @@
       <md-app-content 
         :style="contentStyle"
       >
-        <router-view/>
+        <router-view />
       </md-app-content>
     </md-app>
   </div>

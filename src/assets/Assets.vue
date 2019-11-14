@@ -19,6 +19,7 @@
       >Edit
       </md-button>
     </div>
+    <SnackBar />
   </div>
 </template>
 
@@ -31,6 +32,7 @@ import tools from './_tools';
 import Asset from './Asset.vue';
 import EditDialog from './EditDialog.vue';
 import SinceSelect from './SinceSelect.vue';
+import SnackBar from './SnackBar.vue';
 import { Theme } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import { Date } from '@/shared/Date';
@@ -42,6 +44,7 @@ import userStore from '@/user/_store';
     Asset,
     EditDialog,
     SinceSelect,
+    SnackBar,
   },
 })
 export default class Assets extends Vue {

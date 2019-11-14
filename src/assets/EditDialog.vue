@@ -1,6 +1,9 @@
 <template>
   <div>
-    <md-dialog :md-active="editDialogView.show">
+    <md-dialog
+      class="dialog"
+      :md-active="editDialogView.show"
+    >
       <md-dialog-title>Edit</md-dialog-title>
       <div class="wrapper">
         <md-datepicker 
@@ -68,7 +71,9 @@
         >Close
         </md-button>
         <md-button
-          style="color: #EC407A"
+          :style="saveButtonStyle"
+          :disabled="isSaveDisabled === true"
+          @click="save()"
         >Save
         </md-button>
       </md-dialog-actions>
@@ -79,7 +84,7 @@
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import _ from 'lodash';
-import { assetsConstants } from './_data';
+import { assetsConstants, assetsView } from './_data';
 import { IAccount, IAccountCatalog, IAsset, IEditDialogView } from './_interfaces';
 import store from './_store';
 import { Theme } from '@/layout/_data';
@@ -92,7 +97,7 @@ export default class EditDialog extends Vue {
   public accountLabel: string = 'Account';
   public assetLabel: string = 'Asset';
   public date = Date.Today().toJsDate();
-  private Balance: number | null = null;
+  private Balance: string | null = null;
 
   @Watch('date')
   public onDateChange(newDate, oldDate) {
@@ -108,13 +113,29 @@ export default class EditDialog extends Vue {
         .accountCatalogMap
         .catalogMap[date];
 
-    this.Balance = (catalog) ? catalog.balance : this.Balance;
+    this.Balance = (catalog) ? `${catalog.balance}` : this.Balance;
   }
 
   // styles
   get closeStyle() {
     return {
       color: (layoutStore.theme === Theme.Light) ? 'black' : 'white',
+    };
+  }
+
+  get errorMessage() {
+    return {
+      color: assetsView.layout.color[layoutStore.theme].error,
+      fontSize: '17px',
+      paddingRight: '22px',
+    };
+  }
+
+  get saveButtonStyle() {
+    return (this.isSaveDisabled === true) ? {
+      color: `#BDBDBD`,
+    } : {
+      color: `#EC407A`,
     };
   }
 
@@ -133,16 +154,12 @@ export default class EditDialog extends Vue {
             .filter((asset) => asset.id !== assetsConstants.assetsId);
   }
 
-  get balance(): number | null {
+  get balance(): string | null {
     return this.Balance;
   }
 
-  set balance(balance: number | null) {
+  set balance(balance: string | null) {
     this.Balance = balance;
-  }
-
-  get balanceString(): string {
-    return `${this.balance}`;
   }
 
   get editDialogView(): IEditDialogView {
@@ -150,10 +167,19 @@ export default class EditDialog extends Vue {
   }
 
   get isResetClickable(): boolean {
-    return (Date.toDate(this.date).toString() !== Date.Today().toString())
+    return (this.date &&
+      (Date.toDate(this.date).toString() !== Date.Today().toString()))
       || (this.selectedAsset !== undefined)
       || (this.selectedAccount !== undefined)
       || (this.balance !== null);
+  }
+
+  get isSaveDisabled(): boolean {
+    return !this.date
+      || this.selectedAsset === undefined
+      || this.selectedAccount === undefined
+      || this.balance === null
+      || this.balance === '';
   }
 
   get selectedAccount(): IAccount | undefined {
@@ -190,7 +216,7 @@ export default class EditDialog extends Vue {
         .accountCatalogMap
         .catalogMap[date];
 
-    this.Balance = (catalog) ? catalog.balance : this.Balance;
+    this.Balance = (catalog) ? `${catalog.balance}` : this.Balance;
   }
 
   get selectedAccountId(): string | undefined {
@@ -258,24 +284,37 @@ export default class EditDialog extends Vue {
     const keyCode = ($event.keyCode ? $event.keyCode : $event.which);
 
     // only allow number and one dot
-    if ((keyCode < 48 || keyCode > 57) && (keyCode !== 46 || this.balanceString.indexOf('.') !== -1)) { // 46 is dot
+    if ((keyCode < 48 || keyCode > 57) && (keyCode !== 46 || this.balance!.indexOf('.') !== -1)) { // 46 is dot
       $event.preventDefault();
     }
 
     // restrict to 2 decimal places
-    if (this.balanceString != null
-      && this.balanceString.indexOf('.') > -1
-      && (this.balanceString.split('.')[1].length > 1)) {
+    if (this.balance !== null
+      && this.balance.indexOf('.') > -1
+      && (this.balance.split('.')[1].length > 1)) {
       $event.preventDefault();
     }
+  }
+
+  public save(): void {
+    if (!this.selectedAsset || !this.selectedAccount || this.balance === null) {
+      return;
+    }
+
+    store.updateCatalog({
+      assetId: this.selectedAsset.id,
+      accountId: this.selectedAccountId!,
+      balance: parseFloat(this.balance!),
+      date: Date.toDate(this.date),
+    });
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.md-dialog {
-  width: 300px;
+.dialog {
   height: 420px;
+  width: 300px;
 }
 
 .wrapper {
