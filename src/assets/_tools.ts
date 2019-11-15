@@ -17,9 +17,6 @@ import layoutStore from '@/layout/_store';
 import { Date } from '@/shared/Date';
 import { goldStoneException } from '@/shared/GoldStoneException';
 
-// todo: remove
-import testData from './testData.js';
-
 class AssetTools implements IAssetTools {
   public async getAssetMapAsync(userId: string, since: string): Promise<IAssetMap> {
     const startDate: Date = Sinces.getDate(since);
@@ -38,8 +35,6 @@ class AssetTools implements IAssetTools {
     }
 
     const assets: GetAssetResponseContractV1[] = response.data.assets;
-    // const assets = testData.assets;
-
     const assetMap: IAssetMap = this.convertToAssetMap(assets);
     const totalAsset: IAsset = this.createTotalAsset(assetMap);
 
