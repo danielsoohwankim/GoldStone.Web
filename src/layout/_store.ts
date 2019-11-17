@@ -15,7 +15,7 @@ class LayoutStore extends VuexModule implements ILayoutStore {
   private ShowLoader: boolean = false;
   private ShowMenu: boolean = false;
   private ShowSetting: boolean = false;
-  private ShowSignInButton: boolean = true;
+  private ShowSignInButton: boolean = false;
   private SnackBarView: ISnackBarView = {
     duration: undefined,
     message: '',

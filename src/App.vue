@@ -40,6 +40,10 @@ export default class App extends Vue {
   // lifecycle
   public async mounted(): Promise<void> {
     if (Menus.IsValidPath(this.$route.path) === true) {
+      if (this.$route.path === '/') {
+        layoutStore.toggleSignInButton(true);
+      }
+
       return;
     }
     // in the wrong page

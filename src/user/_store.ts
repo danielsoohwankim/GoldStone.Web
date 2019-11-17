@@ -29,10 +29,11 @@ class UserStore extends VuexModule implements IUserStore {
   }
 
   @Action
-  public async signIn(token?: string): Promise<boolean> {
+  public async signIn(token?: string): Promise<void> {
     if (token) {
       storageTools.setToken(token);
     }
+    layoutStore.toggleSignInButton(false);
 
     // 404
     if (Menus.IsValidPath(router.currentRoute.path) === false) {
@@ -40,7 +41,7 @@ class UserStore extends VuexModule implements IUserStore {
         layoutStore.setPage(Page.NotFound);
       }
 
-      return false;
+      return;
     }
 
     // send the user to sign in page
@@ -50,8 +51,9 @@ class UserStore extends VuexModule implements IUserStore {
       if (layoutStore.page !== Page.Home) {
         layoutStore.setPage(Page.Home);
       }
+      layoutStore.toggleSignInButton(true);
 
-      return false;
+      return;
     }
 
     const response = await loaderAction.sendAsync(
@@ -64,8 +66,9 @@ class UserStore extends VuexModule implements IUserStore {
       if (layoutStore.page !== Page.Home) {
         layoutStore.setPage(Page.Home);
       }
+      layoutStore.toggleSignInButton(true);
 
-      return false;
+      return;
     }
 
     // tslint:disable-next-line
@@ -83,7 +86,7 @@ class UserStore extends VuexModule implements IUserStore {
       layoutStore.setMenu(router.currentRoute.name!);
     }
 
-    return true;
+    return;
   }
 
   /**
@@ -92,7 +95,7 @@ class UserStore extends VuexModule implements IUserStore {
    *  upon successful re-login
    */
   @Action
-  public async signOut(returnPath?: string): Promise<boolean> {
+  public async signOut(returnPath?: string): Promise<void> {
     // @ts-ignore
     const auth2 = gapi.auth2.getAuthInstance();
 
@@ -102,7 +105,7 @@ class UserStore extends VuexModule implements IUserStore {
       // tslint:disable-next-line
       console.log('User failed to sign out', e);
 
-      return false;
+      return;
     }
 
     storageTools.removeToken();
@@ -110,12 +113,13 @@ class UserStore extends VuexModule implements IUserStore {
     // tslint:disable-next-line
     console.log('Sign out success!');
 
-    layoutStore.toggleSetting(false);
-    layoutStore.toggleSignInButton(true);
-
+    if (layoutStore.showSetting === true) {
+      layoutStore.toggleSetting(false);
+    }
     if (layoutStore.page !== Page.Home) {
       layoutStore.setPage(Page.Home);
     }
+    layoutStore.toggleSignInButton(true);
 
     if (returnPath) {
       if (router.currentRoute.path !== returnPath) {
@@ -125,7 +129,7 @@ class UserStore extends VuexModule implements IUserStore {
       router.push('/');
     }
 
-    return true;
+    return;
   }
 }
 

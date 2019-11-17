@@ -57,7 +57,7 @@ export default class Home extends Vue {
     const profile = googleUser.getBasicProfile(); // etc etc
     const token = googleUser.getAuthResponse().id_token;
 
-    const success: boolean = await userStore.signIn(token);
+    await userStore.signIn(token);
   }
 
   public onSignInError(error) {
