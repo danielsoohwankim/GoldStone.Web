@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-link :to="menu.route">
+    <router-link :to="menu.path">
       <md-list-item @click="onClick">
         <md-icon 
           :style="menuItemStyle(menu)"

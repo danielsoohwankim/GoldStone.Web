@@ -36,7 +36,6 @@ import SnackBar from './SnackBar.vue';
 import { Theme } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import { Date } from '@/shared/Date';
-import { IUser } from '@/user/_interfaces';
 import userStore from '@/user/_store';
 
 @Component({
@@ -73,25 +72,12 @@ export default class Assets extends Vue {
       return;
     }
 
-    let user: IUser;
-
-    try {
-      user = await userStore.getUserAsync();
-    } catch (e) {
-      // tslint:disable-next-line
-      console.log(e);
-      return;
-    }
-
-    userStore.setUser(user!);
-
     let assetMap: IAssetMap;
 
     try {
-      assetMap = await tools.getAssetMapAsync(user!.id, store.minSince);
+      assetMap = await tools.getAssetMapAsync(store.minSince);
     } catch (e) {
-      // tslint:disable-next-line
-      console.log(e);
+      tools.handleApiErrorAsync(e);
       return;
     }
 

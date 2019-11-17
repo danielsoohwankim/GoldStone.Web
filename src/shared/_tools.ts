@@ -1,4 +1,5 @@
 import { IDevice } from './_interfaces';
+import { goldStoneException } from './GoldStoneException';
 
 class Device implements IDevice {
   private mobile?: boolean | null = null;
@@ -27,3 +28,56 @@ class ArrayTools {
 }
 
 export const arrayTools = new ArrayTools();
+
+const tokenKey: string = 'token';
+const userIdKey: string = 'userId';
+
+// @ts-ignore
+// tslint:disable-next-line
+class StorageTools implements IStorageTools {
+  public hasToken(): boolean {
+    const token = window.localStorage.getItem(tokenKey);
+
+    return token !== null && token !== '';
+  }
+
+  public hasUserId(): boolean {
+    const userId = window.localStorage.getItem(userIdKey);
+
+    return userId !== null && userId !== '';
+  }
+
+  public getToken(): string {
+    if (this.hasToken() === false) {
+      throw new goldStoneException('token does not exist in local storage');
+    }
+
+    return window.localStorage.getItem(tokenKey)!;
+  }
+
+  public getUserId(): string {
+    if (this.hasUserId() === false) {
+      throw new goldStoneException('userId does not exist in local storage');
+    }
+
+    return window.localStorage.getItem(userIdKey)!;
+  }
+
+  public removeToken(): void {
+    window.localStorage.removeItem(tokenKey);
+  }
+
+  public removeUserId(): void {
+    window.localStorage.removeItem(userIdKey);
+  }
+
+  public setToken(token: string): void {
+    window.localStorage.setItem(tokenKey, token);
+  }
+
+  public setUserId(id: string): void {
+    window.localStorage.setItem(userIdKey, id);
+  }
+}
+
+export const storageTools = new StorageTools();

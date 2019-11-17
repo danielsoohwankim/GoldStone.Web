@@ -68,20 +68,6 @@ export default class Layout extends Vue {
   public store: ILayoutStore = store;
   // styles
 
-  // lifecycle
-  public created() {
-    // set current menu
-    const unwatch = this.$watch(
-      () => this.$route,
-      (route, prevRoute) => {
-        const menuName: string = this.$route.name!;
-
-        store.setMenu(menuName);
-
-        unwatch();
-      });
-  }
-
   // computed
   get backgroundStyle(): object {
     return {

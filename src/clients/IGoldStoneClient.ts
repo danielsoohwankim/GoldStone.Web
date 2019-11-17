@@ -27,11 +27,11 @@ export interface GetAssetAccountCatalogResponseContractV1 {
 }
 
 export interface IGoldStoneClient {
-  getAssetsAsync(userId: string, startDate: Date, endDate: Date)
-    : Promise<AxiosResponse<GetAssetsResponseContractV1>>;
-  getAdminUserId(): Promise<string|undefined>;
+  getAssetsAsync(startDate: Date, endDate: Date)
+    : Promise<AxiosResponse<GetAssetsResponseContractV1 | any>>;
   putCatalogAsync(request: IPutAccountCatalogRequestContractV1)
-    : Promise<AxiosResponse<IPutAccountCatalogResponseContractV1 | string>>;
+    : Promise<AxiosResponse<IPutAccountCatalogResponseContractV1 | any>>;
+  signIn(): Promise<AxiosResponse<string>>;
 }
 
 export interface IPutAccountCatalogRequestContractV1 {

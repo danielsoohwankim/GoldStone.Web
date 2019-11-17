@@ -1,9 +1,7 @@
-export interface IUser {
-  id: string;
-}
-
 export interface IUserStore {
-  user: IUser;
-  getUserAsync(): Promise<IUser>;
-  setUser(user: IUser): IUser;
+  hasToken: boolean;
+  id: string;
+  token: string;
+  signIn(token?: string): Promise<boolean>;
+  signOut(returnPath?: string): Promise<boolean>;
 }

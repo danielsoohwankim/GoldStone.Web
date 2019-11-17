@@ -13,25 +13,24 @@ import {
   GetAssetAccountCatalogResponseContractV1,
 } from '@/clients/IGoldStoneClient';
 import goldStoneClient from '@/clients/goldStoneClient';
+import { Menus } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
+import loaderAction from '@/layout/loaderAction';
 import { Date } from '@/shared/Date';
-import { goldStoneException } from '@/shared/GoldStoneException';
+import userStore from '@/user/_store';
 
 class AssetTools implements IAssetTools {
-  public async getAssetMapAsync(userId: string, since: string): Promise<IAssetMap> {
+  public async getAssetMapAsync(since: string): Promise<IAssetMap> {
     const startDate: Date = Sinces.getDate(since);
     const endDate: Date = Date.Today();
 
-    layoutStore.toggleLoader(true);
-
     const response: AxiosResponse<GetAssetsResponseContractV1>
-      = await goldStoneClient.getAssetsAsync(userId, startDate, endDate);
+      = await loaderAction.sendAsync(() => goldStoneClient.getAssetsAsync(startDate, endDate));
 
-    layoutStore.toggleLoader(false);
-
-    if (response.status !== HttpStatus.OK) {
-      // todo
-      throw new goldStoneException(`failed to get assets`);
+    if (!response || response.status !== HttpStatus.OK) {
+      // tslint:disable-next-line
+      console.log(response);
+      throw response;
     }
 
     const assets: GetAssetResponseContractV1[] = response.data.assets;
@@ -41,13 +40,6 @@ class AssetTools implements IAssetTools {
     assetMap[totalAsset.id] = totalAsset;
 
     return assetMap;
-  }
-
-  public toCurrencyString(num: number): string {
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
   }
 
   public getPastSinceCatalog(
@@ -77,6 +69,28 @@ class AssetTools implements IAssetTools {
       updatedTime: (lastModified) ? moment.unix(lastModified!) : null,
       since: Since[Since.Today],
     };
+  }
+
+  public async handleApiErrorAsync(errorResponse: AxiosResponse<any>): Promise<void> {
+    if (errorResponse.status === HttpStatus.UNAUTHORIZED) {
+      await userStore.signOut(Menus.Assets.path);
+      return;
+    } else if (errorResponse.status !== HttpStatus.OK) {
+      layoutStore.setSnackBar({
+        duration: Infinity,
+        message: errorResponse.data as string,
+        show: true,
+      });
+
+      return;
+    }
+  }
+
+  public toCurrencyString(num: number): string {
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 
   private convertToAsset(goldStoneAsset: GetAssetResponseContractV1): IAsset {

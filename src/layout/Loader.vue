@@ -3,7 +3,10 @@
     class="overlay"
     v-if="store.showLoader"
   >
-    <div class="loader">
+    <div 
+      class="loader"
+      :style="loaderStyle"
+    >
       <PacmanLoader />
       <div class="text">Loading...</div>
     </div>
@@ -15,6 +18,7 @@ import { Vue, Component } from 'vue-property-decorator';
 import PacmanLoader from 'vue-spinner/src/PacmanLoader.vue';
 import { ILayoutStore } from './_interfaces';
 import store from './_store';
+import { device } from '@/shared/_tools';
 
 @Component({
   components: {
@@ -24,6 +28,17 @@ import store from './_store';
 export default class Loader extends Vue {
   // data
   public store: ILayoutStore = store;
+
+  // style
+  get loaderStyle() {
+    return (device.isMobile() === true) ? {
+      top: '45%',
+      left: '45%',
+    } : {
+      top: '45%',
+      left: '48%',
+    };
+  }
 }
 </script>
 
@@ -31,12 +46,10 @@ export default class Loader extends Vue {
 .loader {
   position: fixed;
   margin: auto;
-  top: 50%;
-  left: 50%;
 }
 
 .text {
-  color: white;
+  color: #e0e0e0;
   margin-top: 5px;
 }
 

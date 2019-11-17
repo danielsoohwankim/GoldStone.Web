@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { AxiosResponse } from 'axios';
 import { Date } from '@/shared/Date';
 
 export interface IAccount {
@@ -123,7 +124,7 @@ export interface IAssetsView {
 }
 
 export interface IAssetTools {
-  getAssetMapAsync(userId: string, since: string): Promise<IAssetMap>;
+  getAssetMapAsync(since: string): Promise<IAssetMap>;
   getPastSinceCatalog(
     pastValue: number,
     todayValue: number,
@@ -134,6 +135,7 @@ export interface IAssetTools {
     yesterdayValue: number,
     lastModified: number | null)
   : ISinceCatalog;
+  handleApiErrorAsync(errorResponse: AxiosResponse<any>): Promise<void>;
   toCurrencyString(num: number): string;
 }
 

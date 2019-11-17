@@ -1,25 +1,26 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import { menus } from '@/layout/_data';
+import { Menus } from '@/layout/_data';
 
 Vue.use(Router);
 
 export default new Router({
+  mode: 'history',  // removes # from routes
   routes: [
     {
-      path: '/',
-      alias: `/${menus.dashboard.name}`,
-      name: menus.dashboard.name,
+      path: `${Menus.Dashboard.path}`,
+      alias: `/`,
+      name: Menus.Dashboard.name,
       component: () => import(/* webpackChunkName: "dashboard" */ `@/dashboard/Dashboard.vue`),
     },
     {
-      path: `/${menus.assets.name}`,
-      name: menus.assets.name,
+      path: `${Menus.Assets.path}`,
+      name: Menus.Assets.name,
       component: () => import(/* webpackChunkName: "assets" */ `@/assets/Assets.vue`),
     },
     {
-      path: `/${menus.accountant.name}`,
-      name: menus.accountant.name,
+      path: `${Menus.Accountant.path}`,
+      name: Menus.Accountant.name,
       component: () => import(/* webpackChunkName: "accountant" */ `@/accountant/Accountant.vue`),
     },
   ],

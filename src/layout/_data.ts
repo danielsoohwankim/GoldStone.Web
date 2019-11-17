@@ -1,47 +1,65 @@
-import { IMenu, IMenus } from './_interfaces';
+import { IMenu } from './_interfaces';
 
-class Menus implements IMenus {
-  public dashboard: IMenu = {
+export class Menus {
+  public static Dashboard: IMenu = {
     icon: 'dashboard',
     name: 'dashboard',
-    route: '/',
+    path: '/dashboard',
     title: 'Dashboard',
   };
 
-  public assets: IMenu = {
+  public static Assets: IMenu = {
     icon: 'account_balance',
     name: 'assets',
-    route: '/assets',
+    path: '/assets',
     title: 'Assets',
   };
 
-  public accountant: IMenu = {
+  public static Accountant: IMenu = {
     icon: 'credit_card',
     name: 'accountant',
-    route: '/accountant',
+    path: '/accountant',
     title: 'Accountant',
   };
 
-  public getMenu = (menuName: string): IMenu => {
+  public static IsValidPath(name: string | null | undefined): boolean {
+    if (!name) {
+      return false;
+    }
+
+    return Menus.paths.has(name);
+  }
+
+  public static GetMenu = (menuName: string): IMenu => {
     switch (menuName) {
-      case this.dashboard.name:
-        return this.dashboard;
+      case Menus.Dashboard.name:
+        return Menus.Dashboard;
 
-      case this.assets.name:
-        return this.assets;
+      case Menus.Assets.name:
+        return Menus.Assets;
 
-      case this.accountant.name:
-        return this.accountant;
+      case Menus.Accountant.name:
+        return Menus.Accountant;
 
       default:
         throw new Error(`invalid menu name ${menuName}`);
     }
   }
+
+  private static paths: Set<string>
+    = new Set([
+      `/`,
+      Menus.Dashboard.path,
+      Menus.Assets.path,
+      Menus.Accountant.path,
+    ]);
 }
 
-export const menus = new Menus();
-
-// tslint:disable-next-line
+export enum Page {
+  Default = 'Default',
+  Home = 'Home',
+  NotFound = 'NotFound',
+}
 
 export enum Theme {
   Light = 'light',

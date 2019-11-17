@@ -10,9 +10,10 @@ import { IAccount, IAccountMap, IAsset, IAssetChange, IAssetMap, IAssetsStore, I
 import tools from './_tools';
 import goldStoneClient from '@/clients/goldStoneClient';
 import { IPutAccountCatalogResponseContractV1 } from '@/clients/IGoldStoneClient';
+import { Menus } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
+import loaderAction from '@/layout/loaderAction';
 import store from '@/shared/_store';
-import { IUser } from '@/user/_interfaces';
 import userStore from '@/user/_store';
 
 @Module({
@@ -162,19 +163,18 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   public async updateCatalog(payload: IUpdateCatalog): Promise<void> {
     const { assetId, accountId, balance, date } = payload;
 
-    layoutStore.toggleLoader(true);
-
     const response: AxiosResponse<IPutAccountCatalogResponseContractV1 | string>
-      = await goldStoneClient.putCatalogAsync({
+      = await loaderAction.sendAsync(() => goldStoneClient.putCatalogAsync({
         accountId,
         date: date.toString(),
-        userId: userStore.user.id,
+        userId: userStore.id,
         value: balance,
-      });
+      }));
 
-    layoutStore.toggleLoader(false);
-
-    if (response.status !== HttpStatus.OK) {
+    if (response.status === HttpStatus.UNAUTHORIZED) {
+      await userStore.signOut(Menus.Assets.path);
+      return;
+    } else if (response.status !== HttpStatus.OK) {
       layoutStore.setSnackBar({
         duration: Infinity,
         message: response.data as string,
@@ -202,11 +202,18 @@ class AssetsStore extends VuexModule implements IAssetsStore {
   private async SelectSince(since: string): Promise<void> {
     const minSince: string = this.context.getters.minSince;
     const sinceChanges: string[] = Sinces.getChanges(minSince, since);
+    let newAssetMap: IAssetMap;
+
+    try {
+      newAssetMap = await tools.getAssetMapAsync(since);
+    } catch (e) {
+      tools.handleApiErrorAsync(e);
+      return;
+    }
+
     // update Sinces to have sinces up to the selectedSince
     this.context.commit('AddSinces', sinceChanges);
 
-    const user: IUser = userStore.user;
-    const newAssetMap: IAssetMap = await tools.getAssetMapAsync(user.id, since);
     const assetChanges: IAssetChange[] = [];
     // replace the catalogs with the new ones,
     // preserve the settings on each asset

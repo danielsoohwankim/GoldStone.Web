@@ -30,6 +30,9 @@
               class="md-accent" 
             />
           </md-list-item>
+          <md-list-item>
+            <a @click.prevent="signOut()">Sign Out</a>
+          </md-list-item>
         </md-list>
       </div>
     </div>
@@ -42,6 +45,7 @@ import { Theme } from './_data';
 import { ILayoutStore } from './_interfaces';
 import store from './_store';
 import { device } from '@/shared/_tools';
+import userStore from '@/user/_store';
 
 @Component
 export default class LayoutSetting extends Vue {
@@ -69,6 +73,10 @@ export default class LayoutSetting extends Vue {
   @Watch('theme')
   public toggleTheme(curTheme: Theme, prevTheme: Theme): void {
     store.setTheme(curTheme);
+  }
+
+  public async signOut(): Promise<void> {
+    await userStore.signOut();
   }
 }
 </script>

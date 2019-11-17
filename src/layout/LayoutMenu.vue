@@ -14,13 +14,13 @@
 
     <md-list>
       <LayoutMenuItem 
-        :menu="menus.dashboard"
+        :menu="Menus.Dashboard"
       />
       <LayoutMenuItem 
-        :menu="menus.assets"
+        :menu="Menus.Assets"
       />
       <LayoutMenuItem 
-        :menu="menus.accountant"
+        :menu="Menus.Accountant"
       />
     </md-list>
   </div>
@@ -28,8 +28,8 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { menus, Theme } from './_data';
-import { ILayoutStore, IMenu, IMenus } from './_interfaces';
+import { Menus, Theme } from './_data';
+import { ILayoutStore } from './_interfaces';
 import store from './_store';
 import LayoutMenuItem from './LayoutMenuItem.vue';
 
@@ -41,7 +41,7 @@ import LayoutMenuItem from './LayoutMenuItem.vue';
 export default class LayoutMenu extends Vue {
   @Prop(Object) public readonly layoutStyle!: object;
   // data
-  public menus: IMenus = menus;
+  public Menus = Menus;
   public store: ILayoutStore = store;
   // styles
 
