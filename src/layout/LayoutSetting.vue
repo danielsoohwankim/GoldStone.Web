@@ -45,7 +45,7 @@ import { Theme } from './_data';
 import { ILayoutStore } from './_interfaces';
 import store from './_store';
 import { device } from '@/shared/_tools';
-import userStore from '@/user/_store';
+import tenantStore from '@/tenant/_store';
 
 @Component
 export default class LayoutSetting extends Vue {
@@ -76,7 +76,7 @@ export default class LayoutSetting extends Vue {
   }
 
   public async signOut(): Promise<void> {
-    await userStore.signOut();
+    await tenantStore.signOut();
   }
 }
 </script>

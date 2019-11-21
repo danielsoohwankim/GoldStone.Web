@@ -3,7 +3,7 @@ import { Date } from '@/shared/Date';
 
 export interface GetAssetsResponseContractV1 {
   assets: GetAssetResponseContractV1[];
-  userId: string;
+  tenantId: string;
 }
 
 export interface GetAssetResponseContractV1 {
@@ -37,7 +37,7 @@ export interface IGoldStoneClient {
 export interface IPutAccountCatalogRequestContractV1 {
   accountId: string;
   date: string;
-  userId: string;
+  tenantId: string;
   value: number;
 }
 

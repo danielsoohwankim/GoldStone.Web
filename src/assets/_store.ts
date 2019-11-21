@@ -14,7 +14,7 @@ import { Menus } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import store from '@/shared/_store';
-import userStore from '@/user/_store';
+import tenantStore from '@/tenant/_store';
 
 @Module({
   namespaced: true,
@@ -167,12 +167,12 @@ class AssetsStore extends VuexModule implements IAssetsStore {
       = await loaderAction.sendAsync(() => goldStoneClient.putCatalogAsync({
         accountId,
         date: date.toString(),
-        userId: userStore.id,
+        tenantId: tenantStore.id,
         value: balance,
       }));
 
     if (response.status === HttpStatus.UNAUTHORIZED) {
-      await userStore.signOut(Menus.Assets.path);
+      await tenantStore.signOut(Menus.Assets.path);
       return;
     } else if (response.status !== HttpStatus.OK) {
       layoutStore.setSnackBar({

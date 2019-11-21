@@ -29,8 +29,8 @@ class ArrayTools {
 
 export const arrayTools = new ArrayTools();
 
-const tokenKey: string = 'token';
-const userIdKey: string = 'userId';
+const tokenKey: string = 'tkn';
+const tenantIdKey: string = 'uid';
 
 // @ts-ignore
 // tslint:disable-next-line
@@ -41,10 +41,10 @@ class StorageTools implements IStorageTools {
     return token !== null && token !== '';
   }
 
-  public hasUserId(): boolean {
-    const userId = window.localStorage.getItem(userIdKey);
+  public hasTenantId(): boolean {
+    const tenantId = window.localStorage.getItem(tenantIdKey);
 
-    return userId !== null && userId !== '';
+    return tenantId !== null && tenantId !== '';
   }
 
   public getToken(): string {
@@ -55,28 +55,28 @@ class StorageTools implements IStorageTools {
     return window.localStorage.getItem(tokenKey)!;
   }
 
-  public getUserId(): string {
-    if (this.hasUserId() === false) {
-      throw new goldStoneException('userId does not exist in local storage');
+  public getTenantId(): string {
+    if (this.hasTenantId() === false) {
+      throw new goldStoneException('tenantId does not exist in local storage');
     }
 
-    return window.localStorage.getItem(userIdKey)!;
+    return window.localStorage.getItem(tenantIdKey)!;
   }
 
   public removeToken(): void {
     window.localStorage.removeItem(tokenKey);
   }
 
-  public removeUserId(): void {
-    window.localStorage.removeItem(userIdKey);
+  public removeTenantId(): void {
+    window.localStorage.removeItem(tenantIdKey);
   }
 
   public setToken(token: string): void {
     window.localStorage.setItem(tokenKey, token);
   }
 
-  public setUserId(id: string): void {
-    window.localStorage.setItem(userIdKey, id);
+  public setTenantId(id: string): void {
+    window.localStorage.setItem(tenantIdKey, id);
   }
 }
 

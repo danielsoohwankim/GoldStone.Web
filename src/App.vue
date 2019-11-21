@@ -21,7 +21,7 @@ import layoutStore from '@/layout/_store';
 import Layout from '@/layout/Layout.vue';
 import Loader from '@/layout/Loader.vue';
 import Home from '@/home/Home.vue';
-import userStore from '@/user/_store';
+import tenantStore from '@/tenant/_store';
 
 @Component({
   components: {
@@ -35,7 +35,7 @@ export default class App extends Vue {
   // data
   public layoutStore = layoutStore;
   public Page = Page;
-  public userStore = userStore;
+  public tenantStore = tenantStore;
 
   // lifecycle
   public async mounted(): Promise<void> {
@@ -64,7 +64,7 @@ export default class App extends Vue {
       return;
     }
 
-    await userStore.signIn();
+    await tenantStore.signIn();
   }
 }
 </script>

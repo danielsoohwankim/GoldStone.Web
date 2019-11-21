@@ -36,7 +36,7 @@ import SnackBar from './SnackBar.vue';
 import { Theme } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import { Date } from '@/shared/Date';
-import userStore from '@/user/_store';
+import tenantStore from '@/tenant/_store';
 
 @Component({
   components: {

@@ -17,7 +17,7 @@ import { Menus } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import { Date } from '@/shared/Date';
-import userStore from '@/user/_store';
+import tenantStore from '@/tenant/_store';
 
 class AssetTools implements IAssetTools {
   public async getAssetMapAsync(since: string): Promise<IAssetMap> {
@@ -73,7 +73,7 @@ class AssetTools implements IAssetTools {
 
   public async handleApiErrorAsync(errorResponse: AxiosResponse<any>): Promise<void> {
     if (errorResponse.status === HttpStatus.UNAUTHORIZED) {
-      await userStore.signOut(Menus.Assets.path);
+      await tenantStore.signOut(Menus.Assets.path);
       return;
     } else if (errorResponse.status !== HttpStatus.OK) {
       layoutStore.setSnackBar({

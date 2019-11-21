@@ -1,4 +1,4 @@
-export interface IUserStore {
+export interface ITenantStore {
   hasToken: boolean;
   id: string;
   token: string;

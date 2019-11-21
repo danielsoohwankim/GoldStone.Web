@@ -1,6 +1,6 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import HttpStatus from 'http-status-codes';
-import { IUserStore } from './_interfaces';
+import { ITenantStore } from './_interfaces';
 import goldStoneClient from '@/clients/goldStoneClient';
 import { Menus, Page } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
@@ -11,17 +11,17 @@ import router from '@/router';
 
 @Module({
   namespaced: true,
-  name: 'UserStore',
+  name: 'TenantStore',
   store,
   dynamic: true,
 })
-class UserStore extends VuexModule implements IUserStore {
+class TenantStore extends VuexModule implements ITenantStore {
   get hasToken(): boolean {
     return storageTools.hasToken();
   }
 
   get id(): string {
-    return storageTools.getUserId();
+    return storageTools.getTenantId();
   }
 
   get token(): string {
@@ -74,9 +74,9 @@ class UserStore extends VuexModule implements IUserStore {
     // tslint:disable-next-line
     console.log('successfully signed in');
 
-    const userId: string = response.data;
+    const tenantId: string = response.data;
 
-    storageTools.setUserId(userId);
+    storageTools.setTenantId(tenantId);
 
     if (layoutStore.page !== Page.Default) {
       layoutStore.setPage(Page.Default);
@@ -109,7 +109,7 @@ class UserStore extends VuexModule implements IUserStore {
     }
 
     storageTools.removeToken();
-    storageTools.removeUserId();
+    storageTools.removeTenantId();
     // tslint:disable-next-line
     console.log('Sign out success!');
 
@@ -133,4 +133,4 @@ class UserStore extends VuexModule implements IUserStore {
   }
 }
 
-export default getModule(UserStore);
+export default getModule(TenantStore);
