@@ -204,15 +204,16 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     const sinceChanges: string[] = Sinces.getChanges(minSince, since);
     let newAssetMap: IAssetMap;
 
+    // update Sinces to have sinces up to the selectedSince
+    this.context.commit('AddSinces', sinceChanges);
+
     try {
       newAssetMap = await tools.getAssetMapAsync(since);
     } catch (e) {
+      this.context.commit('RemoveMinSince');
       tools.handleApiErrorAsync(e);
       return;
     }
-
-    // update Sinces to have sinces up to the selectedSince
-    this.context.commit('AddSinces', sinceChanges);
 
     const assetChanges: IAssetChange[] = [];
     // replace the catalogs with the new ones,
@@ -253,6 +254,11 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
       this.AssetMap[assetId].accountMap = accountMap;
     });
+  }
+
+  @Mutation
+  private RemoveMinSince(): void {
+    this.Sinces.pop();
   }
 
   @Mutation
