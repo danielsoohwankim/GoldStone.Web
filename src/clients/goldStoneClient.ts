@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { Date } from '@/shared/Date';
 import { GetAssetsResponseContractV1, IGoldStoneClient, IPutAccountCatalogRequestContractV1,
-  IPutAccountCatalogResponseContractV1 } from './IGoldStoneClient';
+  IPutAccountCatalogResponseContractV1, ISignInResponseContractV1 } from './IGoldStoneClient';
 import tenant from '@/tenant/_store';
 
 const authorizationHeader = 'Authorization';
@@ -43,8 +43,8 @@ class GoldStoneClient implements IGoldStoneClient {
     }
   }
 
-  public async signIn(): Promise<AxiosResponse<string>> {
-    this.setJwtToken();
+  public async signIn(token: string): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
+    this.setJwtToken(token);
 
     try {
       return await api.post(`/${version}/signin`);
@@ -53,8 +53,10 @@ class GoldStoneClient implements IGoldStoneClient {
     }
   }
 
-  private setJwtToken(): void {
-    api.defaults.headers.common[authorizationHeader] = bearerToken(tenant.token);
+  private setJwtToken(token?: string): void {
+    const accessToken: string = (token) ? token : tenant.token;
+
+    api.defaults.headers.common[authorizationHeader] = bearerToken(accessToken);
   }
 }
 

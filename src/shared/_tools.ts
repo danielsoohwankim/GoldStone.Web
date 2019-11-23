@@ -1,4 +1,4 @@
-import { IDevice } from './_interfaces';
+import { IDevice, IStorageTools } from './_interfaces';
 import { goldStoneException } from './GoldStoneException';
 
 class Device implements IDevice {
@@ -30,53 +30,53 @@ class ArrayTools {
 export const arrayTools = new ArrayTools();
 
 const tokenKey: string = 'tkn';
-const tenantIdKey: string = 'uid';
+const tenantIdKey: string = 'tid';
 
 // @ts-ignore
 // tslint:disable-next-line
 class StorageTools implements IStorageTools {
   public hasToken(): boolean {
-    const token = window.localStorage.getItem(tokenKey);
+    const token = window.sessionStorage.getItem(tokenKey);
 
     return token !== null && token !== '';
   }
 
   public hasTenantId(): boolean {
-    const tenantId = window.localStorage.getItem(tenantIdKey);
+    const tenantId = window.sessionStorage.getItem(tenantIdKey);
 
     return tenantId !== null && tenantId !== '';
   }
 
   public getToken(): string {
     if (this.hasToken() === false) {
-      throw new goldStoneException('token does not exist in local storage');
+      throw new goldStoneException('token does not exist in storage');
     }
 
-    return window.localStorage.getItem(tokenKey)!;
+    return window.sessionStorage.getItem(tokenKey)!;
   }
 
   public getTenantId(): string {
     if (this.hasTenantId() === false) {
-      throw new goldStoneException('tenantId does not exist in local storage');
+      throw new goldStoneException('tenantId does not exist in storage');
     }
 
-    return window.localStorage.getItem(tenantIdKey)!;
+    return window.sessionStorage.getItem(tenantIdKey)!;
   }
 
   public removeToken(): void {
-    window.localStorage.removeItem(tokenKey);
+    window.sessionStorage.removeItem(tokenKey);
   }
 
   public removeTenantId(): void {
-    window.localStorage.removeItem(tenantIdKey);
+    window.sessionStorage.removeItem(tenantIdKey);
   }
 
   public setToken(token: string): void {
-    window.localStorage.setItem(tokenKey, token);
+    window.sessionStorage.setItem(tokenKey, token);
   }
 
   public setTenantId(id: string): void {
-    window.localStorage.setItem(tenantIdKey, id);
+    window.sessionStorage.setItem(tenantIdKey, id);
   }
 }
 

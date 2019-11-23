@@ -2,6 +2,7 @@ import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-dec
 import HttpStatus from 'http-status-codes';
 import { ITenantStore } from './_interfaces';
 import goldStoneClient from '@/clients/goldStoneClient';
+import { ISignInResponseContractV1 } from '@/clients/IGoldStoneClient';
 import { Menus, Page } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
@@ -30,9 +31,6 @@ class TenantStore extends VuexModule implements ITenantStore {
 
   @Action
   public async signIn(token?: string): Promise<void> {
-    if (token) {
-      storageTools.setToken(token);
-    }
     layoutStore.toggleSignInButton(false);
 
     // 404
@@ -45,7 +43,7 @@ class TenantStore extends VuexModule implements ITenantStore {
     }
 
     // send the user to sign in page
-    if (storageTools.hasToken() === false) {
+    if (!token && storageTools.hasToken() === false) {
       // tslint:disable-next-line
       console.log(`user doesn't have token`);
       if (layoutStore.page !== Page.Home) {
@@ -56,8 +54,10 @@ class TenantStore extends VuexModule implements ITenantStore {
       return;
     }
 
+    token = (token) ? token : storageTools.getToken();
+
     const response = await loaderAction.sendAsync(
-      () => goldStoneClient.signIn());
+      () => goldStoneClient.signIn(token!));
 
     if (!response || response.status !== HttpStatus.OK) {
       // tslint:disable-next-line
@@ -74,8 +74,10 @@ class TenantStore extends VuexModule implements ITenantStore {
     // tslint:disable-next-line
     console.log('successfully signed in');
 
-    const tenantId: string = response.data;
+    const { accessToken, profileImageUrl, tenantId }
+      = (response.data as ISignInResponseContractV1);
 
+    storageTools.setToken(accessToken);
     storageTools.setTenantId(tenantId);
 
     if (layoutStore.page !== Page.Default) {

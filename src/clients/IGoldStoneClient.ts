@@ -31,7 +31,7 @@ export interface IGoldStoneClient {
     : Promise<AxiosResponse<GetAssetsResponseContractV1 | any>>;
   putCatalogAsync(request: IPutAccountCatalogRequestContractV1)
     : Promise<AxiosResponse<IPutAccountCatalogResponseContractV1 | any>>;
-  signIn(): Promise<AxiosResponse<string>>;
+  signIn(token: string): Promise<AxiosResponse<string | any>>;
 }
 
 export interface IPutAccountCatalogRequestContractV1 {
@@ -45,6 +45,12 @@ export interface IPutAccountCatalogRequestContractV1 {
 // tslint:disable-next-line
 export interface IPutAccountCatalogResponseContractV1
   extends IPutAccountCatalogRequestContractV1 {}
+
+export interface ISignInResponseContractV1 {
+  accessToken: string;
+  profileImageUrl: string;
+  tenantId: string;
+}
 
 export enum AssetType {
   Cash = 'Cash',
