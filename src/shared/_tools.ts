@@ -30,21 +30,29 @@ class ArrayTools {
 export const arrayTools = new ArrayTools();
 
 const tokenKey: string = 'tkn';
-const tenantIdKey: string = 'tid';
+const pathKey: string = 'path';
 
 // @ts-ignore
 // tslint:disable-next-line
 class StorageTools implements IStorageTools {
+  public hasPath(): boolean {
+    const path = window.sessionStorage.getItem(pathKey);
+
+    return path !== null && path !== '';
+  }
+
   public hasToken(): boolean {
     const token = window.sessionStorage.getItem(tokenKey);
 
     return token !== null && token !== '';
   }
 
-  public hasTenantId(): boolean {
-    const tenantId = window.sessionStorage.getItem(tenantIdKey);
+  public getPath(): string {
+    if (this.hasPath() === false) {
+      throw new goldStoneException('path does not exist in storage');
+    }
 
-    return tenantId !== null && tenantId !== '';
+    return window.sessionStorage.getItem(pathKey)!;
   }
 
   public getToken(): string {
@@ -55,28 +63,16 @@ class StorageTools implements IStorageTools {
     return window.sessionStorage.getItem(tokenKey)!;
   }
 
-  public getTenantId(): string {
-    if (this.hasTenantId() === false) {
-      throw new goldStoneException('tenantId does not exist in storage');
-    }
-
-    return window.sessionStorage.getItem(tenantIdKey)!;
+  public removePath(): void {
+    window.sessionStorage.removeItem(pathKey);
   }
 
   public removeToken(): void {
     window.sessionStorage.removeItem(tokenKey);
   }
 
-  public removeTenantId(): void {
-    window.sessionStorage.removeItem(tenantIdKey);
-  }
-
   public setToken(token: string): void {
     window.sessionStorage.setItem(tokenKey, token);
-  }
-
-  public setTenantId(id: string): void {
-    window.sessionStorage.setItem(tenantIdKey, id);
   }
 }
 

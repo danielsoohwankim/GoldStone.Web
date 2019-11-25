@@ -5,7 +5,7 @@ export class Menus {
     icon: 'dashboard',
     name: 'dashboard',
     path: '/dashboard',
-    title: 'Dashboard',
+    title: 'GoldStone',
   };
 
   public static Assets: IMenu = {

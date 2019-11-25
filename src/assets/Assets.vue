@@ -67,7 +67,8 @@ export default class Assets extends Vue {
   }
 
   // lifecycle
-  public async created() {
+  public async mounted() {
+    console.log('assets mounted');
     if (store.isLoaded === true) {
       return;
     }

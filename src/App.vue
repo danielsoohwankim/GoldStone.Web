@@ -21,6 +21,7 @@ import layoutStore from '@/layout/_store';
 import Layout from '@/layout/Layout.vue';
 import Loader from '@/layout/Loader.vue';
 import Home from '@/home/Home.vue';
+import { storageTools } from '@/shared/_tools';
 import tenantStore from '@/tenant/_store';
 
 @Component({
@@ -38,34 +39,32 @@ export default class App extends Vue {
   public tenantStore = tenantStore;
 
   // lifecycle
+  /**
+   * Mounted on App.vue is always called ONCE on initial page load.
+   * For known paths, $route.path is always '/'.
+   * When you access the page with route path (e.g. /assets),
+   * the site will initially enter mounted with '/', and
+   * vue router will then change it to '/assets'.
+   */
   public async mounted(): Promise<void> {
-    if (Menus.IsValidPath(this.$route.path) === true) {
-      if (this.$route.path === '/') {
-        layoutStore.toggleSignInButton(true);
-      }
-
-      return;
+    console.log('mounted', this.$route.path);
+    let path: string = this.$route.path;
+    if (storageTools.hasPath() === true) {
+      path = storageTools.getPath();
+      this.$router.push(path);
     }
-    // in the wrong page
-    layoutStore.setPage(Page.NotFound);
+    console.log('mounted path: ', storageTools.hasPath(), path);
+    if (Menus.IsValidPath(path) === false) {
+      layoutStore.setPage(Page.NotFound);
+      return;
+    } else if (storageTools.hasToken() === true) {
+      await tenantStore.signIn(storageTools.getToken());
+    } else {
+      await tenantStore.signIn();
+    }
   }
 
   // computed
-  get routePath(): string | undefined {
-    return this.$route.path;
-  }
-
-  @Watch('routePath')
-  public async onRouteNameChange(newPath, oldPath) {
-    // tslint:disable-next-line
-    console.log('route changed from ' + oldPath + ' to ' + newPath);
-    if (Menus.IsValidPath(newPath) === false) {
-      layoutStore.setPage(Page.NotFound);
-      return;
-    }
-
-    await tenantStore.signIn();
-  }
 }
 </script>
 

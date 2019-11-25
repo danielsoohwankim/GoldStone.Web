@@ -3,12 +3,11 @@ export interface IDevice {
 }
 
 export interface IStorageTools {
+  hasPath(): boolean;
   hasToken(): boolean;
-  hasTenantId(): boolean;
+  getPath(): string;
   getToken(): string;
-  getTenantId(): string;
+  removePath(): void;
   removeToken(): void;
-  removeTenantId(): void;
   setToken(token: string): void;
-  setTenantId(id: string): void;
 }

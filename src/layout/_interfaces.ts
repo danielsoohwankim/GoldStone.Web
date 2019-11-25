@@ -1,6 +1,17 @@
 import { AxiosResponse } from 'axios';
 import { Page, Theme } from './_data';
 
+export interface ILayoutState {
+  menu: IMenu;
+  page: Page;
+  showLoader: boolean;
+  showMenu: boolean;
+  showSetting: boolean;
+  showSignInButton: boolean;
+  snackBarView: ISnackBarView;
+  theme: Theme;
+}
+
 export interface ILayoutStore {
   menu: IMenu;
   page: Page;
@@ -10,15 +21,16 @@ export interface ILayoutStore {
   showSignInButton: boolean;
   snackBarView: ISnackBarView;
   theme: Theme;
+  clear(showSignInButton: boolean): void;
   dismissSnackBar(): void;
   setMenu(menuName: string): string;
   setTheme(theme: Theme): Theme;
-  setPage(page: Page): Page;
+  setPage(page: Page): void;
   setSnackBar(payload: ISnackBarView): ISnackBarView;
   toggleLoader(showLoader: boolean): boolean;
   toggleMenu(showMenu: boolean): boolean;
-  toggleSetting(show: boolean): boolean;
-  toggleSignInButton(show: boolean): boolean;
+  toggleSetting(show: boolean): void;
+  toggleSignInButton(show: boolean): void;
 }
 
 export type LoaderCallback = () => any;

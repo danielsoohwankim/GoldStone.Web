@@ -68,6 +68,7 @@ export interface IAssetLayoutColor {
   minus: string;
   neutral: string;
   plus: string;
+  snackBar: string;
   success: string;
   warning: string;
   text: string;
@@ -77,12 +78,20 @@ export interface IAssetMap {
   [ key: string ]: IAsset;
 }
 
+export interface IAssetsState {
+  assetMap: IAssetMap;
+  editDialogView: IEditDialogView;
+  isLoaded: boolean;
+  sinces: string[];
+}
+
 export interface IAssetsStore {
   assetMap: IAssetMap;
   editDialogView: IEditDialogView;
   isLoaded: boolean;
   sinces: string[];
   minSince: string;
+  clear(): void;
   resetEditView(): void;
   selectChartAccount(payload: ISelectChartAccount): ISelectChartAccount;
   selectChartSince(payload: ISelectChartSince): Promise<ISelectChartSince>;

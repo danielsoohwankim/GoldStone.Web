@@ -1,6 +1,8 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import HttpStatus from 'http-status-codes';
-import { ITenantStore } from './_interfaces';
+import { ITenant, ITenantState, ITenantStore } from './_interfaces';
+import assetsStore from '@/assets/_store';
+import assetsTools from '@/assets/_tools';
 import goldStoneClient from '@/clients/goldStoneClient';
 import { ISignInResponseContractV1 } from '@/clients/IGoldStoneClient';
 import { Menus, Page } from '@/layout/_data';
@@ -17,16 +19,37 @@ import router from '@/router';
   dynamic: true,
 })
 class TenantStore extends VuexModule implements ITenantStore {
-  get hasToken(): boolean {
-    return storageTools.hasToken();
-  }
+  private initialState: ITenantState = {
+    tenant: {
+      id: '',
+      profileImageUrl: '',
+    },
+  };
+
+  private State: ITenantState = {
+    tenant: this.initialState.tenant,
+  };
 
   get id(): string {
-    return storageTools.getTenantId();
+    return this.State.tenant.id;
   }
 
-  get token(): string {
-    return storageTools.getToken();
+  get profileImageUrl(): string {
+    return this.State.tenant.profileImageUrl;
+  }
+
+  get tenant(): ITenant {
+    return this.State.tenant;
+  }
+
+  @Action
+  public clear(): void {
+    this.context.commit('Clear');
+  }
+
+  @Action
+  public setTenant(tenant: ITenant): void {
+    this.context.commit('SetTenant', tenant);
   }
 
   @Action
@@ -46,9 +69,7 @@ class TenantStore extends VuexModule implements ITenantStore {
     if (!token && storageTools.hasToken() === false) {
       // tslint:disable-next-line
       console.log(`user doesn't have token`);
-      if (layoutStore.page !== Page.Home) {
-        layoutStore.setPage(Page.Home);
-      }
+      layoutStore.setPage(Page.Home);
       layoutStore.toggleSignInButton(true);
 
       return;
@@ -76,15 +97,17 @@ class TenantStore extends VuexModule implements ITenantStore {
 
     const { accessToken, profileImageUrl, tenantId }
       = (response.data as ISignInResponseContractV1);
+    const tenant: ITenant = {
+      id: tenantId,
+      profileImageUrl,
+    };
 
     storageTools.setToken(accessToken);
-    storageTools.setTenantId(tenantId);
+    this.context.commit('SetTenant', tenant);
 
-    if (layoutStore.page !== Page.Default) {
-      layoutStore.setPage(Page.Default);
-    }
-    if (Menus.IsValidPath(router.currentRoute.path) === true
-      && router.currentRoute.name !== layoutStore.menu.name) {
+    layoutStore.setPage(Page.Default);
+    if (Menus.IsValidPath(router.currentRoute.path) === true &&
+        router.currentRoute.name !== layoutStore.menu.name) {
       layoutStore.setMenu(router.currentRoute.name!);
     }
 
@@ -111,17 +134,11 @@ class TenantStore extends VuexModule implements ITenantStore {
     }
 
     storageTools.removeToken();
-    storageTools.removeTenantId();
+    assetsStore.clear();
+    layoutStore.clear(true);
+    this.context.commit('Clear');
     // tslint:disable-next-line
     console.log('Sign out success!');
-
-    if (layoutStore.showSetting === true) {
-      layoutStore.toggleSetting(false);
-    }
-    if (layoutStore.page !== Page.Home) {
-      layoutStore.setPage(Page.Home);
-    }
-    layoutStore.toggleSignInButton(true);
 
     if (returnPath) {
       if (router.currentRoute.path !== returnPath) {
@@ -132,6 +149,16 @@ class TenantStore extends VuexModule implements ITenantStore {
     }
 
     return;
+  }
+
+  @Mutation
+  private Clear(): void {
+    this.State = this.initialState;
+  }
+
+  @Mutation
+  private SetTenant(tenant: ITenant): void {
+    this.State.tenant = tenant;
   }
 }
 

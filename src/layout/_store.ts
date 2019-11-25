@@ -1,7 +1,8 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { Menus, Page, Theme } from './_data';
-import { ILayoutStore, IMenu, ISnackBarView } from './_interfaces';
+import { ILayoutState, ILayoutStore, IMenu, ISnackBarView } from './_interfaces';
 import store from '@/shared/_store';
+import router from '@/router';
 
 @Module({
   namespaced: true,
@@ -10,49 +11,68 @@ import store from '@/shared/_store';
   dynamic: true,
 })
 class LayoutStore extends VuexModule implements ILayoutStore {
-  private Menu: IMenu = Menus.Dashboard;
-  private Page: Page = Page.Home;
-  private ShowLoader: boolean = false;
-  private ShowMenu: boolean = false;
-  private ShowSetting: boolean = false;
-  private ShowSignInButton: boolean = false;
-  private SnackBarView: ISnackBarView = {
-    duration: undefined,
-    message: '',
-    show: false,
+  // initial state
+  private initialState: ILayoutState = {
+    menu: Menus.Dashboard,
+    page: Page.Home,
+    showLoader: false,
+    showMenu: false,
+    showSetting: false,
+    showSignInButton: false,
+    snackBarView: {
+      duration: undefined,
+      message: '',
+      show: false,
+    },
+    theme: Theme.Dark,
   };
-  private Theme: Theme = Theme.Dark;
+  // lowercase 'state' is reserved in Vuex
+  private State: ILayoutState = {
+    menu: this.initialState.menu,
+    page: this.initialState.page,
+    showLoader: this.initialState.showLoader,
+    showMenu: this.initialState.showMenu,
+    showSetting: this.initialState.showSetting,
+    showSignInButton: this.initialState.showSignInButton,
+    snackBarView: this.initialState.snackBarView,
+    theme: this.initialState.theme,
+  };
 
   get menu(): IMenu {
-    return this.Menu;
+    return this.State.menu;
   }
 
   get page(): Page {
-    return this.Page;
+    return this.State.page;
   }
 
   get showLoader(): boolean {
-    return this.ShowLoader;
+    return this.State.showLoader;
   }
 
   get showMenu(): boolean {
-    return this.ShowMenu;
+    return this.State.showMenu;
   }
 
   get showSetting(): boolean {
-    return this.ShowSetting;
+    return this.State.showSetting;
   }
 
   get showSignInButton(): boolean {
-    return this.ShowSignInButton;
+    return this.State.showSignInButton;
   }
 
   get snackBarView(): ISnackBarView {
-    return this.SnackBarView;
+    return this.State.snackBarView;
   }
 
   get theme(): Theme {
-    return this.Theme;
+    return this.State.theme;
+  }
+
+  @Action
+  public clear(showSignInButton: boolean): void {
+    this.context.commit('Clear', showSignInButton);
   }
 
   @Action({commit: 'DismissSnackBar'})
@@ -65,9 +85,17 @@ class LayoutStore extends VuexModule implements ILayoutStore {
     return menuName;
   }
 
-  @Action({commit: 'SetPage'})
-  public setPage(page: Page): Page {
-    return page;
+  @Action
+  public setPage(page: Page): void {
+    if (Menus.IsValidPath(router.currentRoute.path) === true &&
+        router.currentRoute.name &&
+        this.context.getters.menu.name !== router.currentRoute.name) {
+      this.context.commit('SetMenu', router.currentRoute.name);
+    }
+    if (this.context.getters.page === page) {
+      return;
+    }
+    this.context.commit('SetPage', page);
   }
 
   @Action({commit: 'SetTheme'})
@@ -90,19 +118,36 @@ class LayoutStore extends VuexModule implements ILayoutStore {
     return showMenu;
   }
 
-  @Action({commit: 'ToggleSetting'})
-  public toggleSetting(show: boolean): boolean {
-    return show;
+  @Action
+  public toggleSetting(show: boolean): void {
+    if (this.context.getters.showSetting === show) {
+      return;
+    }
+
+    this.context.commit('ToggleSetting', show);
   }
 
-  @Action({commit: 'ToggleSignInButton'})
-  public toggleSignInButton(show: boolean): boolean {
-    return show;
+  @Action
+  public toggleSignInButton(show: boolean): void {
+    if (this.context.getters.page !== Page.Home ||
+        this.context.getters.showSignInButton === show) {
+      return;
+    }
+
+    this.context.commit('ToggleSignInButton', show);
+  }
+
+  @Mutation
+  private Clear(showSignInButton: boolean): void {
+    const state: ILayoutState = this.initialState;
+    state.showSignInButton = showSignInButton;
+
+    this.State = state;
   }
 
   @Mutation
   private DismissSnackBar(): void {
-    this.SnackBarView = {
+    this.State.snackBarView = {
       duration: undefined,
       message: '',
       show: false,
@@ -111,42 +156,42 @@ class LayoutStore extends VuexModule implements ILayoutStore {
 
   @Mutation
   private SetMenu(menuName: string): void {
-    this.Menu = Menus.GetMenu(menuName);
+    this.State.menu = Menus.GetMenu(menuName);
   }
 
   @Mutation
   private SetPage(page: Page): void {
-    this.Page = page;
+    this.State.page = page;
   }
 
   @Mutation
   private SetSnackBar(payload: ISnackBarView): void {
-    this.SnackBarView = payload;
+    this.State.snackBarView = payload;
   }
 
   @Mutation
   private SetTheme(theme: Theme): void {
-    this.Theme = theme;
+    this.State.theme = theme;
   }
 
   @Mutation
   private ToggleLoader(showLoader: boolean): void {
-    this.ShowLoader = showLoader;
+    this.State.showLoader = showLoader;
   }
 
   @Mutation
   private ToggleMenu(showMenu: boolean): void {
-    this.ShowMenu = showMenu;
+    this.State.showMenu = showMenu;
   }
 
   @Mutation
   private ToggleSetting(show: boolean): void {
-    this.ShowSetting = show;
+    this.State.showSetting = show;
   }
 
   @Mutation
   private ToggleSignInButton(show: boolean): void {
-    this.ShowSignInButton = show;
+    this.State.showSignInButton = show;
   }
 }
 

@@ -1,7 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
-import { Date } from '@/shared/Date';
 import { GetAssetsResponseContractV1, IGoldStoneClient, IPutAccountCatalogRequestContractV1,
   IPutAccountCatalogResponseContractV1, ISignInResponseContractV1 } from './IGoldStoneClient';
+import { storageTools } from '@/shared/_tools';
+import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
 
 const authorizationHeader = 'Authorization';
@@ -54,7 +55,7 @@ class GoldStoneClient implements IGoldStoneClient {
   }
 
   private setJwtToken(token?: string): void {
-    const accessToken: string = (token) ? token : tenant.token;
+    const accessToken: string = (token) ? token : storageTools.getToken();
 
     api.defaults.headers.common[authorizationHeader] = bearerToken(accessToken);
   }

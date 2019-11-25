@@ -21,6 +21,9 @@ import tenantStore from '@/tenant/_store';
 
 class AssetTools implements IAssetTools {
   public async getAssetMapAsync(since: string): Promise<IAssetMap> {
+    // tslint:disable-next-line
+    console.log('getting asset map...');
+
     const startDate: Date = Sinces.getDate(since);
     const endDate: Date = Date.Today();
 
