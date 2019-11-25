@@ -3,6 +3,16 @@
     class="asset-catalog"
     @click.prevent="toggleExpandChart()"
   >
+    <md-list class="asset-catalog-user" :style="headerStyle">
+      <md-list-item>
+        <span 
+          class="title"
+          :class="layoutStore.theme"
+        >User
+        </span>
+      </md-list-item>
+    </md-list>
+
     <md-list class="asset-catalog-symbol" :style="headerStyle">
       <md-list-item>
         <span 

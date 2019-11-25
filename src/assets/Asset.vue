@@ -206,13 +206,18 @@ $content-width: 100%;
   font-size: 1.25rem;
 }
 
+.asset-catalog-user {
+  width: 5%;
+  min-width: 50px;
+}
+
 .asset-catalog-symbol {
   width: 10%;
   min-width: 100px;
 }
 
 .asset-catalog-name {
-  width: 30%;
+  width: 25%;
   min-width: 250px;
 }
 

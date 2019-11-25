@@ -8,6 +8,17 @@
     @mouseenter="hover = true"
     @mouseleave="hover = false"
   >
+    <md-list class="asset-catalog-user">
+      <md-list-item>
+        <md-avatar>
+          <img
+            v-if="this.account.symbol !== this.assetsConstants.totalSymbol"
+            :src="tenant.profileImageUrl" alt="Avatar"
+          >
+        </md-avatar>
+      </md-list-item>
+    </md-list>
+
     <md-list class="asset-catalog-symbol">
       <md-button 
         class="md-plain button"
@@ -124,6 +135,7 @@ import { Theme } from '@/layout/_data';
 import { ILayoutStore } from '@/layout/_interfaces';
 import layoutStore from '@/layout/_store';
 import { BaseStatus } from '@/shared/_data';
+import tenant from '@/tenant/_store';
 
 @Component({
   components: {
@@ -140,6 +152,7 @@ export default class SinceCatalogToday extends Vue {
   public readonly BaseStatus = BaseStatus;
   public readonly layoutStore: ILayoutStore = layoutStore;
   public readonly Sinces: Sinces = Sinces;
+  public readonly tenant = tenant;
   public hover: boolean = false;
 
   // styles

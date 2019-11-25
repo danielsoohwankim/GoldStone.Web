@@ -19,9 +19,11 @@
 <script lang="ts">
 import colors from 'material-colors';
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Theme } from './_data';
+import { Menus, Theme } from './_data';
 import { IMenu } from './_interfaces';
 import store from './_store';
+// todo: remove
+import tenant from '@/tenant/_store';
 
 @Component
 export default class LayoutMenu extends Vue {
@@ -44,6 +46,12 @@ export default class LayoutMenu extends Vue {
 
   // methods
   public onClick(): void {
+    // todo: remove
+    if (this.menu.name === Menus.Accountant.name) {
+      window.location.href = `https://goldstone.azurewebsites.net/expenses?${tenant.id}`;
+      return;
+    }
+
     if (store.menu.name === this.menu.name) {
       return;
     }

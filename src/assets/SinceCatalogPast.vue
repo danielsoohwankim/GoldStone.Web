@@ -8,6 +8,11 @@
     @mouseenter="hover = true"
     @mouseleave="hover = false"
   >
+    <md-list class="asset-catalog-user">
+      <md-list-item>
+      </md-list-item>
+    </md-list>
+
     <md-list class="asset-catalog-symbol">
       <md-list-item>
       </md-list-item>
