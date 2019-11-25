@@ -47,13 +47,18 @@ export default class App extends Vue {
    * vue router will then change it to '/assets'.
    */
   public async mounted(): Promise<void> {
-    console.log('mounted', this.$route.path);
     let path: string = this.$route.path;
+    /**
+     * In order to correctly navigate to the path user entered from gh-pages,
+     * we need to use 404.html that sets the path on session storage.
+     * It will redirect users back to index.html, and we can use the path accordingly.
+     */
     if (storageTools.hasPath() === true) {
       path = storageTools.getPath();
+      storageTools.removePath();
       this.$router.push(path);
     }
-    console.log('mounted path: ', storageTools.hasPath(), path);
+
     if (Menus.IsValidPath(path) === false) {
       layoutStore.setPage(Page.NotFound);
       return;

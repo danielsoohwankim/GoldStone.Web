@@ -1,8 +1,7 @@
 <script>
-  console.log('404??');
   // https://medium.com/swlh/how-to-host-your-angular-reactjs-vuejs-spa-on-github-pages-2d9ab102ac7b
-  const path = window.location.pathname.slice(1);
-  console.log('404 path', path);
-  sessionStorage.setItem('path', path);
+  const path = window.location.pathname;
+  // remove trailing slash
+  sessionStorage.setItem('path', path.slice(0, -1));
   window.location.href='../';
 </script>

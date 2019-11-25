@@ -4,8 +4,7 @@
       <md-empty-state
         class="background-color"
         md-icon="error"
-        md-label="Page Not Found"
-        :md-description="description">
+        md-label="Page Not Found">
       </md-empty-state>
     </md-content>
   </div>
@@ -17,29 +16,12 @@ import { Vue, Prop, Component } from 'vue-property-decorator';
 @Component
 export default class NotFound extends Vue {
   // data
-  public countDown: number = 5;
 
   // lifecycle
-  public created(): void {
-    this.countDownTimer();
-  }
 
   // computed
-  get description(): string {
-    return `You will be redirected in ${this.countDown} seconds`;
-  }
 
   // methods
-  public countDownTimer(): void {
-    if (this.countDown >= 0) {
-      setTimeout(() => {
-        this.countDown -= 1;
-        this.countDownTimer();
-      }, 1000);
-    } else {
-      this.$router.push('/');
-    }
-  }
 }
 </script>
 
