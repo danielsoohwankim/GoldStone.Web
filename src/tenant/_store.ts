@@ -1,8 +1,8 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
+import _ from 'lodash';
 import HttpStatus from 'http-status-codes';
 import { ITenant, ITenantState, ITenantStore } from './_interfaces';
 import assetsStore from '@/assets/_store';
-import assetsTools from '@/assets/_tools';
 import goldStoneClient from '@/clients/goldStoneClient';
 import { ISignInResponseContractV1 } from '@/clients/IGoldStoneClient';
 import { Menus, Page } from '@/layout/_data';
@@ -19,16 +19,15 @@ import router from '@/router';
   dynamic: true,
 })
 class TenantStore extends VuexModule implements ITenantStore {
-  private initialState: ITenantState = {
+  private readonly initialState: ITenantState = {
     tenant: {
       id: '',
       profileImageUrl: '',
     },
+    users: {},
   };
 
-  private State: ITenantState = {
-    tenant: this.initialState.tenant,
-  };
+  private State: ITenantState = _.cloneDeep(this.initialState);
 
   get id(): string {
     return this.State.tenant.id;
@@ -106,7 +105,9 @@ class TenantStore extends VuexModule implements ITenantStore {
     this.context.commit('SetTenant', tenant);
 
     layoutStore.setPage(Page.Default);
+
     if (Menus.IsValidPath(router.currentRoute.path) === true &&
+        // needed here not within the store to use the latest router route value
         router.currentRoute.name !== layoutStore.menu.name) {
       layoutStore.setMenu(router.currentRoute.name!);
     }
@@ -153,7 +154,7 @@ class TenantStore extends VuexModule implements ITenantStore {
 
   @Mutation
   private Clear(): void {
-    this.State = this.initialState;
+    this.State = _.cloneDeep(this.initialState);
   }
 
   @Mutation

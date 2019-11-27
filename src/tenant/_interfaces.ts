@@ -1,3 +1,5 @@
+import { UserRole } from './_data';
+
 export interface ITenant {
   id: string;
   profileImageUrl: string;
@@ -5,6 +7,7 @@ export interface ITenant {
 
 export interface ITenantState {
   tenant: ITenant;
+  users: { [ key: string]: IUser };
 }
 
 export interface ITenantStore {
@@ -15,4 +18,10 @@ export interface ITenantStore {
   setTenant(tenant: ITenant): void;
   signIn(token?: string): Promise<void>;
   signOut(returnPath?: string): Promise<void>;
+}
+
+export interface IUser {
+  id: string;
+  profileImageUrl: string;
+  role: UserRole;
 }

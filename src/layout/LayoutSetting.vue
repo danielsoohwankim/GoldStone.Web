@@ -21,17 +21,26 @@
 
           <md-list-item>
             <md-icon :style="iconStyle">wb_sunny</md-icon>
-            <span class="md-list-item-text">Dark / Light</span>
+            <span class="md-list-item-text">{{ themeText }}</span>
             <md-switch 
               v-model="theme" 
-              :md-theme="theme" 
               true-value="light"
               false-value="dark"
               class="md-accent" 
+              :md-theme="theme"
             />
           </md-list-item>
           <md-list-item>
-            <a @click.prevent="signOut()">Sign Out</a>
+            <md-avatar class="md-small" style="margin-right: 32px;">
+              <img :src="tenant.profileImageUrl" alt="Avatar" />
+            </md-avatar>
+            <span class="md-list-item-text">Signed In</span>
+            <md-switch
+              v-model="signedIn"
+              class="md-accent"
+              @click="test()"
+              :md-theme="theme"
+            />
           </md-list-item>
         </md-list>
       </div>
@@ -45,7 +54,7 @@ import { Theme } from './_data';
 import { ILayoutStore } from './_interfaces';
 import store from './_store';
 import { device } from '@/shared/_tools';
-import tenantStore from '@/tenant/_store';
+import tenant from '@/tenant/_store';
 
 @Component
 export default class LayoutSetting extends Vue {
@@ -53,13 +62,10 @@ export default class LayoutSetting extends Vue {
   // data
   public theme: Theme = store.theme;
   public store: ILayoutStore = store;
+  public tenant = tenant;
+  public signedIn: boolean = true;
 
   // styles
-  get settingLayoutClass(): string {
-    return (device.isMobile() === false)
-      ? 'setting-layout' : 'setting-layout-mobile';
-  }
-
   get iconStyle(): object {
     return {
       color: (store.theme === Theme.Light)
@@ -67,7 +73,15 @@ export default class LayoutSetting extends Vue {
     };
   }
 
+  get settingLayoutClass(): string {
+    return (device.isMobile() === false)
+      ? 'setting-layout' : 'setting-layout-mobile';
+  }
+
   // computed
+  get themeText(): string {
+    return (this.theme === Theme.Light) ? 'Light' : 'Dark';
+  }
 
   // methods
   @Watch('theme')
@@ -75,8 +89,9 @@ export default class LayoutSetting extends Vue {
     store.setTheme(curTheme);
   }
 
-  public async signOut(): Promise<void> {
-    await tenantStore.signOut();
+  @Watch('signedIn')
+  public async toggleSignIn(cur: boolean, prev: boolean): Promise<void> {
+    await tenant.signOut();
   }
 }
 </script>

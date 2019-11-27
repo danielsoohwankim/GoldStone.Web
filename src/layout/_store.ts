@@ -1,4 +1,5 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
+import _ from 'lodash';
 import { Menus, Page, Theme } from './_data';
 import { ILayoutState, ILayoutStore, IMenu, ISnackBarView } from './_interfaces';
 import store from '@/shared/_store';
@@ -12,8 +13,8 @@ import router from '@/router';
 })
 class LayoutStore extends VuexModule implements ILayoutStore {
   // initial state
-  private initialState: ILayoutState = {
-    menu: Menus.Dashboard,
+  private readonly initialState: ILayoutState = {
+    menu: Menus.Empty,
     page: Page.Home,
     showLoader: false,
     showMenu: false,
@@ -27,16 +28,7 @@ class LayoutStore extends VuexModule implements ILayoutStore {
     theme: Theme.Dark,
   };
   // lowercase 'state' is reserved in Vuex
-  private State: ILayoutState = {
-    menu: this.initialState.menu,
-    page: this.initialState.page,
-    showLoader: this.initialState.showLoader,
-    showMenu: this.initialState.showMenu,
-    showSetting: this.initialState.showSetting,
-    showSignInButton: this.initialState.showSignInButton,
-    snackBarView: this.initialState.snackBarView,
-    theme: this.initialState.theme,
-  };
+  private State: ILayoutState = _.cloneDeep(this.initialState);
 
   get menu(): IMenu {
     return this.State.menu;
@@ -80,9 +72,9 @@ class LayoutStore extends VuexModule implements ILayoutStore {
     //
   }
 
-  @Action({commit: 'SetMenu'})
-  public setMenu(menuName: string): string {
-    return menuName;
+  @Action
+  public setMenu(menuName: string): void {
+    this.context.commit('SetMenu', menuName);
   }
 
   @Action
@@ -139,7 +131,7 @@ class LayoutStore extends VuexModule implements ILayoutStore {
 
   @Mutation
   private Clear(showSignInButton: boolean): void {
-    const state: ILayoutState = this.initialState;
+    const state: ILayoutState = _.cloneDeep(this.initialState);
     state.showSignInButton = showSignInButton;
 
     this.State = state;

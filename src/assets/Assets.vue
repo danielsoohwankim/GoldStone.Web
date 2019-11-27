@@ -68,6 +68,7 @@ export default class Assets extends Vue {
 
   // lifecycle
   public async mounted() {
+    // navigating back to Assets menu triggers mounted again (e.g. Dashboard -> Assets)
     if (store.isLoaded === true) {
       return;
     }

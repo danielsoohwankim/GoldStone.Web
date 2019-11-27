@@ -23,7 +23,7 @@ export interface ILayoutStore {
   theme: Theme;
   clear(showSignInButton: boolean): void;
   dismissSnackBar(): void;
-  setMenu(menuName: string): string;
+  setMenu(menuName: string): void;
   setTheme(theme: Theme): Theme;
   setPage(page: Page): void;
   setSnackBar(payload: ISnackBarView): ISnackBarView;

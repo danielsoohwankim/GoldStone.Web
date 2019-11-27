@@ -10,12 +10,14 @@
   >
     <md-list class="asset-catalog-user">
       <md-list-item>
-        <md-avatar>
-          <img
-            v-if="this.account.symbol !== this.assetsConstants.totalSymbol"
-            :src="tenant.profileImageUrl" alt="Avatar"
-          >
-        </md-avatar>
+        <div class="asset-catalog-today">
+          <md-avatar>
+            <img
+              v-if="this.account.symbol !== this.assetsConstants.totalSymbol"
+              :src="tenant.profileImageUrl" alt="Avatar"
+            >
+          </md-avatar>
+        </div>
       </md-list-item>
     </md-list>
 

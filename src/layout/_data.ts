@@ -1,6 +1,14 @@
 import { IMenu } from './_interfaces';
 
 export class Menus {
+  // empty state for initialization
+  public static Empty: IMenu = {
+    icon: 'empty',
+    name: 'empty',
+    path: '/dashboard',
+    title: 'GoldStone',
+  };
+
   public static Dashboard: IMenu = {
     icon: 'dashboard',
     name: 'dashboard',

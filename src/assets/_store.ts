@@ -24,7 +24,7 @@ import tenantStore from '@/tenant/_store';
 })
 class AssetsStore extends VuexModule implements IAssetsStore {
   // initial state
-  private initialState: IAssetsState = {
+  private readonly initialState: IAssetsState = {
     assetMap: {
       [assetsView.assets.id]: {
         accountMap: {},
@@ -81,12 +81,7 @@ class AssetsStore extends VuexModule implements IAssetsStore {
     ],
   };
   // lowercase 'state' is reserved in Vuex
-  private State: IAssetsState = {
-    assetMap: this.initialState.assetMap,
-    editDialogView: this.initialState.editDialogView,
-    isLoaded: this.initialState.isLoaded,
-    sinces: this.initialState.sinces,
-  };
+  private State: IAssetsState = _.cloneDeep(this.initialState);
 
   get assetMap(): IAssetMap {
     return this.State.assetMap;
@@ -263,7 +258,7 @@ class AssetsStore extends VuexModule implements IAssetsStore {
 
   @Mutation
   private Clear(): void {
-    this.State = this.initialState;
+    this.State = _.cloneDeep(this.initialState);
   }
 
   @Mutation
