@@ -2,8 +2,7 @@
   <div
     class="asset-catalog past"
     :class="[
-      layoutStore.theme, 
-      (hover === true) ? `hover-${layoutStore.Theme}` : ''
+      (hover === true) ? `hover-${layout.theme}` : ''
     ]"
     @mouseenter="hover = true"
     @mouseleave="hover = false"
@@ -26,7 +25,7 @@
     <md-list class="asset-catalog-since">
       <md-list-item>
         <span class="asset-catalog-past">
-          {{ this.Sinces.toString(this.catalog.since) }}
+          {{ sinceCatalog.since }}
         </span>
       </md-list-item>
     </md-list>
@@ -34,7 +33,7 @@
     <md-list class="asset-catalog-date">
       <md-list-item>
         <span class="asset-catalog-past">
-          {{ this.catalog.date }}
+          {{ sinceCatalog.date }}
         </span>
       </md-list-item>
     </md-list>
@@ -52,7 +51,8 @@
         <span class="asset-catalog-past">
           <SinceCatalogChange
             :bold="false"
-            :catalog="this.catalog"
+            :todayBalance="sinceCatalog.todayBalance"
+            :pastBalance="sinceCatalog.pastBalance"
           />
         </span>
       </md-list-item>
@@ -69,13 +69,12 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Sinces } from './_data';
-import { ISinceCatalog, IAssetTools } from './_interfaces';
-import tools from './_tools';
+import { ISinceCatalog } from './_data';
+import manager from './_manager';
+import { AssetType } from './_store';
 import SinceCatalogChange from './SinceCatalogChange.vue';
 import { Theme } from '@/layout/_data';
-import { ILayoutStore } from '@/layout/_interfaces';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 
 @Component({
   components: {
@@ -83,17 +82,17 @@ import layoutStore from '@/layout/_store';
   },
 })
 export default class SinceCatalogPast extends Vue {
-  @Prop() public readonly catalog!: ISinceCatalog;
+  @Prop() public readonly sinceCatalog!: ISinceCatalog;
+
   // data
+  public readonly layout = layout;
   public hover: boolean = false;
-  public readonly layoutStore: ILayoutStore = layoutStore;
-  public readonly Sinces: Sinces = Sinces;
 
   // styles
 
   // computed
   get balance(): string {
-    return `$${tools.toCurrencyString(this.catalog.balance)}`;
+    return `$${manager.toCurrencyString(this.sinceCatalog.pastBalance)}`;
   }
 
   // methods

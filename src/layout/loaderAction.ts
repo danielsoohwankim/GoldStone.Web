@@ -1,6 +1,5 @@
 import { AxiosResponse } from 'axios';
-import HttpStatus from 'http-status-codes';
-import store from './_store';
+import layout from './_store';
 import { LoaderCallback, ILoaderAction } from './_interfaces';
 
 class LoaderAction implements ILoaderAction {
@@ -9,11 +8,11 @@ class LoaderAction implements ILoaderAction {
    * @param callback
    */
   public async sendAsync(callback: LoaderCallback): Promise<AxiosResponse> {
-    store.toggleLoader(true);
+    layout.toggleLoader(true);
 
     const response = await callback();
 
-    store.toggleLoader(false);
+    layout.toggleLoader(false);
 
     return response;
   }

@@ -1,163 +1,11 @@
-import colors from 'material-colors';
-import { IAssetLayout, IAssetsView, IAssetView } from './_interfaces';
+import { AxiosResponse } from 'axios';
+import moment from 'moment';
 import { Date } from '@/shared/Date';
 import { goldStoneException } from '@/shared/GoldStoneException';
+import { BaseStatus } from '@/shared/_data';
+import { AssetType } from './_store';
 
-const shadeLightDefault: number = 500;
-const shadeLightFont: string = 'a700';
-const shadeDarkDefault: number = 700;
-const shadeDarkFont: string = '400';
-
-class AssetsConstants {
-  public assetsId: string = 'assets';
-  public liquidId: string = 'liquid';
-  public liquidName: string = 'Liquid';
-  public startDateOffset: number = -14;
-  public totalId: string = 'total';
-  public totalName: string = 'Total';
-  public totalSymbol: string = 'TOTAL';
-  public updateToleranceMinutes: number = 305;
-}
-
-export const assetsConstants = new AssetsConstants();
 // tslint:disable-next-line
-class AssetsView implements IAssetsView {
-  public assets: IAssetView = {
-    // color: '#007bff',
-    color: {
-      light: {
-        default: colors.cyan[shadeLightDefault],
-        font: colors.cyan[shadeLightFont],
-      },
-      dark: {
-        default: colors.cyan[shadeDarkDefault],
-        font: colors.cyan[shadeDarkFont],
-      },
-    },
-    expanded: true,
-    icon: 'account_balance',
-    id: assetsConstants.assetsId,
-    name: assetsConstants.assetsId,
-    title: 'Assets',
-  };
-
-  public cash: IAssetView = {
-    // color: '#007bff',
-    color: {
-      light: {
-        default: colors.blue[shadeLightDefault],
-        font: colors.blue[shadeLightFont],
-      },
-      dark: {
-        default: colors.blue[shadeDarkDefault],
-        font: colors.blue[shadeDarkFont],
-      },
-    },
-    expanded: false,
-    icon: 'monetization_on',
-    id: 'cash',
-    name: 'cash',
-    symbol: 'CASH',
-    title: 'Cash',
-  };
-
-  public investment: IAssetView = {
-    // color: '#dc3545',
-    color: {
-      light: {
-        default: colors.red[shadeLightDefault],
-        font: colors.red[shadeLightFont],
-      },
-      dark: {
-        default: colors.red[shadeDarkDefault],
-        font: colors.red[shadeDarkFont],
-      },
-    },
-    expanded: false,
-    icon: 'insert_chart_outlined',
-    id: 'investment',
-    name: 'investment',
-    symbol: 'INVEST',
-    title: 'Investment',
-  };
-
-  public layout: IAssetLayout = {
-    color: {
-      light: {
-        border: '#0000001A',
-        background: '#e9ecef',
-        buttonText: 'white',
-        chartBackground: 'white',
-        editButtonBackground: colors.yellow[600],
-        error: colors.red[600],
-        minus: colors.red[600],
-        neutral: colors.grey[500],
-        plus: colors.green[600],
-        snackBar: colors.grey[300],
-        success: colors.grey[600],
-        warning: colors.yellow[700],
-        text: 'black',
-      },
-      dark: {
-        border: '#ffffff1A',
-        background: '#373740',
-        buttonText: '#424242',
-        chartBackground: '#424242',
-        editButtonBackground: colors.amber[400],
-        error: colors.red[400],
-        minus: colors.red.a200,
-        neutral: colors.blueGrey[300],
-        plus: colors.green.a400,
-        snackBar: colors.grey[800],
-        success: colors.blueGrey[300],
-        warning: colors.yellow[300],
-        text: 'white',
-      },
-    },
-  };
-
-  public liquid: IAssetView = {
-    // color: '#dc3545',
-    color: {
-      light: {
-        default: colors.grey[shadeLightDefault],
-        font: colors.grey[shadeLightFont],
-      },
-      dark: {
-        default: colors.grey[shadeDarkDefault],
-        font: colors.grey[shadeDarkFont],
-      },
-    },
-    expanded: false,
-    icon: 'insert_chart_outlined',
-    id: assetsConstants.liquidId,
-    name: assetsConstants.liquidId,
-    symbol: 'LIQUID',
-    title: assetsConstants.liquidName,
-  };
-
-  public retirement: IAssetView = {
-    // color: '#009933',
-    color: {
-      light: {
-        default: colors.green[shadeLightDefault],
-        font: colors.green[shadeLightFont],
-      },
-      dark: {
-        default: colors.green[shadeDarkDefault],
-        font: colors.green[shadeDarkFont],
-      },
-    },
-    expanded: false,
-    icon: 'cloud',
-    id: 'retirement',
-    name: 'retirement',
-    symbol: 'RETIRE',
-    title: 'Retirement',
-  };
-}
-
-export const assetsView = new AssetsView();
 
 export enum Since {
   Custom,
@@ -267,3 +115,24 @@ class Sinces {
 }
 
 export { Sinces };
+
+export interface ISinceCatalog {
+  assetType: AssetType;
+  date: string;
+  isTotal: boolean;
+  pastBalance: number;
+  since: string;
+  todayBalance: number;
+}
+
+export interface ISinceCatalogToday extends ISinceCatalog {
+  id: string;
+  image?: string;
+  name: string;
+  showEdit: boolean;
+  showUpdateStatus: boolean;
+  symbol: string;
+  // toggleExpandAccount
+  updatedStatus?: BaseStatus;
+  updatedStatusMessage?: string;
+}

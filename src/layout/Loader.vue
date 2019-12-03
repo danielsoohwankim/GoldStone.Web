@@ -1,7 +1,7 @@
 <template>
   <div
     class="overlay"
-    v-if="store.showLoader"
+    v-if="layout.showLoader"
   >
     <div 
       class="loader"
@@ -16,8 +16,7 @@
 <script lang="ts">
 import { Vue, Component } from 'vue-property-decorator';
 import PacmanLoader from 'vue-spinner/src/PacmanLoader.vue';
-import { ILayoutStore } from './_interfaces';
-import store from './_store';
+import layout from './_store';
 import { device } from '@/shared/_tools';
 
 @Component({
@@ -27,7 +26,7 @@ import { device } from '@/shared/_tools';
 })
 export default class Loader extends Vue {
   // data
-  public store: ILayoutStore = store;
+  public layout = layout;
 
   // style
   get loaderStyle() {

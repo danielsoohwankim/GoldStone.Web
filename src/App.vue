@@ -1,9 +1,9 @@
 <template>
   <div id="app">
-    <div v-if="layoutStore.page === Page.Default">
+    <div v-if="layout.page === Page.Default">
       <Layout />
     </div>
-    <div v-else-if="layoutStore.page === Page.Home">
+    <div v-else-if="layout.page === Page.Home">
       <Home />
     </div>
     <div v-else>
@@ -17,12 +17,12 @@
 import { Vue, Component, Watch } from 'vue-property-decorator';
 import NotFound from '@/404/NotFound.vue';
 import { Menus, Page, Theme } from '@/layout/_data';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 import Layout from '@/layout/Layout.vue';
 import Loader from '@/layout/Loader.vue';
 import Home from '@/home/Home.vue';
 import { storageTools } from '@/shared/_tools';
-import tenantStore from '@/tenant/_store';
+import tenant from '@/tenant/_store';
 
 @Component({
   components: {
@@ -34,9 +34,8 @@ import tenantStore from '@/tenant/_store';
 })
 export default class App extends Vue {
   // data
-  public layoutStore = layoutStore;
+  public layout = layout;
   public Page = Page;
-  public tenantStore = tenantStore;
 
   // lifecycle
   /**
@@ -60,12 +59,12 @@ export default class App extends Vue {
     }
 
     if (Menus.IsValidPath(path) === false) {
-      layoutStore.setPage(Page.NotFound);
+      layout.setPage(Page.NotFound);
       return;
     } else if (storageTools.hasToken() === true) {
-      await tenantStore.signIn(storageTools.getToken());
+      await tenant.signIn(storageTools.getToken());
     } else {
-      await tenantStore.signIn();
+      await tenant.signIn();
     }
   }
 

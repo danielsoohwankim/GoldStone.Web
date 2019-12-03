@@ -8,39 +8,54 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { assetsView } from './_data';
-import { ISinceCatalog, IAssetTools } from './_interfaces';
-import tools from './_tools';
-import { ILayoutStore } from '@/layout/_interfaces';
-import layoutStore from '@/layout/_store';
+import AssetConstants from './_constants';
+import manager from './_manager';
+import layout from '@/layout/_store';
 
 @Component
 export default class SinceCatalogChange extends Vue {
   @Prop() public readonly bold!: boolean;
-  @Prop() public readonly catalog!: ISinceCatalog;
+  @Prop() public readonly todayBalance!: number;
+  @Prop() public readonly pastBalance!: number;
+
   // data
-  public readonly layoutStore: ILayoutStore = layoutStore;
-  public readonly tools: IAssetTools = tools;
 
   // styles
   get style(): object {
     const color: string =
-      (this.catalog.changeAmount === 0) ? 'neutral' :
-      (this.catalog.changeAmount > 0) ? 'plus' : 'minus';
-
-    return (this.bold === true) ? {
-      color: assetsView.layout.color[layoutStore.theme][color],
-      fontWeight: 'bold',
-    } : {
-      color: assetsView.layout.color[layoutStore.theme][color],
+      (this.changeAmount === 0) ? 'Neutral' :
+      (this.changeAmount > 0) ? 'Plus' : 'Minus';
+    const style: object = {
+      color: AssetConstants.Layout.Color[layout.theme][color],
     };
+
+    return (this.bold === true)
+      ? { ...style, fontWeight: 'bold' }
+      : style;
   }
 
   // computed
+  get changeAmount(): number {
+    return Math.round((this.todayBalance - this.pastBalance) * 100) / 100;
+  }
+
+  get changePercent(): number {
+    const changePercent: number =
+      (this.todayBalance > this.pastBalance)
+        ? (this.pastBalance === 0)
+          ? 0
+          : ((this.todayBalance / this.pastBalance) - 1) * 100
+        : (this.todayBalance === 0)
+          ? 0
+          : ((this.pastBalance / this.todayBalance) - 1) * 100;
+
+    return Math.round((changePercent) * 100) / 100;
+  }
+
   get changeString(): string {
-    const sign: string = (this.catalog.changeAmount >= 0) ? '+' : '-';
-    const amount: string = this.tools.toCurrencyString(Math.abs(this.catalog.changeAmount));
-    const percent: string = this.tools.toCurrencyString(Math.abs(this.catalog.changePercent));
+    const sign: string = (this.changeAmount >= 0) ? '+' : '-';
+    const amount: string = manager.toCurrencyString(Math.abs(this.changeAmount));
+    const percent: string = manager.toCurrencyString(Math.abs(this.changePercent));
 
     return `${sign}$${amount} (${percent}%)`;
   }

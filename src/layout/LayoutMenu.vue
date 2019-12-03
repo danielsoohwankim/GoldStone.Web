@@ -5,7 +5,7 @@
       <div class="md-toolbar-section-end">
         <md-button 
           class="md-icon-button md-dense" 
-          @click.prevent="store.toggleMenu(!store.showMenu)"
+          @click.prevent="layout.toggleMenu(!layout.showMenu)"
         >
           <md-icon>keyboard_arrow_left</md-icon>
         </md-button>
@@ -29,8 +29,7 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { Menus, Theme } from './_data';
-import { ILayoutStore } from './_interfaces';
-import store from './_store';
+import layout from './_store';
 import LayoutMenuItem from './LayoutMenuItem.vue';
 
 @Component({
@@ -42,7 +41,7 @@ export default class LayoutMenu extends Vue {
   @Prop(Object) public readonly layoutStyle!: object;
   // data
   public Menus = Menus;
-  public store: ILayoutStore = store;
+  public layout = layout;
   // styles
 
   // computed

@@ -1,24 +1,13 @@
 <template>
   <div class="default">
-    <ChartAccountTabs
-      :asset="asset"
-      :assetView="assetView"
-    />
-    <Chart
-      :account="this.selectedChartAccount"
-      :asset="asset"
-      :assetView="assetView"
-    />
-    <ChartSinceTabs
-      :asset="asset"
-      :assetView="assetView"
-    />
+    <ChartAccountTabs :assetType="assetType" />
+    <Chart :assetType="assetType" />
+    <ChartSinceTabs :assetType="assetType" />
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { IAccount, IAccountCatalog, IAsset, IAssetView } from './_interfaces';
 import Chart from './Chart.vue';
 import ChartAccountTabs from './ChartAccountTabs.vue';
 import ChartSinceTabs from './ChartSinceTabs.vue';
@@ -31,16 +20,12 @@ import ChartSinceTabs from './ChartSinceTabs.vue';
   },
 })
 export default class ChartLayout extends Vue {
-  @Prop() public readonly asset!: IAsset;
-  @Prop() public readonly assetView!: IAssetView;
+  @Prop() public readonly assetType;
   // data
 
   // styles
 
   // computed
-  get selectedChartAccount(): IAccount {
-    return this.asset.accountMap[this.asset.selectedChartAccountId!];
-  }
 
   // methods
 }

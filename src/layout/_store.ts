@@ -1,7 +1,7 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import _ from 'lodash';
 import { Menus, Page, Theme } from './_data';
-import { ILayoutState, ILayoutStore, IMenu, ISnackBarView } from './_interfaces';
+import { ILayoutState, IMenu, ISnackBarView } from './_interfaces';
 import store from '@/shared/_store';
 import router from '@/router';
 
@@ -11,7 +11,7 @@ import router from '@/router';
   store,
   dynamic: true,
 })
-class LayoutStore extends VuexModule implements ILayoutStore {
+class LayoutStore extends VuexModule {
   // initial state
   private readonly initialState: ILayoutState = {
     menu: Menus.Empty,
@@ -29,6 +29,10 @@ class LayoutStore extends VuexModule implements ILayoutStore {
   };
   // lowercase 'state' is reserved in Vuex
   private State: ILayoutState = _.cloneDeep(this.initialState);
+
+  get mdTheme(): string {
+    return (this.State.theme === Theme.Light) ? 'light' : 'dark';
+  }
 
   get menu(): IMenu {
     return this.State.menu;
@@ -67,9 +71,9 @@ class LayoutStore extends VuexModule implements ILayoutStore {
     this.context.commit('Clear', showSignInButton);
   }
 
-  @Action({commit: 'DismissSnackBar'})
+  @Action
   public dismissSnackBar(): void {
-    //
+    this.context.commit('DismissSnackBar');
   }
 
   @Action

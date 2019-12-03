@@ -2,7 +2,7 @@
   <div 
     @click.prevent="onClick($event)"
   >
-    <md-app :md-theme="store.theme">
+    <md-app :md-theme="layout.mdTheme">
       <md-app-toolbar 
         class="md-primary" 
         md-elevation="0"
@@ -10,8 +10,8 @@
       >
         <md-button 
           class="md-icon-button" 
-          @click.prevent="store.toggleMenu(!store.showMenu)" 
-          v-if="!store.showMenu"
+          @click.prevent="layout.toggleMenu(!layout.showMenu)" 
+          v-if="!layout.showMenu"
         >
           <md-icon :style="toolbarStyle">menu</md-icon>
         </md-button>
@@ -19,7 +19,7 @@
           :style="toolbarStyle"
           class="md-title"
         >
-         {{store.menu.title}}
+         {{layout.menu.title}}
         </span>
         
         <div class="md-toolbar-section-end">
@@ -29,8 +29,8 @@
       </md-app-toolbar>
 
       <md-app-drawer 
-        :md-theme="store.theme"
-        :md-active="store.showMenu" 
+        :md-theme="layout.mdTheme"
+        :md-active="layout.showMenu" 
         md-persistent="mini"
       >
         <LayoutMenu 
@@ -51,8 +51,8 @@
 import colors from 'material-colors';
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { Theme } from './_data';
-import { ILayoutStore, IMenu } from './_interfaces';
-import store from './_store';
+import { IMenu } from './_interfaces';
+import layout from './_store';
 import LayoutMenu from './LayoutMenu.vue';
 import LayoutSetting from './LayoutSetting.vue';
 
@@ -65,13 +65,13 @@ import LayoutSetting from './LayoutSetting.vue';
 export default class Layout extends Vue {
   // properties
   // data
-  public store: ILayoutStore = store;
+  public layout = layout;
   // styles
 
   // computed
   get backgroundStyle(): object {
     return {
-      backgroundColor: (store.theme === Theme.Light)
+      backgroundColor: (layout.theme === Theme.Light)
         ? 'white'
         : colors.grey[900],
       position: 'sticky',
@@ -81,7 +81,7 @@ export default class Layout extends Vue {
   // needs to be computed to dynamically change based on theme
   get toolbarStyle(): object {
     return {
-      color: (store.theme === Theme.Light)
+      color: (layout.theme === Theme.Light)
         ? '#0078D4' : '#98C6FF',
       fontWeight: 'bold',
     };
@@ -89,7 +89,7 @@ export default class Layout extends Vue {
 
   get contentStyle(): object {
     return {
-      backgroundColor: (store.theme === Theme.Light)
+      backgroundColor: (layout.theme === Theme.Light)
         ? '#fafafa' : '#2a2a2a',
     };
   }
@@ -102,10 +102,10 @@ export default class Layout extends Vue {
     const clickedSettingPanel: boolean =
       document.getElementById('setting-panel')!.contains($event.target) === true;
 
-    if (store.showSetting === true &&
+    if (layout.showSetting === true &&
         clickedSettingButton === false &&
         clickedSettingPanel === false) {
-      store.toggleSetting(false);
+      layout.toggleSetting(false);
     }
   }
 }

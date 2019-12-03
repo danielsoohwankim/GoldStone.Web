@@ -4,13 +4,14 @@ import HttpStatus from 'http-status-codes';
 import { ITenant, ITenantState, ITenantStore } from './_interfaces';
 import assetsStore from '@/assets/_store';
 import goldStoneClient from '@/clients/goldStoneClient';
-import { ISignInResponseContractV1 } from '@/clients/IGoldStoneClient';
+import { ISignInResponseContractV1 } from '@/clients/GoldStoneClient';
 import { Menus, Page } from '@/layout/_data';
 import layoutStore from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import store from '@/shared/_store';
 import { storageTools } from '@/shared/_tools';
 import router from '@/router';
+import AssetConstants from '@/assets/_constants';
 
 @Module({
   namespaced: true,
@@ -106,13 +107,20 @@ class TenantStore extends VuexModule implements ITenantStore {
 
     layoutStore.setPage(Page.Default);
 
-    if (Menus.IsValidPath(router.currentRoute.path) === true &&
-        // needed here not within the store to use the latest router route value
-        router.currentRoute.name !== layoutStore.menu.name) {
+    if (Menus.IsValidPath(router.currentRoute.path) === false) {
+      return;
+    }
+    // needed here not within the store to use the latest router route value
+    if (router.currentRoute.name !== layoutStore.menu.name) {
       layoutStore.setMenu(router.currentRoute.name!);
+      return;
     }
 
-    return;
+    switch (router.currentRoute.name) {
+      case AssetConstants.Assets.Id:
+        await assetsStore.initAsync();
+        break;
+    }
   }
 
   /**

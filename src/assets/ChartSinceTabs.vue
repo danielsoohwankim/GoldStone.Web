@@ -6,7 +6,7 @@
     >
       <template slot="md-tab" slot-scope="{ tab }">
         <ChartSinceTab
-          :assetView="assetView"
+          :assetType="assetType"
           :tab="tab" 
         />
       </template>
@@ -15,6 +15,7 @@
           :id="since"
           :key="since" 
           :md-label="Sinces.toString(since)"
+          :md-template-data="templateData"
           @click.prevent="onClick(since)"
         >
         </md-tab>
@@ -24,13 +25,13 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
+import AssetConstants from './_constants';
 import { Since, Sinces } from './_data';
-import { IAsset, IAssetTools, IAssetView } from './_interfaces';
-import store from './_store';
-import tools from './_tools';
+import manager from './_manager';
+import assets, { AssetType } from './_store';
 import ChartSinceTab from './ChartSinceTab.vue';
 import { Theme } from '@/layout/_data';
-import layoutStore from '@/layout/_store.ts';
+import layout from '@/layout/_store.ts';
 
 @Component({
   components: {
@@ -38,8 +39,7 @@ import layoutStore from '@/layout/_store.ts';
   },
 })
 export default class ChartSinceTabs extends Vue {
-  @Prop() public readonly asset!: IAsset;
-  @Prop() public readonly assetView!: IAssetView;
+  @Prop() public readonly assetType!: AssetType;
   // data
   public chartSinces = [
     Since[Since.TwoWeeks],
@@ -47,32 +47,33 @@ export default class ChartSinceTabs extends Vue {
     Since[Since.ThreeMonths],
     Since[Since.SixMonths],
     Since[Since.OneYear],
-    Since[Since.Custom],
   ];
-  public readonly Sinces: Sinces = Sinces;
+  public readonly Sinces = Sinces;
 
   // styles
   get style(): object {
     return {
-      backgroundColor: (layoutStore.theme === Theme.Light)
-        ? this.assetView.color.light.font
-        : this.assetView.color.dark.font,
+      backgroundColor: AssetConstants[this.assetType].Color[layout.theme].Font,
     };
   }
 
   // computed
-  get selectedChartSince(): string {
-    return store.assetMap[this.asset.id].selectedChartSince;
+  get selectedChartSince() {
+    return assets.getSelectedChartSince(this.assetType);
+  }
+
+  get templateData() {
+    return {
+      assetType: (this.assetType === AssetType.Assets)
+        ? assets.getSelectedChartId(this.assetType)
+        : this.assetType,
+    };
   }
 
   // methods
   public async onClick(since: string): Promise<void> {
-    if (this.asset.selectedChartSince === since) {
-      return;
-    }
-
-    await store.selectChartSince({
-      assetId: this.asset.id,
+    await assets.selectChartSinceAsync({
+      assetType: this.assetType,
       since,
     });
   }

@@ -1,10 +1,11 @@
-import { assetsView, Since, Sinces } from './_data';
-import { IAccount, IAccountCatalog, IAccountCatalogMap, IAccountCatalogMapWrapper, IAsset, IAssetView, IChart } from './_interfaces';
-import tools from './_tools';
-import layoutStore from '@/layout/_store';
+import AssetConstants from './_constants';
+import { Since, Sinces } from './_data';
+import manager from './_manager';
+import assets, { AssetType } from './_store';
+import layout from '@/layout/_store';
 import { Date as GSDate } from '@/shared/Date';
 
-class Chart implements IChart {
+class Chart {
   private static options = {
     annotations: {
       textStyle: {
@@ -42,34 +43,28 @@ class Chart implements IChart {
     },
   };
 
-  public drawChart(
-    asset: IAsset,
-    assetView: IAssetView,
-    account: IAccount): void {
-    const google: any = asset.google;
-    const chart: any = asset.googleChart;
+  public drawChart(assetType: AssetType, gchart, google): void {
+    const selectedId: string = assets.getSelectedChartId(assetType);
+    const selectedSince: string = assets.getSelectedChartSince(assetType);
     const data = new google.visualization.DataTable();
-    const accountCatalogMap: IAccountCatalogMapWrapper = account.accountCatalogMap;
-    const catalogMap: IAccountCatalogMap = accountCatalogMap.catalogMap;
-    const minDate: GSDate = new GSDate(accountCatalogMap.minDate!);
-    const maxDate: GSDate = new GSDate(accountCatalogMap.maxDate!);
-    const sinceDate: GSDate = Sinces.getDate(Since[asset.selectedChartSince]);
-    const chartStartDate: GSDate = GSDate.Max(minDate, sinceDate);
+    const minDate: string = (new GSDate(Sinces.getDate(selectedSince).toString())).toString();
+    const maxDate: string = (new GSDate(Sinces.getDate(Since.Today).toString())).toString();
+    const id: string = assets.getSelectedChartId(assetType);
+    let chartName: string;
 
     data.addColumn('date', 'Date');
     data.addColumn('number', 'Balance');
     data.addColumn({ type: 'number', role: 'annotation' });
 
-    for (
-      let curDate: GSDate = chartStartDate;
-      curDate.toString() <= maxDate.toString();
-      curDate = curDate.addDays(1)
-    ) {
-      const accountCatalog: IAccountCatalog | undefined = catalogMap[curDate.toString()];
-      const balance: number = (accountCatalog) ? accountCatalog.balance : 0;
-      const date = curDate.toJsDate();
-      const row = [date, balance, null];
-      data.addRows([row]);
+    if (assetType === AssetType.Assets) {
+      chartName = selectedId; // assetType;
+      this.addAssetTotalData(data, selectedId as AssetType, minDate, maxDate);
+    } else if (manager.isTotalAssetId(selectedId) === true) {
+      chartName = id.replace('-', ' ');
+      this.addAssetTotalData(data, assetType, minDate, maxDate);
+    } else {
+      chartName = assets.getAccount(id).name;
+      this.addAccountData(data, selectedId, minDate, maxDate);
     }
 
     const numDataPoints = 7;
@@ -82,9 +77,43 @@ class Chart implements IChart {
     formatter.format(data, 1);
     formatter.format(data, 2);
 
-    this.setOptions(asset, assetView, account);
+    this.setOptions(assetType, selectedId, chartName);
 
-    chart.draw(data, Chart.options);
+    gchart.draw(data, Chart.options);
+  }
+
+  private addAccountData(
+    data,
+    selectedId: string,
+    minDate: string,
+    maxDate: string): void {
+    for (
+      let curDate: GSDate = new GSDate(minDate);
+      curDate.toString() <= maxDate;
+      curDate = curDate.addDays(1)
+    ) {
+      const balance: number = assets.getBalance(selectedId, curDate);
+      const date = curDate.toJsDate();
+      const row = [date, balance, null];
+      data.addRows([row]);
+    }
+  }
+
+  private addAssetTotalData(
+    data,
+    assetType: AssetType,
+    minDate: string,
+    maxDate: string): void {
+    for (
+      let curDate: GSDate = new GSDate(minDate);
+      curDate.toString() <= maxDate;
+      curDate = curDate.addDays(1)
+    ) {
+      const balance: number = assets.getTotal(assetType, curDate);
+      const date = curDate.toJsDate();
+      const row = [date, balance, null];
+      data.addRows([row]);
+    }
   }
 
   private setAnnotations(data, numDataPoints): void {
@@ -104,12 +133,16 @@ class Chart implements IChart {
     data.setValue(lastIndex, annotIndex, lastVal);
   }
 
-  private setOptions(asset: IAsset, assetView: IAssetView, account: IAccount) {
-    Chart.options.backgroundColor = assetsView.layout.color[layoutStore.theme].chartBackground;
-    Chart.options.series[0].color = assetView.color[layoutStore.theme].default;
-    Chart.options.title = `${account.name} - ${Sinces.toString(asset.selectedChartSince)}`;
-    Chart.options.titleTextStyle.color = assetsView.layout.color[layoutStore.theme].text;
-    Chart.options.vAxis.textStyle.color = assetsView.layout.color[layoutStore.theme].text;
+  private setOptions(assetType: AssetType, selectedId: string, name: string) {
+    const since: string = assets.getSelectedChartSince(assetType);
+
+    Chart.options.backgroundColor = AssetConstants.Layout.Color[layout.theme].ChartBackground;
+    Chart.options.series[0].color = (assetType === AssetType.Assets)
+      ? AssetConstants[selectedId].Color[layout.theme].Default
+      : AssetConstants[assetType].Color[layout.theme].Default;
+    Chart.options.title = `${name} - ${since}`;
+    Chart.options.titleTextStyle.color = AssetConstants.Layout.Color[layout.theme].Text;
+    Chart.options.vAxis.textStyle.color = AssetConstants.Layout.Color[layout.theme].Text;
   }
 }
 

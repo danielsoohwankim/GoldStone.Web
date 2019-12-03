@@ -1,6 +1,18 @@
 import { IDevice, IStorageTools } from './_interfaces';
 import { goldStoneException } from './GoldStoneException';
 
+// @ts-ignore
+// tslint:disable-next-line
+class ArrayTools {
+  public isNullOrEmpty(obj: any[]): boolean {
+    return (!obj || obj.length === 0) ? false : true;
+  }
+}
+
+export const arrayTools = new ArrayTools();
+
+// @ts-ignore
+// tslint:disable-next-line
 class Device implements IDevice {
   private mobile?: boolean | null = null;
 
@@ -18,16 +30,6 @@ class Device implements IDevice {
 }
 
 export const device = new Device();
-
-// @ts-ignore
-// tslint:disable-next-line
-class ArrayTools {
-  public isNullOrEmpty(obj: any[]): boolean {
-    return (!obj || obj.length === 0) ? false : true;
-  }
-}
-
-export const arrayTools = new ArrayTools();
 
 const tokenKey: string = 'tkn';
 const pathKey: string = 'path';

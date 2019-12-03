@@ -4,22 +4,22 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { IAssetView } from './_interfaces';
-import { Theme } from '@/layout/_data';
-import layoutStore from '@/layout/_store.ts';
+import AssetConstants from './_constants';
+import { AssetType } from './_store';
+import layout from '@/layout/_store.ts';
 
 @Component
 export default class ChartSinceTab extends Vue {
-  @Prop() public readonly assetView!: IAssetView;
+  @Prop() public readonly assetType!: AssetType;
   @Prop() public readonly tab!: any;
   // data
 
   // styles
   get style(): object {
     return {
-      color: (layoutStore.theme === Theme.Light)
-        ? this.assetView.color.light.font
-        : this.assetView.color.dark.font,
+      color: (this.assetType === AssetType.Assets)
+        ? AssetConstants[this.tab.data.assetType].Color[layout.theme].Font
+        : AssetConstants[this.assetType].Color[layout.theme].Font,
     };
   }
 

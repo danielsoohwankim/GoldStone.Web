@@ -1,10 +1,11 @@
 <template>
   <div
-    class="asset-catalog" 
+    class="asset-catalog today"
     :class="[
-      layoutStore.theme, 
-      (hover === true) ? `hover-${layoutStore.Theme}` : ''
+      layout.theme, 
+      (hover === true) ? `hover-${layout.theme}` : ''
     ]"
+    :style="assetCatalogStyle"
     @mouseenter="hover = true"
     @mouseleave="hover = false"
   >
@@ -13,8 +14,8 @@
         <div class="asset-catalog-today">
           <md-avatar>
             <img
-              v-if="this.account.symbol !== this.assetsConstants.totalSymbol"
-              :src="tenant.profileImageUrl" alt="Avatar"
+              v-if="sinceCatalog.image"
+              :src="sinceCatalog.image" alt="Avatar"
             >
           </md-avatar>
         </div>
@@ -30,7 +31,7 @@
         <span
           class="button-text"
           :style="buttonTextStyle">
-          {{ this.account.symbol }}
+          {{ sinceCatalog.symbol }}
         </span>
       </md-button>
     </md-list>
@@ -40,7 +41,7 @@
         <span 
           class="asset-catalog-today" 
           style="white-space: normal;"
-        >{{ this.account.name }}
+        >{{ sinceCatalog.name }}
         </span>
       </md-list-item>
     </md-list>
@@ -48,7 +49,7 @@
     <md-list class="asset-catalog-since">
       <md-list-item>
         <span class="asset-catalog-today">
-          {{ this.Sinces.toString(this.catalog.since) }}
+          {{ sinceCatalog.since }}
         </span>
       </md-list-item>
     </md-list>
@@ -56,15 +57,12 @@
     <md-list class="asset-catalog-date">
       <md-list-item>
         <div class="asset-catalog-today">
-          <span>{{ this.catalog.date }}</span>
+          <span>{{ sinceCatalog.date }}</span>
           <br />
-          <div 
-            v-if="this.assetView.name !== this.assetsView.assets.name
-            && this.account.symbol !== this.assetsConstants.totalSymbol"
-          >
-            <div v-if="updatedStatus === this.BaseStatus.Success">
+          <div v-if="sinceCatalog.showUpdateStatus === true">
+            <div v-if="sinceCatalog.updatedStatus === BaseStatus.Success">
               <span class="updated-date" :style="updatedTimeStyle">
-                {{ `Updated ${this.updatedTime}` }}
+                {{ sinceCatalog.updatedStatusMessage }}
               </span>
             </div>
             <div v-else>
@@ -81,7 +79,7 @@
                 style="margin-left: -6px;"
                 :style="updatedTimeStyle"
               >
-                {{ this.updatedStatusMessage }}
+                {{ sinceCatalog.updatedStatusMessage }}
               </span>
             </div>
           </div>
@@ -102,7 +100,8 @@
         <span class="asset-catalog-today">
           <SinceCatalogChange
             :bold="true"
-            :catalog="this.catalog"
+            :todayBalance="sinceCatalog.todayBalance"
+            :pastBalance="sinceCatalog.pastBalance"
           />
         </span>
       </md-list-item>
@@ -111,10 +110,10 @@
     <md-list class="asset-catalog-edit">
       <md-list-item>
         <span class="asset-catalog-today">
-          <md-icon v-if="showEdit">
+          <md-icon v-if="sinceCatalog.showEdit">
             <span
               class="edit"
-              @click.prevent="onClick(account)"
+              @click.prevent="onClick(sinceCatalog)"
             >edit
             </span>
           </md-icon>
@@ -127,122 +126,80 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import moment from 'moment';
-import { assetsConstants, assetsView, Sinces } from './_data';
-import { IAccount, ISinceCatalog, IAssetTools, IAssetView } from './_interfaces';
-import assetsStore from './_store';
-import tools from './_tools';
+import AssetConstants from './_constants';
+import { ISinceCatalogToday, Since  } from './_data';
+import manager from './_manager';
+import assets, { AssetType, IAccount, ICatalog } from './_store';
 import SinceCatalogChange from './SinceCatalogChange.vue';
-import SinceCatalogHeader from './SinceCatalogHeader.vue';
 import { Theme } from '@/layout/_data';
-import { ILayoutStore } from '@/layout/_interfaces';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 import { BaseStatus } from '@/shared/_data';
-import tenant from '@/tenant/_store';
 
 @Component({
   components: {
     SinceCatalogChange,
   },
 })
-export default class SinceCatalogToday extends Vue {
-  @Prop() public readonly account!: IAccount;
-  @Prop() public readonly assetView!: IAssetView;
-  @Prop() public readonly catalog!: ISinceCatalog;
+export default class SinceCatalog extends Vue {
+  @Prop() public readonly sinceCatalog!: ISinceCatalogToday;
+
   // data
-  public readonly assetsConstants = assetsConstants;
-  public readonly assetsView = assetsView;
   public readonly BaseStatus = BaseStatus;
-  public readonly layoutStore: ILayoutStore = layoutStore;
-  public readonly Sinces: Sinces = Sinces;
-  public readonly tenant = tenant;
+  public readonly layout = layout;
   public hover: boolean = false;
 
   // styles
+  get assetCatalogStyle(): object {
+    return {
+      borderTop: `1px solid ${AssetConstants.Layout.Color[layout.theme].Border}`,
+    };
+  }
+
   get buttonStyle(): object {
-    return (this.account.id !== assetsConstants.totalId)
+    return (this.sinceCatalog.isTotal === true)
       ? {
-        borderColor: this.assetView.color[layoutStore.theme].font,
+        backgroundColor: AssetConstants[this.sinceCatalog.assetType].Color[layout.theme].Font,
+        borderColor: AssetConstants[this.sinceCatalog.assetType].Color[layout.theme].Font,
       } : {
-        backgroundColor: this.assetView.color[layoutStore.theme].font,
-        borderColor: this.assetView.color[layoutStore.theme].font,
+        borderColor: AssetConstants[this.sinceCatalog.assetType].Color[layout.theme].Font,
       };
   }
 
   get buttonTextStyle(): object {
-    return (this.account.id !== assetsConstants.totalId)
+    return (this.sinceCatalog.isTotal === true)
       ? {
-        color: this.assetView.color[layoutStore.theme].font,
+        color: AssetConstants.Layout.Color[layout.theme].ButtonText,
       } : {
-        color: assetsView.layout.color[layoutStore.theme].buttonText,
+        color: AssetConstants[this.sinceCatalog.assetType].Color[layout.theme].Font,
       };
   }
 
   get updatedTimeStyle(): object {
-    const updatedStatus: string = this.updatedStatus.toLowerCase();
-
     return {
-      color: assetsView.layout.color[layoutStore.theme][updatedStatus],
+      color: AssetConstants.Layout.Color[layout.theme][this.sinceCatalog.updatedStatus!],
     };
   }
 
   // computed
   get balance(): string {
-    return `$${tools.toCurrencyString(this.catalog.balance)}`;
-  }
-
-  get showEdit(): boolean {
-    return this.account.id !== assetsConstants.totalId
-      && this.account.id !== assetsConstants.liquidId;
-  }
-
-  get updatedStatus(): BaseStatus {
-    if (!this.catalog.updatedTime) {
-      return (this.account.isTracked === true)
-        ? BaseStatus.Error
-        : BaseStatus.Warning;
-    }
-
-    const diffMinutes: number = moment().diff(this.catalog.updatedTime, 'minutes');
-
-    return (diffMinutes < assetsConstants.updateToleranceMinutes)
-      ? BaseStatus.Success
-      : BaseStatus.Warning;
-  }
-
-  get updatedStatusMessage(): string {
-    if (this.updatedStatus === this.BaseStatus.Warning) {
-      return (this.account.isTracked === true)
-        ? `Updated ${this.updatedTime}`
-        : `No longer tracked`;
-    }
-
-    return 'Failed to update';
-  }
-
-  get updatedTime(): string {
-    return (this.catalog.updatedTime)
-      ? this.catalog.updatedTime.format('hh:mm A')
-      : '';
+    return `$${manager.toCurrencyString(this.sinceCatalog.todayBalance)}`;
   }
 
   // methods
-  public onClick(account: IAccount): void {
-    const isAssetAccount: boolean =
-      this.assetView.id === assetsConstants.assetsId;
-
-    assetsStore.toggleEditDialog({
-      assetId: (isAssetAccount === true) ? this.account.id : this.assetView.id,
-      accountId: (isAssetAccount === true) ? undefined : this.account.id,
-      accountName: (isAssetAccount === true) ? undefined : this.account.name,
-      show: true,
+  public onClick(sinceCatalog: ISinceCatalogToday): void {
+    assets.toggleEditDialog({
+      assetType: this.sinceCatalog.assetType,
+      accountId: (this.sinceCatalog.assetType === this.sinceCatalog.id)
+        ? undefined // clicked from AssetType.Assets
+        : this.sinceCatalog.id,
     });
   }
 
   public toggleExpandAccount(): void {
-    assetsStore.toggleExpandAccount({
-      assetId: this.assetView.id,
-      accountId: this.account.id,
-      expand: !this.account.expand});
+    assets.toggleExpandAccount({
+      id: this.sinceCatalog.id,
+      name: this.sinceCatalog.name,
+    });
   }
 }
 </script>

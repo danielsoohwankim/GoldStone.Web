@@ -7,7 +7,7 @@
       <md-list-item>
         <span 
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >User
         </span>
       </md-list-item>
@@ -17,7 +17,7 @@
       <md-list-item>
         <span 
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Symbol
         </span>
       </md-list-item>
@@ -27,7 +27,7 @@
       <md-list-item>
         <span 
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Name
         </span>
       </md-list-item>
@@ -37,7 +37,7 @@
       <md-list-item>
         <span 
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Since
         </span>
       </md-list-item>
@@ -47,7 +47,7 @@
       <md-list-item>
         <span
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Date
         </span>
       </md-list-item>
@@ -57,7 +57,7 @@
       <md-list-item>
         <span
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Balance
         </span>
       </md-list-item>
@@ -67,7 +67,7 @@
       <md-list-item>
         <span
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Change
         </span>
       </md-list-item>
@@ -77,7 +77,7 @@
       <md-list-item>
         <span
           class="title"
-          :class="layoutStore.theme"
+          :class="layout.theme"
         >Edit
         </span>
       </md-list-item>
@@ -87,25 +87,21 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { assetsView } from './_data';
-import { IAsset, IAssetTools } from './_interfaces';
-import store from './_store';
-import tools from './_tools';
+import AssetConstants from './_constants';
+import assets, { AssetType } from './_store';
 import { Theme } from '@/layout/_data';
-import { ILayoutStore } from '@/layout/_interfaces';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 
 @Component
 export default class SinceCatalogHeader extends Vue {
-  @Prop() public readonly asset!: IAsset;
+  @Prop() public readonly assetType!: AssetType;
   // data
-  public readonly layoutStore: ILayoutStore = layoutStore;
+  public readonly layout = layout;
 
   // styles
   get headerStyle(): object {
     return {
-      backgroundColor: assetsView.layout.color[layoutStore.theme].background,
-      borderBottom: `5px solid ${assetsView.layout.color[layoutStore.theme].border}`,
+      backgroundColor: AssetConstants.Layout.Color[layout.theme].Background,
     };
   }
 
@@ -113,10 +109,7 @@ export default class SinceCatalogHeader extends Vue {
 
   // methods
   public toggleExpandChart(): void {
-    store.toggleExpandChart({
-      assetId: this.asset.id,
-      expand: !this.asset.expandChart,
-    });
+    assets.toggleExpandChart(this.assetType);
   }
 }
 </script>
@@ -132,11 +125,11 @@ export default class SinceCatalogHeader extends Vue {
   margin-top: -5px;
 }
 
-.light {
+.Light {
   color: #757575;
 }
 
-.dark {
+.Dark {
   color: #bdbdbd;
 }
 

@@ -30,7 +30,7 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { Since, Sinces } from './_data';
-import store from './_store';
+import assets from './_store';
 
 @Component
 export default class SinceSelect extends Vue {
@@ -59,7 +59,7 @@ export default class SinceSelect extends Vue {
       return;
     }
 
-    await store.selectSince(since);
+    await assets.selectSinceAsync(since);
   }
 }
 </script>

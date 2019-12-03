@@ -2,7 +2,7 @@
   <div>
     <md-dialog
       class="dialog"
-      :md-active="editDialogView.show"
+      :md-active="showEditDialog"
     >
       <md-dialog-title>Edit</md-dialog-title>
       <div class="wrapper">
@@ -16,15 +16,15 @@
             :id="assetLabel"
             :name="assetLabel"
             :placeholder="assetLabel"
-            :value="selectedAssetName"
+            :value="assets.selectedEditAsset"
           >
             <div
-              v-for="asset in assets"
-              :key="asset.id"
-              @click.prevent="onSelectAsset(asset)"
+              v-for="assetType in assets.assetTypes"
+              :key="assetType"
+              @click.prevent="onSelectAsset(assetType)"
             >
-              <md-option :value="asset.title">
-                {{ asset.title }}
+              <md-option :value="assetType">
+                {{ assetType }}
               </md-option>
             </div>
           </md-select>
@@ -32,11 +32,11 @@
         <md-field>
           <label :for="accountLabel">{{ accountLabel }}</label>
           <md-select
-            :disabled="!selectedAsset"
+            :disabled="!assets.selectedEditAsset"
             :id="accountLabel"
             :name="accountLabel"
             :placeholder="accountLabel"
-            :value="selectedAccountName"
+            :value="(selectedAccount) ? selectedAccount.name : undefined"
           >
             <div
               v-for="account in accounts"
@@ -67,13 +67,13 @@
         </md-button>
         <md-button
           :style="closeStyle"
-          @click="toggleShow(false)"
+          @click="toggleEditDialog()"
         >Close
         </md-button>
         <md-button
           :style="saveButtonStyle"
           :disabled="isSaveDisabled === true"
-          @click="save()"
+          @click="saveAsync()"
         >Save
         </md-button>
       </md-dialog-actions>
@@ -83,12 +83,10 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
-import _ from 'lodash';
-import { assetsConstants, assetsView } from './_data';
-import { IAccount, IAccountCatalog, IAsset, IEditDialogView } from './_interfaces';
-import store from './_store';
+import AssetConstants from './_constants';
+import assets, { AssetType, IAccount } from './_store';
 import { Theme } from '@/layout/_data';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 import { Date } from '@/shared/Date';
 
 @Component
@@ -96,36 +94,25 @@ export default class EditDialog extends Vue {
   // data
   public accountLabel: string = 'Account';
   public assetLabel: string = 'Asset';
+  public assets = assets;
   public date = Date.Today().toJsDate();
   private Balance: string | null = null;
 
   @Watch('date')
   public onDateChange(newDate, oldDate) {
-    if (!newDate || !this.selectedAsset || !this.selectedAccount) {
-      return;
-    }
-
-    const date: string = Date.toDate(this.date).toString();
-    const catalog: IAccountCatalog
-      = store
-        .assetMap[this.selectedAsset.id]
-        .accountMap[this.selectedAccount.id]
-        .accountCatalogMap
-        .catalogMap[date];
-
-    this.Balance = (catalog) ? `${catalog.balance}` : this.Balance;
+    //
   }
 
   // styles
   get closeStyle() {
     return {
-      color: (layoutStore.theme === Theme.Light) ? 'black' : 'white',
+      color: (layout.theme === Theme.Light) ? 'black' : 'white',
     };
   }
 
   get errorMessage() {
     return {
-      color: assetsView.layout.color[layoutStore.theme].error,
+      color: AssetConstants.Layout.Color[layout.theme].Error,
       fontSize: '17px',
       paddingRight: '22px',
     };
@@ -141,17 +128,11 @@ export default class EditDialog extends Vue {
 
   // computed
   get accounts(): IAccount[] {
-    if (!this.selectedAsset) {
+    if (!assets.selectedEditAsset) {
       return [];
     }
 
-    return _.values(store.assetMap[this.selectedAsset.id].accountMap)
-            .filter((account) => account.id !== assetsConstants.totalId);
-  }
-
-  get assets(): IAsset[] {
-    return _.values(store.assetMap)
-            .filter((asset) => asset.id !== assetsConstants.assetsId);
+    return assets.getAccountsOrderedByBalance(assets.selectedEditAsset);
   }
 
   get balance(): string | null {
@@ -162,123 +143,50 @@ export default class EditDialog extends Vue {
     this.Balance = balance;
   }
 
-  get editDialogView(): IEditDialogView {
-    return store.editDialogView;
-  }
-
   get isResetClickable(): boolean {
     return (this.date &&
       (Date.toDate(this.date).toString() !== Date.Today().toString()))
-      || (this.selectedAsset !== undefined)
+      || (assets.selectedEditAsset !== undefined)
       || (this.selectedAccount !== undefined)
       || (this.balance !== null);
   }
 
   get isSaveDisabled(): boolean {
     return !this.date
-      || this.selectedAsset === undefined
+      || assets.selectedEditAsset === undefined
       || this.selectedAccount === undefined
       || this.balance === null
       || this.balance === '';
   }
 
   get selectedAccount(): IAccount | undefined {
-    const { assetAccountMap, assetId } = this.editDialogView;
-
-    if (!assetId || !assetAccountMap[assetId]) {
+    if (!assets.selectedEditAsset) {
       return undefined;
     }
 
-    const accountId: string = assetAccountMap[assetId]!;
+    const account: IAccount | undefined
+      = assets.getEditAccount(assets.selectedEditAsset);
 
-    return store.assetMap[assetId].accountMap[accountId];
+    return (account) ? account : undefined;
   }
 
-  get selectedAsset(): IAsset | undefined {
-    if (!this.editDialogView.assetId) {
-      return undefined;
-    }
-
-    return store.assetMap[this.editDialogView.assetId];
+  // needs to be a computed property instead of data property
+  get showEditDialog(): boolean {
+    return assets.showEditDialog;
   }
 
-  @Watch('selectedAccountId')
-  public onSelectedAccountIdChange(newId: string, oldId: string) {
-    if (!newId || !this.selectedAsset) {
+  @Watch('selectedAccount')
+  public onSelectedAccountChange(newAccount: IAccount, oldAccount: IAccount) {
+    if (!newAccount || !assets.selectedEditAsset) {
       return;
     }
 
-    const date: string = Date.toDate(this.date).toString();
-    const catalog: IAccountCatalog
-      = store
-        .assetMap[this.selectedAsset.id]
-        .accountMap[newId]
-        .accountCatalogMap
-        .catalogMap[date];
-
-    this.Balance = (catalog) ? `${catalog.balance}` : this.Balance;
-  }
-
-  get selectedAccountId(): string | undefined {
-    if (!this.selectedAsset) {
-      return undefined;
-    }
-
-    return this.editDialogView.assetAccountMap[this.selectedAsset.id!];
-  }
-
-  get selectedAccountName(): string | undefined {
-    if (!this.selectedAccountId) {
-      return undefined;
-    }
-
-    const account: IAccount =
-      store.assetMap[this.selectedAsset!.id].accountMap[this.selectedAccountId!];
-
-    return account.name;
-  }
-
-  get selectedAssetName(): string | undefined {
-    return (this.selectedAsset) ? this.selectedAsset.title : undefined;
+    const date: Date = Date.toDate(this.date);
+    const balance: number = assets.getBalance(newAccount.id, date);
+    this.Balance = `${balance}`;
   }
 
   // methods
-  public onClickReset(): void {
-    store.resetEditView();
-    this.date = Date.Today().toJsDate();
-    this.Balance = null;
-  }
-
-  public onSelectAccount(account: IAccount): void {
-    if (this.editDialogView[this.selectedAsset!.id] === account.id) {
-      return;
-    }
-
-    store.selectEditItem({
-      type: 'account',
-      id: account.id,
-      value: account.name,
-    });
-  }
-
-  public onSelectAsset(asset: IAsset): void {
-    if (this.editDialogView.assetId === asset.id) {
-      return;
-    }
-
-    store.selectEditItem({
-      type: 'asset',
-      id: asset.id,
-      value: asset.name,
-    });
-  }
-
-  public toggleShow(show: boolean): void {
-    store.toggleEditDialog({
-      show,
-    });
-  }
-
   public isNumber($event: any) {
     // console.log($event.keyCode); //keyCodes value
     const keyCode = ($event.keyCode ? $event.keyCode : $event.which);
@@ -296,17 +204,37 @@ export default class EditDialog extends Vue {
     }
   }
 
-  public save(): void {
-    if (!this.selectedAsset || !this.selectedAccount || this.balance === null) {
-      return;
-    }
+  public onClickReset(): void {
+    assets.resetEditDialog();
+    this.date = Date.Today().toJsDate();
+    this.Balance = null;
+  }
 
-    store.updateCatalog({
-      assetId: this.selectedAsset.id,
-      accountId: this.selectedAccountId!,
+  public onSelectAccount(account: IAccount): void {
+    assets.selectEditItem({
+      id: account.id,
+      type: 'account',
+      value: account.name,
+    });
+  }
+
+  public onSelectAsset(assetType: AssetType): void {
+    assets.selectEditItem({
+      id: assetType,
+      type: 'asset',
+      value: assetType,
+    });
+  }
+
+  public async saveAsync(): Promise<void> {
+    await assets.updateCatalogAsync({
       balance: parseFloat(this.balance!),
       date: Date.toDate(this.date),
     });
+  }
+
+  public toggleEditDialog(): void {
+    assets.toggleEditDialog();
   }
 }
 </script>

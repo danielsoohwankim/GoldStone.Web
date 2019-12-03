@@ -3,25 +3,21 @@
     <div class="left">
       <md-tabs 
         class="md-transparent"
-        :md-active-tab="selectedChartAccountId"
+        :md-active-tab="assets.getSelectedChartId(assetType)"
       >
         <template slot="md-tab" slot-scope="{ tab }">
           <ChartAccountTab
-            :assetView="assetView"
+            :assetType="assetType"
             :tab="tab" 
           />
         </template>
         <md-tab
-          :id="totalAccount.id"
-          :md-label="totalAccount.symbol"
-          @click.prevent="onClick(totalAccount.id)"
-        ></md-tab>
-        <md-tab
-          v-for="account in assetAccounts"
-          @click.prevent="onClick(account.id)"
-          :id="account.id"
-          :key="account.id"
-          :md-label="account.symbol"
+          v-for="tab in tabs"
+          :id="tab.id"
+          :key="tab.id"
+          :md-label="tab.symbol"
+          :md-template-data="{ assetType: tab.assetType }"
+          @click.prevent="onClick(tab)"
         >
         </md-tab>
       </md-tabs>
@@ -37,13 +33,11 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { assetsConstants } from './_data';
-import { IAccount, IAsset, IAssetTools, IAssetView } from './_interfaces';
-import store from './_store';
-import tools from './_tools';
+import AssetConstants from './_constants';
+import manager from './_manager';
+import assets, { AssetType, IAccount } from './_store';
 import ChartAccountTab from './ChartAccountTab.vue';
-import { ILayoutStore } from '@/layout/_interfaces';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 
 @Component({
   components: {
@@ -51,49 +45,73 @@ import layoutStore from '@/layout/_store';
   },
 })
 export default class ChartAccountTabs extends Vue {
-  @Prop() public readonly asset!: IAsset;
-  @Prop() public readonly assetView!: IAssetView;
+  @Prop() public readonly assetType;
   // data
-  public readonly layoutStore: ILayoutStore = layoutStore;
+  public readonly AssetConstants = AssetConstants;
+  public readonly assets = assets;
+  public readonly layout = layout;
+  public readonly manager = manager;
 
   // styles
 
   // computed
-  get assetAccounts(): IAccount[] {
-    const asset: IAsset = store.assetMap[this.asset.id];
-    const accounts: IAccount[] =
-      Object
-        .values(asset.accountMap)
-        .filter((account: IAccount) => account.id !== assetsConstants.totalId);
-
-    return accounts;
+  get accounts(): IAccount[] {
+    return assets.getAccountsOrderedByBalance(this.assetType);
   }
 
-  get selectedChartAccountId(): string {
-    return store.assetMap[this.asset.id].selectedChartAccountId!;
-  }
+  get tabs(): Array<{ assetType: AssetType; id: string; name: string; symbol: string; }> {
+    const tabs: Array<{ assetType: AssetType; id: string; name: string; symbol: string; }> = [];
 
-  get totalAccount(): IAccount {
-    return store.assetMap[this.asset.id].accountMap[assetsConstants.totalId];
+    // add total first
+    tabs.push({
+      assetType: this.assetType,
+      id: manager.getTotalAssetId(this.assetType),
+      name: AssetConstants.Total.Name,
+      symbol: AssetConstants.Total.Symbol,
+    });
+
+    if (this.assetType === AssetType.Assets) {
+      assets
+        .displayAssetTypes
+        .forEach((assetType: AssetType) => {
+          tabs.push({
+            assetType,
+            id: assetType,
+            name: assetType,
+            symbol: AssetConstants[assetType].Symbol!,
+          });
+        });
+    } else {
+      assets
+        .getAccountsOrderedByBalance(this.assetType)
+        .forEach((account) => {
+          tabs.push({
+            assetType: this.assetType,
+            id: account.id,
+            name: account.name,
+            symbol: account.symbol,
+          });
+        });
+    }
+
+    return tabs;
   }
 
   // methods
-  public onClick(accountId: string): void {
-    if (this.asset.selectedChartAccountId === accountId) {
-      return;
-    }
+  public onClick(tab: { id: string; name: string; symbol: string; }): void {
+    const { id, name, symbol } = tab;
 
-    store.selectChartAccount({
-      assetId: this.asset.id,
-      accountId,
+    assets.selectChart({
+      assetType: this.assetType,
+      id,
+      name: (id === manager.getTotalAssetId(this.assetType))
+        ? id
+        : name,
     });
   }
 
   public toggleExpandChart(): void {
-    store.toggleExpandChart({
-      assetId: this.asset.id,
-      expand: !this.asset.expandChart,
-    });
+    assets.toggleExpandChart(this.assetType);
   }
 }
 </script>

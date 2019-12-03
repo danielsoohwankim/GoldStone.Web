@@ -24,10 +24,10 @@
 
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { assetsView } from './_data';
+import AssetConstants from './_constants';
 import { ISnackBarView } from '@/layout/_interfaces';
 import { Theme } from '@/layout/_data';
-import layoutStore from '@/layout/_store';
+import layout from '@/layout/_store';
 
 @Component
 export default class SnackBar extends Vue {
@@ -38,24 +38,24 @@ export default class SnackBar extends Vue {
   // styles
   get messageStyle() {
     return {
-      color: assetsView.layout.color[layoutStore.theme].text,
+      color: AssetConstants.Layout.Color[layout.theme].Text,
     };
   }
 
   get snackBarStyle() {
     return {
-      backgroundColor: assetsView.layout.color[layoutStore.theme].snackBar,
+      backgroundColor: AssetConstants.Layout.Color[layout.theme].SnackBar,
     };
   }
 
   // computed
   get snackBarView(): ISnackBarView {
-    return layoutStore.snackBarView;
+    return layout.snackBarView;
   }
 
   // methods
   public onClickDismiss(): void {
-    layoutStore.dismissSnackBar();
+    layout.dismissSnackBar();
   }
 }
 </script>

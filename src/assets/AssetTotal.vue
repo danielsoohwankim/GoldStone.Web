@@ -18,19 +18,19 @@
             <md-list-item style="margin: -12px -16px;">
               <div class="asset-catalog" :style="scrollStyle">
                 <ChartLayout
-                  v-if="assets.isExpandedChart(assetType)"
-                  :assetType="assetType"
+                  v-if="assets.isExpandedChart(AssetType.Assets)"
+                  :assetType="AssetType.Assets"
                 />
-                <SinceCatalogHeader :assetType="assetType" />
-                <div v-for="account in accounts" :key="account.id" >
-                  <SinceCatalogToday :sinceCatalog="getSinceCatalogToday(account)" />
-                  <div v-if="assets.isExpandedAccount(account.id) === true">
+                <SinceCatalogHeader :assetType="AssetType.Assets" />
+                <div v-for="assetType in assets.displayAssetTypes" :key="assetType" >
+                  <SinceCatalogToday :sinceCatalog="getSinceCatalogToday(assetType)" />
+                  <div v-if="assets.isExpandedAccount(assetType) === true">
                     <div v-for="since in assets.pastSinces" :key="since">
-                      <SinceCatalogPast :sinceCatalog="getSinceCatalogPast(account, since)" />
+                      <SinceCatalogPast :sinceCatalog="getSinceCatalogPast(assetType, since)" />
                     </div>
                   </div>
                 </div>
-                <!-- total account catalog -->
+                <!-- total asset -->
                 <SinceCatalogToday :sinceCatalog="totalSinceCatalogToday" />
                 <div v-if="assets.isExpandedAccount(totalAssetId) === true">
                   <div v-for="since in assets.pastSinces" :key="since">
@@ -72,14 +72,13 @@ import tenant from '@/tenant/_store';
   },
 })
 export default class Asset extends Vue {
-  @Prop() public readonly assetType!: AssetType;
-
   // data
   public readonly assets = assets;
-  public readonly AssetView = AssetConstants[this.assetType];
+  public readonly AssetType = AssetType;
+  public readonly AssetView = AssetConstants[AssetType.Assets];
   public readonly layout = layout;
-  public readonly totalAssetId = manager.getTotalAssetId(this.assetType);
-  public expanded: boolean = false;
+  public readonly totalAssetId = manager.getTotalAssetId(AssetType.Assets);
+  public expanded: boolean = true;
 
   // styles
   get listStyle(): object {
@@ -102,88 +101,61 @@ export default class Asset extends Vue {
   }
 
   // computed
-  get accounts(): IAccount[] {
-    return assets.getAccountsOrderedByBalance(this.assetType);
-  }
-
   get totalSinceCatalogToday(): ISinceCatalogToday {
     return {
-      assetType: this.assetType,
+      assetType: AssetType.Assets,
       date: Sinces.getDate(Since.Today).toString(),
       id: this.totalAssetId,
       isTotal: true,
-      name: `${this.assetType} ${AssetConstants.Total.Name}`,
-      pastBalance: assets.getTotal(this.assetType, Since.Yesterday),
+      name: AssetConstants.Total.Name,
+      pastBalance: assets.getTotal(AssetType.Assets, Since.Yesterday),
       showEdit: false,
-      showUpdateStatus: false,
       since: Since[Since.Today],
+      showUpdateStatus: false,
       symbol: AssetConstants.Total.Symbol,
-      todayBalance: assets.getTotal(this.assetType, Since.Today),
+      todayBalance: assets.getTotal(AssetType.Assets, Since.Today),
     };
   }
 
   // methods
-  public getSinceCatalogToday(account: IAccount): ISinceCatalogToday {
-    const assetView = AssetConstants[account.assetType];
-    const catalog: ICatalog | undefined = assets.getCatalog(account.id, Since.Today);
-    let updatedStatus: BaseStatus;
-    let updatedStatusMessage: string;
-
-    if (!catalog || !catalog.lastModified) {
-      if (account.isTracked === true) {
-        updatedStatus = BaseStatus.Error;
-        updatedStatusMessage = 'Failed to update';
-      } else {
-        updatedStatus = BaseStatus.Warning;
-        updatedStatusMessage = 'No longer tracked';
-      }
-    } else {
-      const updatedTime: moment.Moment = moment.unix(catalog.lastModified);
-      const diffMinutes: number = moment().diff(updatedTime, 'minutes');
-
-      updatedStatus = (diffMinutes < AssetConstants.UpdateToleranceMinutes)
-        ? BaseStatus.Success
-        : BaseStatus.Warning;
-      updatedStatusMessage = `Updated ${updatedTime.format('hh:mm A')}`;
-    }
+  public getSinceCatalogToday(assetType: AssetType): ISinceCatalogToday {
+    const assetView = AssetConstants[assetType];
 
     return {
-      assetType: account.assetType,
+      assetType,
       date: Sinces.getDate(Since.Today).toString(),
-      id: account.id,
+      id: assetType,
       image: tenant.profileImageUrl,
       isTotal: false,
-      name: account.name,
-      pastBalance: assets.getBalance(account.id, Since.Yesterday),
-      showEdit: true,
-      showUpdateStatus: true,
+      name: AssetConstants[assetType].Name,
+      pastBalance: assets.getTotal(assetType, Since.Yesterday),
+      showEdit: (assetType === AssetType.Liquid) ? false : true,
+      showUpdateStatus: false,
       since: Since[Since.Today],
-      symbol: account.symbol,
-      todayBalance: assets.getBalance(account.id, Since.Today),
-      updatedStatus,
-      updatedStatusMessage,
+      symbol: AssetConstants[assetType].Symbol!,
+      todayBalance: assets.getTotal(assetType, Since.Today),
     };
   }
 
-  public getSinceCatalogPast(account: IAccount, since: string): ISinceCatalog {
+  public getSinceCatalogPast(assetType: AssetType, since: string): ISinceCatalog {
     return {
-      assetType: account.assetType,
+      assetType,
       date: Sinces.getDate(since).toString(),
       isTotal: false,
-      pastBalance: assets.getBalance(account.id, since),
+      pastBalance: assets.getTotal(assetType, Since[since]),
       since,
-      todayBalance: assets.getBalance(account.id, Since.Today),
+      todayBalance: assets.getTotal(assetType, Since.Today),
     };
   }
 
   public getTotalSinceCatalogPast(since: string): ISinceCatalog {
     return {
-      assetType: this.assetType,
+      assetType: AssetType.Assets,
       date: Sinces.getDate(since).toString(),
       isTotal: true,
-      pastBalance: assets.getTotal(this.assetType, Since[since]),
+      pastBalance: assets.getTotal(AssetType.Assets, since),
       since,
-      todayBalance: assets.getTotal(this.assetType, Since.Today),
+      todayBalance: assets.getTotal(AssetType.Assets, Since.Today),
     };
   }
 }
