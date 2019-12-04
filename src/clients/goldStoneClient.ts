@@ -129,6 +129,8 @@ export interface ISignInResponseContractV1 {
   accessToken: string;
   tenantId: string;
   userId: string;
+  userProfileImageUrl: string;
+  userRole: UserRole;
 }
 
 export enum GoldStoneAccountState {

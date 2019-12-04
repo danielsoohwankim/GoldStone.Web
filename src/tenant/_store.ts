@@ -117,11 +117,17 @@ class TenantStore extends VuexModule {
     // tslint:disable-next-line
     console.log('successfully signed in');
 
-    const { accessToken, tenantId, userId }
+    const { accessToken, tenantId, userId, userProfileImageUrl, userRole }
       = (response.data as ISignInResponseContractV1);
 
+    const currentUser: IUser = {
+      id: userId,
+      profileImageUrl: userProfileImageUrl,
+      role: userRole,
+    };
+
     storageTools.setToken(accessToken);
-    this.context.commit('Init', { currentUserId: userId, tenantId });
+    this.context.commit('Init', { currentUser, tenantId });
 
     layout.setPage(Page.Default);
 
@@ -178,10 +184,12 @@ class TenantStore extends VuexModule {
   }
 
   @Mutation
-  private Init(params: { currentUserId: string; tenantId: string; }): void {
-    const { currentUserId, tenantId } = params;
+  private Init(params: { currentUser: IUser; tenantId: string; }): void {
+    const { currentUser, tenantId } = params;
+    const { id } = currentUser;
 
-    this.State.currentUserId = currentUserId;
+    this.State.currentUserId = id;
+    this.State.users = _.keyBy([ currentUser ], (u) => u.id);
     this.State.tenantId = tenantId;
   }
 

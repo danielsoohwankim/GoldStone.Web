@@ -26,7 +26,7 @@
               v-model="theme" 
               true-value="Light"
               false-value="Dark"
-              class="md-accent" 
+              class="md-primary" 
               :md-theme="layout.mdTheme"
             />
           </md-list-item>
@@ -37,7 +37,7 @@
             <span class="md-list-item-text">Signed In</span>
             <md-switch
               v-model="signedIn"
-              class="md-accent"
+              class="md-primary"
               @click="test()"
               :md-theme="layout.mdTheme"
             />

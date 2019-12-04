@@ -11,7 +11,6 @@
         class="md-primary md-raised"
         @click="toggleEditCatalog()"
         :disabled="tenant.canEditCatalog === false"
-        :style="editButtonStyle"
       >Edit
       </md-button>
       <md-tooltip
