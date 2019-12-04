@@ -33,30 +33,34 @@ export default class Chart extends Vue {
   // styles
 
   // computed
-  get selectedChartId() {
+  get selectedCatalogs() {
+    return assets.getCatalogs(this.selectedChartId);
+  }
+
+  get selectedChartId(): string {
     return assets.getSelectedChartId(this.assetType);
   }
 
-  get selectedChartSince() {
+  get selectedChartSince(): string {
     return assets.getSelectedChartSince(this.assetType);
   }
 
-  get theme() {
+  get theme(): Theme {
     return layoutStore.theme;
   }
 
   // watch
-  @Watch('selectedChartId')
-  public onSelectedChartIdChange(val: string, oldVal: string) {
-    chart.drawChart(this.assetType, this.gchart, this.google);
+  @Watch('selectedCatalogs')
+  public onSelectedCatalogsChange(val: string, oldVal: string) {
+    this.drawChart();
   }
   @Watch('selectedChartSince')
   public onSelectedChartSince(val: Since, oldVal: Since) {
-    chart.drawChart(this.assetType, this.gchart, this.google);
+    this.drawChart();
   }
   @Watch('theme')
   public onThemeChanged(val: Theme, oldVal: Theme) {
-    chart.drawChart(this.assetType, this.gchart, this.google);
+    this.drawChart();
   }
 
   // methods
@@ -64,6 +68,10 @@ export default class Chart extends Vue {
     this.gchart = gchart;
     this.google = google;
 
+    this.drawChart();
+  }
+
+  private drawChart(): void {
     chart.drawChart(this.assetType, this.gchart, this.google);
   }
 }

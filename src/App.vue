@@ -76,12 +76,12 @@ export default class App extends Vue {
 @import "~vue-material/dist/theme/engine"; // Import the theme engine
 
 @include md-register-theme("light", (
-  primary: md-get-palette-color(gray, 500),
+  primary: md-get-palette-color(blue, 500),
   accent: md-get-palette-color(red, A200),
 ));
 
 @include md-register-theme("dark", (
-  primary: md-get-palette-color(gray, 400),
+  primary: md-get-palette-color(blue, 400),
   accent: red,
   theme: dark,
 ));

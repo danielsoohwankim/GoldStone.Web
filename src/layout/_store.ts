@@ -5,6 +5,22 @@ import { ILayoutState, IMenu, ISnackBarView } from './_interfaces';
 import store from '@/shared/_store';
 import router from '@/router';
 
+// initial state
+const initialState: ILayoutState = {
+  menu: Menus.Empty,
+  page: Page.Home,
+  showLoader: false,
+  showMenu: false,
+  showSetting: false,
+  showSignInButton: false,
+  snackBarView: {
+    duration: undefined,
+    message: '',
+    show: false,
+  },
+  theme: Theme.Dark,
+};
+
 @Module({
   namespaced: true,
   name: 'LayoutStore',
@@ -12,23 +28,8 @@ import router from '@/router';
   dynamic: true,
 })
 class LayoutStore extends VuexModule {
-  // initial state
-  private readonly initialState: ILayoutState = {
-    menu: Menus.Empty,
-    page: Page.Home,
-    showLoader: false,
-    showMenu: false,
-    showSetting: false,
-    showSignInButton: false,
-    snackBarView: {
-      duration: undefined,
-      message: '',
-      show: false,
-    },
-    theme: Theme.Dark,
-  };
   // lowercase 'state' is reserved in Vuex
-  private State: ILayoutState = _.cloneDeep(this.initialState);
+  private State: ILayoutState = _.cloneDeep(initialState);
 
   get mdTheme(): string {
     return (this.State.theme === Theme.Light) ? 'light' : 'dark';
@@ -135,7 +136,7 @@ class LayoutStore extends VuexModule {
 
   @Mutation
   private Clear(showSignInButton: boolean): void {
-    const state: ILayoutState = _.cloneDeep(this.initialState);
+    const state: ILayoutState = _.cloneDeep(initialState);
     state.showSignInButton = showSignInButton;
 
     this.State = state;

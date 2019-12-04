@@ -32,7 +32,7 @@
           </md-list-item>
           <md-list-item>
             <md-avatar class="md-small" style="margin-right: 32px;">
-              <img :src="tenant.profileImageUrl" alt="Avatar" />
+              <img :src="tenant.currentUserProfileImage" alt="Avatar" />
             </md-avatar>
             <span class="md-list-item-text">Signed In</span>
             <md-switch

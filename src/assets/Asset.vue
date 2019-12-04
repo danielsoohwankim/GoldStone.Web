@@ -61,7 +61,7 @@ import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { BaseStatus } from '@/shared/_data';
 import { device } from '@/shared/_tools';
-import tenant from '@/tenant/_store';
+import tenant, { IUser } from '@/tenant/_store';
 
 @Component({
   components: {
@@ -126,6 +126,8 @@ export default class Asset extends Vue {
   public getSinceCatalogToday(account: IAccount): ISinceCatalogToday {
     const assetView = AssetConstants[account.assetType];
     const catalog: ICatalog | undefined = assets.getCatalog(account.id, Since.Today);
+    const accountUser: IUser | undefined = tenant.getUser(account.userId);
+    const image: string = (accountUser) ? accountUser.profileImageUrl : '';
     let updatedStatus: BaseStatus;
     let updatedStatusMessage: string;
 
@@ -151,7 +153,7 @@ export default class Asset extends Vue {
       assetType: account.assetType,
       date: Sinces.getDate(Since.Today).toString(),
       id: account.id,
-      image: tenant.profileImageUrl,
+      image,
       isTotal: false,
       name: account.name,
       pastBalance: assets.getBalance(account.id, Since.Yesterday),

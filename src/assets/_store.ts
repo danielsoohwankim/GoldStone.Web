@@ -1,20 +1,18 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { AxiosResponse } from 'axios';
-import HttpStatus from 'http-status-codes';
 import _ from 'lodash';
-import AssetConstants from './_constants';
 import { Since, Sinces } from './_data';
 import manager from './_manager';
 import goldStoneClient from '@/clients/goldStoneClient';
-import { IGetCatalogResponseContract, IGetAccountResponseContract } from '@/clients/goldStoneClient';
-import { Menus } from '@/layout/_data';
+import { IGetAccountResponseContract, IGetCatalogResponseContract, IGetUserResponseContract } from '@/clients/goldStoneClient';
 import layout from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import { GuidDate } from '@/shared/_data';
 import store from '@/shared/_store';
 import { Date } from '@/shared/Date';
-import tenant from '@/tenant/_store';
 import { goldStoneException } from '@/shared/GoldStoneException';
+import tenantManager from '@/tenant/_manager';
+import tenant, { IUser } from '@/tenant/_store';
 
 export enum AssetType {
   Assets = 'Assets',
@@ -44,7 +42,7 @@ interface IAssetsState {
     since: string;  // selectedChartSince
   }};
   selectedEditAsset: AssetType | undefined;
-  showEditDialog: boolean;
+  showEditCatalog: boolean;
   sinces: string[];
 }
 
@@ -55,6 +53,45 @@ export interface ICatalog {
   lastModified?: number;
 }
 
+// initial state
+const initialState: IAssetsState = {
+  accounts: {},
+  catalogs: {},
+  editAssetAccount: {
+    [ AssetType.Investment ]: undefined,
+    [ AssetType.Cash ]: undefined,
+    [ AssetType.Retirement ]: undefined,
+  },
+  expandedAccounts: [],
+  expandedCharts: [],
+  selectedCharts: {
+    [ AssetType.Assets ]: {
+      id: manager.getTotalAssetId(AssetType.Assets),
+      since: Since[Since.TwoWeeks],
+    },
+    [ AssetType.Investment ]: {
+      id: manager.getTotalAssetId(AssetType.Investment),
+      since: Since[Since.TwoWeeks],
+    },
+    [ AssetType.Cash ]: {
+      id: manager.getTotalAssetId(AssetType.Cash),
+      since: Since[Since.TwoWeeks],
+    },
+    [ AssetType.Retirement ]: {
+      id: manager.getTotalAssetId(AssetType.Retirement),
+      since: Since[Since.TwoWeeks],
+    },
+  },
+  selectedEditAsset: undefined,
+  showEditCatalog: false,
+  sinces: [
+    Since[Since.Today],
+    Since[Since.Yesterday],
+    Since[Since.OneWeek],
+    Since[Since.TwoWeeks],
+  ],
+};
+
 @Module({
   namespaced: true,
   name: 'AssetsStore',
@@ -62,46 +99,8 @@ export interface ICatalog {
   dynamic: true,
 })
 class AssetsStore extends VuexModule {
-  // initial state
-  private readonly initialState: IAssetsState = {
-    accounts: {},
-    catalogs: {},
-    editAssetAccount: {
-      [ AssetType.Investment ]: undefined,
-      [ AssetType.Cash ]: undefined,
-      [ AssetType.Retirement ]: undefined,
-    },
-    expandedAccounts: [],
-    expandedCharts: [],
-    selectedCharts: {
-      [ AssetType.Assets ]: {
-        id: manager.getTotalAssetId(AssetType.Assets),
-        since: Since[Since.TwoWeeks],
-      },
-      [ AssetType.Investment ]: {
-        id: manager.getTotalAssetId(AssetType.Investment),
-        since: Since[Since.TwoWeeks],
-      },
-      [ AssetType.Cash ]: {
-        id: manager.getTotalAssetId(AssetType.Cash),
-        since: Since[Since.TwoWeeks],
-      },
-      [ AssetType.Retirement ]: {
-        id: manager.getTotalAssetId(AssetType.Retirement),
-        since: Since[Since.TwoWeeks],
-      },
-    },
-    selectedEditAsset: undefined,
-    showEditDialog: false,
-    sinces: [
-      Since[Since.Today],
-      Since[Since.Yesterday],
-      Since[Since.OneWeek],
-      Since[Since.TwoWeeks],
-    ],
-  };
   // lowercase 'state' is reserved in Vuex
-  private State: IAssetsState = _.cloneDeep(this.initialState);
+  private State: IAssetsState = _.cloneDeep(initialState);
 
   /* simple property getters */
 
@@ -144,8 +143,8 @@ class AssetsStore extends VuexModule {
     return this.State.selectedEditAsset;
   }
 
-  get showEditDialog(): boolean {
-    return this.State.showEditDialog;
+  get showEditCatalog(): boolean {
+    return this.State.showEditCatalog;
   }
 
   /* getters with parameters */
@@ -256,59 +255,52 @@ class AssetsStore extends VuexModule {
     const endDate: Date = Date.Today();
     const getAccountsPromise = goldStoneClient.getAccountsAsync(true);
     const getCatalogsPromise = goldStoneClient.getCatalogsAsync(startDate, endDate);
+    const getUsersPromise = goldStoneClient.getUsersAsync();
     // @ts-ignore
-    const [ getAccountsResponse, getCatalogsResponse ]
-      = await loaderAction.sendAsync(() => Promise.all([getAccountsPromise, getCatalogsPromise]));
+    const [ getAccountsResponse, getCatalogsResponse, getUsersResponse ]
+      = await loaderAction.sendAsync(() => Promise.all([getAccountsPromise, getCatalogsPromise, getUsersPromise]));
 
     // failed to get accounts
-    if (!getAccountsResponse || getAccountsResponse.status !== HttpStatus.OK) {
-      // tslint:disable-next-line
-      console.log(getAccountsResponse);
-
-      layout.setSnackBar({
-        duration: Infinity,
-        // todo - construct customMessage and errorMessage
-        message: getAccountsResponse.data as string,
-        show: true,
-      });
-
+    let result = manager.handleApiResponse(getAccountsResponse);
+    if (result.success === false) {
       return;
     }
 
     // failed to get account catalogs
-    if (!getCatalogsResponse || getCatalogsResponse.status !== HttpStatus.OK) {
-      // tslint:disable-next-line
-      console.log(getCatalogsResponse);
+    result = manager.handleApiResponse(getCatalogsResponse);
+    if (result.success === false) {
+      return;
+    }
 
-      layout.setSnackBar({
-        duration: Infinity,
-        // todo - construct customMessage and errorMessage
-        message: getCatalogsResponse.data as string,
-        show: true,
-      });
-
+    // failed to get users
+    result = manager.handleApiResponse(getUsersResponse);
+    if (result.success === false) {
       return;
     }
 
     const accountResponses = getAccountsResponse.data as IGetAccountResponseContract[];
     const catalogResponses = getCatalogsResponse.data as IGetCatalogResponseContract[];
+    const userResponses = getUsersResponse.data as IGetUserResponseContract[];
 
-    if (!accountResponses || !catalogResponses ||
-        accountResponses.length <= 0 || catalogResponses.length <= 0) {
+    if (!accountResponses || !catalogResponses || !userResponses ||
+        accountResponses.length <= 0 || catalogResponses.length <= 0 || userResponses.length <= 0) {
       return;
     }
 
     const accountList: IAccount[] = accountResponses.map((a) => manager.convertToAccount(a));
     const catalogList: ICatalog[] = catalogResponses.map((c) => manager.convertToCatalog(c));
+    const userList: IUser[] = userResponses.map((u) => tenantManager.convertToUser(u));
     const accounts: { [ key: string ]: IAccount } = _.keyBy(accountList, (a) => a.id);
     const catalogs: { [ key: string ]: ICatalog } = _.keyBy(catalogList, (c) => GuidDate.GetId(c.accountId, c.date));
+    const users: { [ key: string ]: IUser } = _.keyBy(userList, (u) => u.id);
 
+    tenant.setUsers(users);
     this.context.commit('Init', { accounts, catalogs });
   }
 
   @Action
-  public resetEditDialog(): void {
-    this.context.commit('ResetEditDialog');
+  public resetEditCatalog(): void {
+    this.context.commit('ResetEditCatalog');
   }
 
   @Action
@@ -391,10 +383,10 @@ class AssetsStore extends VuexModule {
   }
 
   @Action
-  public toggleEditDialog(params?: { assetType: AssetType; accountId?: string; }): void {
-    this.context.commit('ToggleEditDialog', {
+  public toggleEditCatalog(params?: { assetType: AssetType; accountId?: string; }): void {
+    this.context.commit('ToggleEditCatalog', {
       ...params,
-      show: !this.State.showEditDialog,
+      show: !this.State.showEditCatalog,
     });
   }
 
@@ -453,7 +445,7 @@ class AssetsStore extends VuexModule {
 
   @Mutation
   private Clear(): void {
-    this.State = _.cloneDeep(this.initialState);
+    this.State = _.cloneDeep(initialState);
   }
 
   @Mutation
@@ -470,7 +462,7 @@ class AssetsStore extends VuexModule {
   }
 
   @Mutation
-  private ResetEditDialog(): void {
+  private ResetEditCatalog(): void {
     _.keys(this.State.editAssetAccount)
       .forEach((key) => this.State.editAssetAccount[key] = undefined);
     this.State.selectedEditAsset = undefined;
@@ -523,14 +515,14 @@ class AssetsStore extends VuexModule {
   }
 
   @Mutation
-  private ToggleEditDialog(params: {
+  private ToggleEditCatalog(params: {
     assetType?: AssetType;
     accountId?: string;
     show: boolean;
   }): void {
     const { assetType, accountId, show } = params;
 
-    this.State.showEditDialog = show;
+    this.State.showEditCatalog = show;
 
     if (assetType) {
       this.State.selectedEditAsset = assetType;
@@ -580,10 +572,13 @@ class AssetsStore extends VuexModule {
   }): void {
     const { accountId, balance, date, lastModified } = params;
     const catalogId: string = GuidDate.GetId(accountId, date);
-    const catalog: ICatalog = this.State.catalogs[catalogId];
+    const catalog: ICatalog = {
+      ..._.cloneDeep(this.State.catalogs[catalogId]),
+      balance,
+      lastModified,
+    };
 
-    catalog.balance = balance;
-    catalog.lastModified = lastModified;
+    this.State.catalogs[catalogId] = catalog;
   }
 }
 

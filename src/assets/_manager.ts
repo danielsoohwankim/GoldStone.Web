@@ -74,6 +74,28 @@ class AssetManager {
     };
   }
 
+  public handleInitApiResponse(response: AxiosResponse<any>): {
+    success: boolean;
+    statusCode: number;
+  } {
+    if (response.status !== HttpStatus.OK) {
+      // tslint:disable-next-line
+      console.log(response);
+
+      layout.setSnackBar({
+        duration: Infinity,
+        // todo - construct customMessage and errorMessage
+        message: response.data as string,
+        show: true,
+      });
+    }
+
+    return {
+      success: 200 <= response.status && response.status < 300,
+      statusCode: response.status,
+    };
+  }
+
   public isTotalAssetId(id: string): boolean {
     return id.includes(AssetConstants.Total.Name);
   }

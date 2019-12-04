@@ -2,14 +2,17 @@
   <div>
     <md-dialog
       class="dialog"
-      :md-active="showEditDialog"
+      :md-active="showEditCatalog"
     >
       <md-dialog-title>Edit</md-dialog-title>
       <div class="wrapper">
-        <md-datepicker 
-          v-model="date"
+        <md-datepicker
           md-immediately
-        />
+          v-model="selectedDate"
+          :md-disabled-dates="disabledDates"
+        >
+          <label>Date</label>
+        </md-datepicker>
         <md-field>
           <label :for="assetLabel">{{ assetLabel }}</label>
           <md-select
@@ -67,7 +70,7 @@
         </md-button>
         <md-button
           :style="closeStyle"
-          @click="toggleEditDialog()"
+          @click="toggleEditCatalog()"
         >Close
         </md-button>
         <md-button
@@ -90,15 +93,17 @@ import layout from '@/layout/_store';
 import { Date } from '@/shared/Date';
 
 @Component
-export default class EditDialog extends Vue {
+export default class EditCatalog extends Vue {
   // data
   public accountLabel: string = 'Account';
   public assetLabel: string = 'Asset';
   public assets = assets;
-  public date = Date.Today().toJsDate();
+  public selectedDate = Date.Today().toJsDate();
   private Balance: string | null = null;
 
-  @Watch('date')
+  public disabledDates = (date) => date > Date.Today().toJsDate();
+
+  @Watch('selectedDate')
   public onDateChange(newDate, oldDate) {
     //
   }
@@ -144,15 +149,15 @@ export default class EditDialog extends Vue {
   }
 
   get isResetClickable(): boolean {
-    return (this.date &&
-      (Date.toDate(this.date).toString() !== Date.Today().toString()))
+    return (this.selectedDate &&
+      (Date.toDate(this.selectedDate).toString() !== Date.Today().toString()))
       || (assets.selectedEditAsset !== undefined)
       || (this.selectedAccount !== undefined)
       || (this.balance !== null);
   }
 
   get isSaveDisabled(): boolean {
-    return !this.date
+    return !this.selectedDate
       || assets.selectedEditAsset === undefined
       || this.selectedAccount === undefined
       || this.balance === null
@@ -171,8 +176,8 @@ export default class EditDialog extends Vue {
   }
 
   // needs to be a computed property instead of data property
-  get showEditDialog(): boolean {
-    return assets.showEditDialog;
+  get showEditCatalog(): boolean {
+    return assets.showEditCatalog;
   }
 
   @Watch('selectedAccount')
@@ -181,7 +186,7 @@ export default class EditDialog extends Vue {
       return;
     }
 
-    const date: Date = Date.toDate(this.date);
+    const date: Date = Date.toDate(this.selectedDate);
     const balance: number = assets.getBalance(newAccount.id, date);
     this.Balance = `${balance}`;
   }
@@ -205,8 +210,8 @@ export default class EditDialog extends Vue {
   }
 
   public onClickReset(): void {
-    assets.resetEditDialog();
-    this.date = Date.Today().toJsDate();
+    assets.resetEditCatalog();
+    this.selectedDate = Date.Today().toJsDate();
     this.Balance = null;
   }
 
@@ -229,12 +234,12 @@ export default class EditDialog extends Vue {
   public async saveAsync(): Promise<void> {
     await assets.updateCatalogAsync({
       balance: parseFloat(this.balance!),
-      date: Date.toDate(this.date),
+      date: Date.toDate(this.selectedDate),
     });
   }
 
-  public toggleEditDialog(): void {
-    assets.toggleEditDialog();
+  public toggleEditCatalog(): void {
+    assets.toggleEditCatalog();
   }
 }
 </script>

@@ -2,9 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import { storageTools } from '@/shared/_tools';
 import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
+import { UserRole } from '@/tenant/_data';
 
 const authorizationHeader = 'Authorization';
-const baseUrl: string = `https://goldstone.life`;
+const baseUrl: string = `https://goldstone.azurewebsites.net`;
 const bearerToken = (jwt: string) => `Bearer ${jwt}`;
 const version: string = `v1.0`;
 
@@ -12,6 +13,7 @@ const accountsPath = (tenantId: string): string => `${basePath(tenantId)}/accoun
 const basePath = (tenantId: string): string => `/${version}/tenants/${tenantId}`;
 const catalogsPath = (tenantId: string, accountId: string): string =>
   `${basePath(tenantId)}/accounts/${accountId}/catalogs`;
+const usersPath = (tenantId: string): string => `${basePath(tenantId)}/users`;
 
 const api = axios.create({
   baseURL: baseUrl,
@@ -40,6 +42,16 @@ class GoldStoneClient {
     try {
       return await api.get(
         `${basePath(tenant.id)}/account-catalogs?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+    } catch (e) {
+      return e.response;
+    }
+  }
+
+  public async getUsersAsync(): Promise<AxiosResponse<IGetUserResponseContract[] | any>> {
+    this.setJwtToken();
+
+    try {
+      return await api.get(usersPath(tenant.id));
     } catch (e) {
       return e.response;
     }
@@ -95,6 +107,13 @@ export interface IGetCatalogResponseContract {
   value: number;
 }
 
+export interface IGetUserResponseContract {
+  id: string;
+  tenantId: string;
+  profileImageUrl: string;
+  role: UserRole;
+}
+
 export interface IPutAccountCatalogRequestContractV1 {
   accountId: string;
   date: string;
@@ -108,8 +127,8 @@ export interface IPutAccountCatalogResponseContractV1
 
 export interface ISignInResponseContractV1 {
   accessToken: string;
-  profileImageUrl: string;
   tenantId: string;
+  userId: string;
 }
 
 export enum GoldStoneAccountState {

@@ -125,7 +125,7 @@ export default class Asset extends Vue {
       assetType,
       date: Sinces.getDate(Since.Today).toString(),
       id: assetType,
-      image: tenant.profileImageUrl,
+      image: tenant.currentUserProfileImage,
       isTotal: false,
       name: AssetConstants[assetType].Name,
       pastBalance: assets.getTotal(assetType, Since.Yesterday),

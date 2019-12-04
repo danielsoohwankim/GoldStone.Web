@@ -5,14 +5,20 @@
     <div v-for="assetType in assets.assetTypes" :key="assetType">
       <Asset :assetType="assetType" />
     </div>
-    <EditDialog />
+    <EditCatalog />
     <div class="edit-button">
       <md-button 
         class="md-primary md-raised"
-        @click="toggleEditDialog()"
+        @click="toggleEditCatalog()"
+        :disabled="tenant.canEditCatalog === false"
         :style="editButtonStyle"
       >Edit
       </md-button>
+      <md-tooltip
+        md-direction="bottom"
+        md-delay="400"
+      >{{ editCatalogMessage }}
+      </md-tooltip>
     </div>
     <SnackBar />
   </div>
@@ -25,19 +31,19 @@ import manager from './_manager';
 import assets, { AssetType } from './_store';
 import Asset from './Asset.vue';
 import AssetTotal from './AssetTotal.vue';
-import EditDialog from './EditDialog.vue';
+import EditCatalog from './EditCatalog.vue';
 import SinceSelect from './SinceSelect.vue';
 import SnackBar from './SnackBar.vue';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { Date } from '@/shared/Date';
-import tenantStore from '@/tenant/_store';
+import tenant from '@/tenant/_store';
 
 @Component({
   components: {
     Asset,
     AssetTotal,
-    EditDialog,
+    EditCatalog,
     SinceSelect,
     SnackBar,
   },
@@ -48,39 +54,37 @@ export default class Assets extends Vue {
   // data
   public readonly assets = assets;
   public readonly AssetType = AssetType;
+  public readonly tenant = tenant;
 
   // styles
   get editButtonStyle(): object {
     return {
-      backgroundColor: AssetConstants.Layout.Color[layout.theme].EditButtonBackground,
+      backgroundColor: (tenant.canEditCatalog === true)
+        ? AssetConstants.Layout.Color[layout.theme].EditButtonBackground
+        : AssetConstants.Layout.Color[layout.theme].DisabledBackground,
     };
   }
 
   // lifecycle
-  public async mounted() {
-    // todo: do we need mounted()?
+  public async mounted(): Promise<void> {
     // navigating back to Assets menu triggers mounted again (e.g. Dashboard -> Assets)
     if (assets.catalogs.length > 0) {
       return;
     }
 
-    // let assetMap: IAssetMap;
-
-    // try {
-    //   assetMap = await tools.getAssetMapAsync(store.minSince);
-    // } catch (e) {
-    //   tools.handleApiErrorAsync(e);
-    //   return;
-    // }
-
-    // store.setAssetMap(assetMap);
+    await assets.initAsync();
   }
 
   // computed
+  get editCatalogMessage(): string {
+    return (tenant.canEditCatalog === true)
+      ? 'Edit catalog'
+      : 'Insufficient privilege';
+  }
 
   // methods
-  public toggleEditDialog(): void {
-    assets.toggleEditDialog();
+  public toggleEditCatalog(): void {
+    assets.toggleEditCatalog();
   }
 }
 </script>

@@ -67,6 +67,7 @@ export default class AssetConstants {
         Background: '#e9ecef',
         ButtonText: 'white',
         ChartBackground: 'white',
+        DisabledBackground: colors.grey[300],
         EditButtonBackground: colors.yellow[600],
         Error: colors.red[600],
         Minus: colors.red[600],
@@ -82,6 +83,7 @@ export default class AssetConstants {
         Background: '#373740',
         ButtonText: '#424242',
         ChartBackground: '#424242',
+        DisabledBackground: colors.grey[800],
         EditButtonBackground: colors.amber[400],
         Error: colors.red[400],
         Minus: colors.red.a200,
@@ -154,6 +156,7 @@ interface IAssetLayoutColor {
   Background: string;
   ButtonText: string;
   ChartBackground: string;
+  DisabledBackground: string;
   EditButtonBackground: string;
   Error: string;
   Minus: string;

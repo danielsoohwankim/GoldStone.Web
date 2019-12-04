@@ -110,9 +110,18 @@
     <md-list class="asset-catalog-edit">
       <md-list-item>
         <span class="asset-catalog-today">
-          <md-icon v-if="sinceCatalog.showEdit">
+          <md-icon
+            v-if="sinceCatalog.showEdit"
+            :disabled="tenant.canEditCatalog === false"
+          >
+            <md-tooltip
+              md-direction="bottom"
+              md-delay="400"
+            >{{ editCatalogMessage }}
+            </md-tooltip>
             <span
               class="edit"
+              :style="editIconStyle"
               @click.prevent="onClick(sinceCatalog)"
             >edit
             </span>
@@ -134,6 +143,7 @@ import SinceCatalogChange from './SinceCatalogChange.vue';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { BaseStatus } from '@/shared/_data';
+import tenant from '@/tenant/_store';
 
 @Component({
   components: {
@@ -146,6 +156,7 @@ export default class SinceCatalog extends Vue {
   // data
   public readonly BaseStatus = BaseStatus;
   public readonly layout = layout;
+  public readonly tenant = tenant;
   public hover: boolean = false;
 
   // styles
@@ -174,6 +185,15 @@ export default class SinceCatalog extends Vue {
       };
   }
 
+  get editIconStyle(): object {
+    return (tenant.canEditCatalog === true)
+      ? {
+        cursor: 'pointer',
+      } : {
+        cursor: 'auto',
+      };
+  }
+
   get updatedTimeStyle(): object {
     return {
       color: AssetConstants.Layout.Color[layout.theme][this.sinceCatalog.updatedStatus!],
@@ -185,9 +205,19 @@ export default class SinceCatalog extends Vue {
     return `$${manager.toCurrencyString(this.sinceCatalog.todayBalance)}`;
   }
 
+  get editCatalogMessage(): string {
+    return (tenant.canEditCatalog === true)
+      ? 'Edit catalog'
+      : 'Insufficient privilege';
+  }
+
   // methods
   public onClick(sinceCatalog: ISinceCatalogToday): void {
-    assets.toggleEditDialog({
+    if (tenant.canEditCatalog === false) {
+      return;
+    }
+
+    assets.toggleEditCatalog({
       assetType: this.sinceCatalog.assetType,
       accountId: (this.sinceCatalog.assetType === this.sinceCatalog.id)
         ? undefined // clicked from AssetType.Assets
@@ -219,7 +249,6 @@ export default class SinceCatalog extends Vue {
 
 .edit {
   font-size: 18px;
-  cursor: pointer;
 }
 
 .updated-date {
