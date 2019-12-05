@@ -84,8 +84,7 @@ export default class Asset extends Vue {
   // styles
   get listStyle(): object {
     return {
-      backgroundColor: (layout.theme === Theme.Light)
-        ? '#fff' : '#2a2a2a',
+      backgroundColor: AssetConstants.Layout.Color[layout.theme].ListBackground,
     };
   }
 
@@ -244,7 +243,7 @@ $content-width: 100%;
 
 .asset-catalog-user {
   width: 5%;
-  min-width: 50px;
+  min-width: 65px;
 }
 
 .asset-catalog-symbol {

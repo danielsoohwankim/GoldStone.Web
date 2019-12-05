@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="isLoaded === true">
     <SinceSelect :selectedSince="assets.minSince" />
     <AssetTotal />
     <div v-for="assetType in assets.assetTypes" :key="assetType">
@@ -56,18 +56,11 @@ export default class Assets extends Vue {
   public readonly tenant = tenant;
 
   // styles
-  get editButtonStyle(): object {
-    return {
-      backgroundColor: (tenant.canEditCatalog === true)
-        ? AssetConstants.Layout.Color[layout.theme].EditButtonBackground
-        : AssetConstants.Layout.Color[layout.theme].DisabledBackground,
-    };
-  }
 
   // lifecycle
   public async mounted(): Promise<void> {
     // navigating back to Assets menu triggers mounted again (e.g. Dashboard -> Assets)
-    if (assets.catalogs.length > 0) {
+    if (this.isLoaded === true) {
       return;
     }
 
@@ -79,6 +72,10 @@ export default class Assets extends Vue {
     return (tenant.canEditCatalog === true)
       ? 'Edit catalog'
       : 'Insufficient privilege';
+  }
+
+  get isLoaded(): boolean {
+    return assets.catalogs.length > 0;
   }
 
   // methods

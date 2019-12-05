@@ -1,4 +1,3 @@
-import { IDevice, IStorageTools } from './_interfaces';
 import { goldStoneException } from './GoldStoneException';
 
 // @ts-ignore
@@ -13,7 +12,7 @@ export const arrayTools = new ArrayTools();
 
 // @ts-ignore
 // tslint:disable-next-line
-class Device implements IDevice {
+class Device {
   private mobile?: boolean | null = null;
 
   public isMobile(): boolean {
@@ -36,7 +35,7 @@ const pathKey: string = 'path';
 
 // @ts-ignore
 // tslint:disable-next-line
-class StorageTools implements IStorageTools {
+class StorageTools {
   public hasPath(): boolean {
     const path = window.sessionStorage.getItem(pathKey);
 

@@ -67,12 +67,8 @@ export default class AssetConstants {
         Background: '#e9ecef',
         ButtonText: 'white',
         ChartBackground: 'white',
-        DisabledBackground: colors.grey[300],
-        EditButtonBackground: colors.yellow[600],
         Error: colors.red[600],
-        Minus: colors.red[600],
-        Neutral: colors.grey[500],
-        Plus: colors.green[600],
+        ListBackground: '#fff',
         SnackBar: colors.grey[300],
         Success: colors.grey[600],
         Warning: colors.yellow[700],
@@ -83,12 +79,8 @@ export default class AssetConstants {
         Background: '#373740',
         ButtonText: '#424242',
         ChartBackground: '#424242',
-        DisabledBackground: colors.grey[800],
-        EditButtonBackground: colors.amber[400],
         Error: colors.red[400],
-        Minus: colors.red.a200,
-        Neutral: colors.blueGrey[300],
-        Plus: colors.green.a400,
+        ListBackground: '#2a2a2a',
         SnackBar: colors.grey[800],
         Success: colors.blueGrey[300],
         Warning: colors.yellow[300],
@@ -156,12 +148,8 @@ interface IAssetLayoutColor {
   Background: string;
   ButtonText: string;
   ChartBackground: string;
-  DisabledBackground: string;
-  EditButtonBackground: string;
   Error: string;
-  Minus: string;
-  Neutral: string;
-  Plus: string;
+  ListBackground: string;
   SnackBar: string;
   Success: string;
   Text: string;

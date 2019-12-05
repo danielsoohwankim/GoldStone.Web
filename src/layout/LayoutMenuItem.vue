@@ -2,13 +2,13 @@
   <div>
     <router-link :to="menu.path">
       <md-list-item @click="onClick">
-        <md-icon 
-          :style="menuItemStyle(menu)"
+        <md-icon
+          :class="(isCurrentPage === true) ? 'md-accent' : ''"
         >{{menu.icon}}
         </md-icon>
-        <span 
-          :style="menuItemStyle(menu)"
-          class="md-list-item-text" 
+        <span
+          class="md-list-item-text"
+          :style="menuItemStyle"
         >{{menu.title}}
         </span>
       </md-list-item>
@@ -17,13 +17,10 @@
 </template>
 
 <script lang="ts">
-import colors from 'material-colors';
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Menus, Theme } from './_data';
-import { IMenu } from './_interfaces';
-import store from './_store';
-// todo: remove
-import tenant from '@/tenant/_store';
+import LayoutConstants from './_constants';
+import { IMenu, Menus, Theme } from './_data';
+import layout from './_store';
 
 @Component
 export default class LayoutMenu extends Vue {
@@ -32,31 +29,28 @@ export default class LayoutMenu extends Vue {
   // styles
 
   // computed
-  public menuItemStyle(menu: IMenu): object {
-    const isCurrentPage: boolean = (menu === store.menu);
+  get isCurrentPage(): boolean {
+    return this.menu === layout.menu;
+  }
 
-    return (isCurrentPage === true) ? {
-        color: colors.red.a200,
-        fontWeight: `bold`,
-      } : {
-        color: (store.theme === Theme.Light)
-          ? '#000' : '#fff',
-      };
+  get menuItemStyle(): object {
+    if (this.isCurrentPage === false) {
+      return {};
+    }
+
+    return {
+      color: LayoutConstants.Layout.Colors[layout.theme].Accent,
+      fontWeight: 'bold',
+    };
   }
 
   // methods
   public onClick(): void {
-    // todo: remove
-    if (this.menu.name === Menus.Accountant.name) {
-      window.location.href = `https://goldstone.azurewebsites.net/expenses?${tenant.id}`;
+    if (layout.menu.name === this.menu.name) {
       return;
     }
 
-    if (store.menu.name === this.menu.name) {
-      return;
-    }
-
-    store.setMenu(this.menu.name);
+    layout.setMenu(this.menu.name);
   }
 }
 </script>

@@ -8,6 +8,7 @@ import { IGetAccountResponseContract, IGetCatalogResponseContract, IGetUserRespo
 import layout from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import { GuidDate } from '@/shared/_data';
+import sharedManager from '@/shared/_manager';
 import store from '@/shared/_store';
 import { Date } from '@/shared/Date';
 import { goldStoneException } from '@/shared/GoldStoneException';
@@ -261,19 +262,19 @@ class AssetsStore extends VuexModule {
       = await loaderAction.sendAsync(() => Promise.all([getAccountsPromise, getCatalogsPromise, getUsersPromise]));
 
     // failed to get accounts
-    let result = manager.handleApiResponse(getAccountsResponse);
+    let result = sharedManager.handleApiResponse(getAccountsResponse);
     if (result.success === false) {
       return;
     }
 
     // failed to get account catalogs
-    result = manager.handleApiResponse(getCatalogsResponse);
+    result = sharedManager.handleApiResponse(getCatalogsResponse);
     if (result.success === false) {
       return;
     }
 
     // failed to get users
-    result = manager.handleApiResponse(getUsersResponse);
+    result = sharedManager.handleApiResponse(getUsersResponse);
     if (result.success === false) {
       return;
     }
@@ -367,7 +368,7 @@ class AssetsStore extends VuexModule {
     const response: AxiosResponse<IGetCatalogResponseContract | any>
       = await loaderAction.sendAsync(() => goldStoneClient.getCatalogsAsync(startDate, endDate));
 
-    const result = manager.handleApiResponse(response);
+    const result = sharedManager.handleApiResponse(response);
     if (result.success === false) {
       return false;
     }
@@ -425,7 +426,7 @@ class AssetsStore extends VuexModule {
         value: balance,
       }));
 
-    const result = manager.handleApiResponse(response);
+    const result = sharedManager.handleApiResponse(response);
     if (result.success === false) {
       return;
     }

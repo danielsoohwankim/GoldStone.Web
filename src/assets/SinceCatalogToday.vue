@@ -143,6 +143,7 @@ import SinceCatalogChange from './SinceCatalogChange.vue';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { BaseStatus } from '@/shared/_data';
+import sharedManager from '@/shared/_manager';
 import tenant from '@/tenant/_store';
 
 @Component({
@@ -202,7 +203,7 @@ export default class SinceCatalog extends Vue {
 
   // computed
   get balance(): string {
-    return `$${manager.toCurrencyString(this.sinceCatalog.todayBalance)}`;
+    return `$${sharedManager.toCurrencyString(this.sinceCatalog.todayBalance)}`;
   }
 
   get editCatalogMessage(): string {

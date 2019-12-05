@@ -1,6 +1,11 @@
 import { AxiosResponse } from 'axios';
 import layout from './_store';
-import { LoaderCallback, ILoaderAction } from './_interfaces';
+
+type LoaderCallback = () => any;
+
+interface ILoaderAction {
+  sendAsync(callback: LoaderCallback): Promise<AxiosResponse>;
+}
 
 class LoaderAction implements ILoaderAction {
   /**

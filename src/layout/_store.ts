@@ -1,9 +1,19 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import _ from 'lodash';
-import { Menus, Page, Theme } from './_data';
-import { ILayoutState, IMenu, ISnackBarView } from './_interfaces';
+import { IMenu, ISnackBarView, Menus, Page, Theme } from './_data';
 import store from '@/shared/_store';
 import router from '@/router';
+
+interface ILayoutState {
+  menu: IMenu;
+  page: Page;
+  showLoader: boolean;
+  showMenu: boolean;
+  showSetting: boolean;
+  showSignInButton: boolean;
+  snackBarView: ISnackBarView;
+  theme: Theme;
+}
 
 // initial state
 const initialState: ILayoutState = {

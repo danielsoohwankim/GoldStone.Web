@@ -70,11 +70,11 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { ISinceCatalog } from './_data';
-import manager from './_manager';
 import { AssetType } from './_store';
 import SinceCatalogChange from './SinceCatalogChange.vue';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
+import sharedManager from '@/shared/_manager';
 
 @Component({
   components: {
@@ -92,7 +92,7 @@ export default class SinceCatalogPast extends Vue {
 
   // computed
   get balance(): string {
-    return `$${manager.toCurrencyString(this.sinceCatalog.pastBalance)}`;
+    return `$${sharedManager.toCurrencyString(this.sinceCatalog.pastBalance)}`;
   }
 
   // methods

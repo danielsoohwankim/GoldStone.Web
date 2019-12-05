@@ -11,6 +11,7 @@ import { Vue, Prop, Component } from 'vue-property-decorator';
 import AssetConstants from './_constants';
 import manager from './_manager';
 import layout from '@/layout/_store';
+import sharedManager from '@/shared/_manager';
 
 @Component
 export default class SinceCatalogChange extends Vue {
@@ -22,11 +23,8 @@ export default class SinceCatalogChange extends Vue {
 
   // styles
   get style(): object {
-    const color: string =
-      (this.changeAmount === 0) ? 'Neutral' :
-      (this.changeAmount > 0) ? 'Plus' : 'Minus';
     const style: object = {
-      color: AssetConstants.Layout.Color[layout.theme][color],
+      color: sharedManager.getAmountColor(this.changeAmount, layout.theme),
     };
 
     return (this.bold === true)
@@ -53,11 +51,10 @@ export default class SinceCatalogChange extends Vue {
   }
 
   get changeString(): string {
-    const sign: string = (this.changeAmount >= 0) ? '+' : '-';
-    const amount: string = manager.toCurrencyString(Math.abs(this.changeAmount));
-    const percent: string = manager.toCurrencyString(Math.abs(this.changePercent));
+    const formattedAmount: string = sharedManager.getFormattedAmount(this.changeAmount);
+    const percent: string = sharedManager.toCurrencyString(Math.abs(this.changePercent));
 
-    return `${sign}$${amount} (${percent}%)`;
+    return `${formattedAmount} (${percent}%)`;
   }
 
   // methods

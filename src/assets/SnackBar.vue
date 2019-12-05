@@ -25,8 +25,7 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import AssetConstants from './_constants';
-import { ISnackBarView } from '@/layout/_interfaces';
-import { Theme } from '@/layout/_data';
+import { IMenu, ISnackBarView, Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 
 @Component

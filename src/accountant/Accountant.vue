@@ -1,16 +1,35 @@
 <template>
-  <div>
-    <md-empty-state
-      md-icon="devices_other"
-      md-label="Accountant"
-      md-description="Creating project, you'll be able to upload your design and collaborate with people.">
-      <md-button class="md-primary md-raised">Create first project</md-button>
-    </md-empty-state>
+  <div v-if="isLoaded === true">
+    <Pending />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'EmptyStateBasic',
-};
+<script lang="ts">
+import { Vue, Prop, Component } from 'vue-property-decorator';
+import accountant from './_store';
+import Pending from './Pending.vue';
+
+@Component({
+  components: {
+    Pending,
+  },
+})
+export default class Accountant extends Vue {
+  public accountant = accountant;
+
+  // lifecycle
+  public async mounted(): Promise<void> {
+    // navigating back to Assets menu triggers mounted again (e.g. Dashboard -> Assets)
+    if (accountant.transactions.length > 0) {
+      return;
+    }
+
+    await accountant.initAsync();
+  }
+
+  // computed
+  get isLoaded(): boolean {
+    return accountant.transactions.length > 0;
+  }
+}
 </script>

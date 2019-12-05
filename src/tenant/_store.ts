@@ -11,7 +11,6 @@ import loaderAction from '@/layout/loaderAction';
 import store from '@/shared/_store';
 import { storageTools } from '@/shared/_tools';
 import router from '@/router';
-import AssetConstants from '@/assets/_constants';
 
 interface ITenantState {
   currentUserId: string;

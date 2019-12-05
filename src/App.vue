@@ -81,8 +81,8 @@ export default class App extends Vue {
 ));
 
 @include md-register-theme("dark", (
-  primary: md-get-palette-color(lime, 900),
-  accent: red,
+  primary: md-get-palette-color(lightblue, 200),
+  accent: md-get-palette-color(red, A200),
   theme: dark,
 ));
 

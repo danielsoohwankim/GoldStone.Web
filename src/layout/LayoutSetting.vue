@@ -24,10 +24,9 @@
             <span class="md-list-item-text">{{ theme }}</span>
             <md-switch 
               v-model="theme" 
+              class="md-accent"
               true-value="Light"
-              false-value="Dark"
-              class="md-primary" 
-              :md-theme="layout.mdTheme"
+              false-value="Dark" 
             />
           </md-list-item>
           <md-list-item>
@@ -37,9 +36,8 @@
             <span class="md-list-item-text">Signed In</span>
             <md-switch
               v-model="signedIn"
-              class="md-primary"
+              class="md-accent"
               @click="test()"
-              :md-theme="layout.mdTheme"
             />
           </md-list-item>
         </md-list>
@@ -50,6 +48,7 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
+import LayoutConstants from './_constants';
 import { Theme } from './_data';
 import layout from './_store';
 import { device } from '@/shared/_tools';
@@ -67,8 +66,7 @@ export default class LayoutSetting extends Vue {
   // styles
   get iconStyle(): object {
     return {
-      color: (layout.theme === Theme.Light)
-        ? '#000' : '#fff',
+      color: LayoutConstants.Header.Colors[layout.theme].Icon,
     };
   }
 

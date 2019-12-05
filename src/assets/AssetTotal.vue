@@ -83,8 +83,7 @@ export default class Asset extends Vue {
   // styles
   get listStyle(): object {
     return {
-      backgroundColor: (layout.theme === Theme.Light)
-        ? '#fff' : '#2a2a2a',
+      backgroundColor: AssetConstants.Layout.Color[layout.theme].ListBackground,
     };
   }
 
@@ -161,107 +160,6 @@ export default class Asset extends Vue {
 }
 </script>
 
-<style lang="scss">
-$content-width: 100%;
+<style lang="scss" scoped>
 
-.list {
-  width: $content-width;
-}
-
-.asset {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap-reverse;
-  z-index: 0;
-}
-
-.asset > .md-list {
-  width: $content-width;
-  max-width: 100%;
-  height: 400px;
-  display: inline-block;
-  overflow: auto;
-  border: 1px solid rgba(#000, .12);
-  vertical-align: top;
-}
-
-.asset-catalog {
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  vertical-align: top;
-}
-
-.asset-catalog > .md-list {
-  height: 60px;
-  display: inline-block;
-}
-
-.asset-catalog .Dark > .md-list {
-  border-bottom: 1px solid rgba(#fff, .1);
-}
-
-.asset-catalog .Light > .md-list {
-  border-bottom: 1px solid rgba(#000, .1);
-}
-
-.asset-title {
-  color: white;
-  font-weight: 500;
-  font-size: 1.25rem;
-}
-
-.asset-catalog-user {
-  width: 5%;
-  min-width: 50px;
-}
-
-.asset-catalog-symbol {
-  width: 10%;
-  min-width: 100px;
-}
-
-.asset-catalog-name {
-  width: 25%;
-  min-width: 250px;
-}
-
-.asset-catalog-since {
-  width: 10%;
-  min-width: 100px;
-}
-
-.asset-catalog-date {
-  width: 15%;
-  min-width: 150px;
-}
-
-.asset-catalog-change {
-  width: 15%;
-  min-width: 200px;
-}
-
-.asset-catalog-balance {
-  width: 15%;
-  min-width: 150px;
-}
-
-.asset-catalog-edit {
-  width: 5%;
-  min-width: 50px;
-}
-
-.hover-Dark > .md-list {
-  background-color: black;
-}
-
-.hover-Light > .md-list {
-  background-color: #ececec;
-}
-
-.updated-date {
-  font-size: 12px;
-  font-style: italic;
-}
 </style>

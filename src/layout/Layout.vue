@@ -23,8 +23,7 @@
         </span>
         
         <div class="md-toolbar-section-end">
-          <LayoutSetting 
-            :settingStyle="toolbarStyle" />
+          <LayoutSetting :settingStyle="toolbarStyle" />
         </div>
       </md-app-toolbar>
 
@@ -38,9 +37,7 @@
         />
       </md-app-drawer>
 
-      <md-app-content 
-        :style="contentStyle"
-      >
+      <md-app-content :style="contentStyle">
         <router-view />
       </md-app-content>
     </md-app>
@@ -48,10 +45,10 @@
 </template>
 
 <script lang="ts">
-import colors from 'material-colors';
 import { Vue, Prop, Component } from 'vue-property-decorator';
-import { Theme } from './_data';
-import { IMenu } from './_interfaces';
+import colors from 'material-colors';
+import LayoutConstants from './_constants';
+import { IMenu, Theme } from './_data';
 import layout from './_store';
 import LayoutMenu from './LayoutMenu.vue';
 import LayoutSetting from './LayoutSetting.vue';
@@ -71,9 +68,7 @@ export default class Layout extends Vue {
   // computed
   get backgroundStyle(): object {
     return {
-      backgroundColor: (layout.theme === Theme.Light)
-        ? 'white'
-        : colors.grey[900],
+      backgroundColor: LayoutConstants.Header.Colors[layout.theme].Background,
       position: 'sticky',
     };
   }
@@ -81,16 +76,14 @@ export default class Layout extends Vue {
   // needs to be computed to dynamically change based on theme
   get toolbarStyle(): object {
     return {
-      color: (layout.theme === Theme.Light)
-        ? '#0078D4' : '#98C6FF',
+      color: LayoutConstants.Header.Colors[layout.theme].Theme,
       fontWeight: 'bold',
     };
   }
 
   get contentStyle(): object {
     return {
-      backgroundColor: (layout.theme === Theme.Light)
-        ? '#fafafa' : '#2a2a2a',
+      backgroundColor: LayoutConstants.Layout.Colors[layout.theme].Background,
     };
   }
 

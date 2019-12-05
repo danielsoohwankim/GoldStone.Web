@@ -69,12 +69,11 @@
         >Reset
         </md-button>
         <md-button
-          :style="closeStyle"
           @click="toggleEditCatalog()"
         >Close
         </md-button>
         <md-button
-          :style="saveButtonStyle"
+          class="md-accent"
           :disabled="isSaveDisabled === true"
           @click="saveAsync()"
         >Save
@@ -109,25 +108,11 @@ export default class EditCatalog extends Vue {
   }
 
   // styles
-  get closeStyle() {
-    return {
-      color: (layout.theme === Theme.Light) ? 'black' : 'white',
-    };
-  }
-
   get errorMessage() {
     return {
       color: AssetConstants.Layout.Color[layout.theme].Error,
       fontSize: '17px',
       paddingRight: '22px',
-    };
-  }
-
-  get saveButtonStyle() {
-    return (this.isSaveDisabled === true) ? {
-      color: `#BDBDBD`,
-    } : {
-      color: `#EC407A`,
     };
   }
 

@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { ExpenseCategory, TransactionState } from '@/accountant/_data';
 import { storageTools } from '@/shared/_tools';
 import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
@@ -13,6 +14,7 @@ const accountsPath = (tenantId: string): string => `${basePath(tenantId)}/accoun
 const basePath = (tenantId: string): string => `/${version}/tenants/${tenantId}`;
 const catalogsPath = (tenantId: string, accountId: string): string =>
   `${basePath(tenantId)}/accounts/${accountId}/catalogs`;
+const transactionsPath = (tenantId: string): string => `${basePath(tenantId)}/transactions`;
 const usersPath = (tenantId: string): string => `${basePath(tenantId)}/users`;
 
 const api = axios.create({
@@ -52,6 +54,19 @@ class GoldStoneClient {
 
     try {
       return await api.get(usersPath(tenant.id));
+    } catch (e) {
+      return e.response;
+    }
+  }
+
+  public async getTransactionsAsync(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<AxiosResponse<IGetTransactionResponseContract[] | any>> {
+    this.setJwtToken();
+
+    try {
+      return await api.get(`${transactionsPath(tenant.id)}?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
     } catch (e) {
       return e.response;
     }
@@ -105,6 +120,21 @@ export interface IGetCatalogResponseContract {
   tenant: string;
   timestamp: number;
   value: number;
+}
+
+export interface IGetTransactionResponseContract {
+  accountId: string;
+  amount: number;
+  date: string;
+  expenseCategory: ExpenseCategory;
+  id: string;
+  name: string;
+  note: string;
+  plaidPendingId: string;
+  plaidTransactionId: string;
+  tenantId: string;
+  transactionState: TransactionState;
+  verifiedDate: string;
 }
 
 export interface IGetUserResponseContract {
