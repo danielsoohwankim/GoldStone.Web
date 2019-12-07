@@ -1,10 +1,11 @@
 import _ from 'lodash';
 import { ExpenseType } from './_data';
-import { IAccount, ITransaction } from './_store';
+import accountant, { IAccount, ITransaction } from './_store';
 import {
+  GoldStoneExpenseType,
   IGetAccountResponseContract,
   IGetTransactionResponseContract,
-  GoldStoneExpenseType,
+  IPutTransactionRequestContractV1,
 } from '@/clients/goldStoneClient';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
@@ -23,6 +24,21 @@ class AccountantManager {
     };
   }
 
+  public converToPutTransactionRequest(transaction: ITransaction): IPutTransactionRequestContractV1 {
+    return {
+      accountId: transaction.accountId,
+      amount: transaction.amount,
+      date: transaction.date,
+      expenseCategory: transaction.expenseCategory,
+      id: transaction.id,
+      name: transaction.name,
+      note: transaction.note,
+      tenantId: transaction.tenantId,
+      transactionState: transaction.state,
+      verified: transaction.verified,
+    };
+  }
+
   public convertToTransaction(item: IGetTransactionResponseContract): ITransaction {
     return {
       accountId: item.accountId,
@@ -32,11 +48,9 @@ class AccountantManager {
       id: item.id,
       name: item.name,
       note: item.note,
-      plaidPendingId: item.plaidPendingId,
-      plaidTransactionId: item.plaidTransactionId,
       state: item.transactionState,
       tenantId: item.tenantId,
-      verifiedDate: item.verifiedDate,
+      verified: item.verified,
     };
   }
 
@@ -50,6 +64,13 @@ class AccountantManager {
     return (device.isMobile() === true)
       ? { overflowX: 'scroll' }
       : {};
+  }
+
+  public transactionHasChanged(id: string): boolean {
+    const transaction: ITransaction = accountant.getTransaction(id);
+    const floating: ITransaction = accountant.getFloatingTransaction(id);
+
+    return _.isEqual(transaction, floating) === false;
   }
 
   private getExpenseType(gsExpenseType: GoldStoneExpenseType): ExpenseType {

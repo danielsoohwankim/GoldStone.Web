@@ -42,9 +42,8 @@ class SharedManager {
       console.log(response);
 
       layout.setSnackBar({
-        duration: Infinity,
         isSuccess: false,
-        message: `${response.status} ${response.statusText}`,
+        message: `${response.status}: ${response.data as string}`,
         show: true,
       });
 
@@ -66,7 +65,6 @@ class SharedManager {
       console.log(response);
 
       layout.setSnackBar({
-        duration: Infinity,
         isSuccess: false,
         message: response.data as string,
         show: true,

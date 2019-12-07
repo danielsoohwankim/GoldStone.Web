@@ -1,13 +1,13 @@
 <template>
-  <div v-if="accountant.showPendingEdit">
+  <div v-if="accountant.showEditPending">
     <md-dialog 
-      :md-active="accountant.showPendingEdit"
+      :md-active="accountant.showEditPending"
       style="width: 90%;"
       :style="manager.getScrollStyle()">
       <md-dialog-title :style="titleStyle">Edit Pending Transactions</md-dialog-title>
 
       <md-table
-        v-model="accountant.selectedFloatingPendings"
+        v-model="selectedPendings"
         md-fixed-header
       >
         <md-table-row
@@ -24,7 +24,6 @@
               <img
                 :src="accountant.getUserProfileImage(item.accountId)"
                 alt="Avatar"
-                @click="test(item.id)"
               >
             </md-avatar>
           </md-table-cell>
@@ -78,9 +77,18 @@
       </md-table>
 
       <md-dialog-actions>
-        <md-button @click="accountant.togglePendingEdit(false)">Close</md-button>
-        <md-button class="md-primary" @click="accountant.resetFloatingTransactions()">Reset All</md-button>
-        <md-button class="md-accent" @click="accountant.saveFloatingTransactionsAsync">Save All</md-button>
+        <md-button @click="accountant.toggleEditPending(false)">Close</md-button>
+        <md-button
+          class="md-primary"
+          :disabled="isChanged === false"
+          @click="accountant.resetSelectedTransactions(transactionType)"
+        >Reset All
+        </md-button>
+        <md-button
+          class="md-accent"
+          :disabled="isChanged === false"
+          @click="accountant.saveSelectedTransactionsAsync(transactionType)"
+        >Save All</md-button>
       </md-dialog-actions>
     </md-dialog>
   </div>
@@ -88,6 +96,7 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
+import { TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
 import EditNote from './EditNote.vue';
@@ -107,12 +116,13 @@ import sharedManager from '@/shared/_manager';
     ExpenseCategorySelect,
   },
 })
-export default class PendingEdit extends Vue {
+export default class EditPending extends Vue {
   // data
   public readonly accountant = accountant;
   public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly manager = manager;
   public readonly sharedManager = sharedManager;
+  public readonly transactionType = TransactionType.Pending;
 
   // styles
   get titleStyle(): object {
@@ -122,15 +132,23 @@ export default class PendingEdit extends Vue {
   }
 
   // computed
+  get isChanged(): boolean {
+    const selectedPendings: ITransaction[] = accountant.getSelectedTransactions(this.transactionType);
+    for (const key of Object.keys(selectedPendings)) {
+      const transaction: ITransaction = selectedPendings[key];
+      if (manager.transactionHasChanged(transaction.id) === true) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  get selectedPendings(): ITransaction[] {
+    return accountant.getSelectedTransactions(this.transactionType);
+  }
 
   // methods
-  // todo: remove
-  public test(id: string) {
-    // tslint:disable-next-line
-    console.log('original', accountant.getTransaction(id).expenseCategory);
-    // tslint:disable-next-line
-    // console.log('copy', accountant.selectedTransactions[0].expenseCategory);
-  }
 }
 </script>
 
@@ -153,8 +171,8 @@ $fixed-width: 2000px;
 }
 
 .edit-name {
-  width: 33.5%;
-  max-width: $fixed-width * 0.33.5;
+  width: 33%;
+  max-width: $fixed-width * 0.33;
 }
 
 .edit-amount {
@@ -173,7 +191,7 @@ $fixed-width: 2000px;
 }
 
 .edit-actions {
-  width: 6.5%;
-  max-width: $fixed-width * 0.065;
+  width: 7%;
+  max-width: $fixed-width * 0.07;
 }
 </style>

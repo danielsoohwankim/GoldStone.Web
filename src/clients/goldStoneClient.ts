@@ -101,7 +101,8 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      return await api.put(`${transactionsPath(tenant.id)}/${id}`, request);
+      // todo: remove test
+      return await api.put(`${transactionsPath(tenant.id)}/${id}/test`, request);
     } catch (e) {
       return e.response;
     }
@@ -112,7 +113,7 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      return await api.put(`${transactionsPath(tenant.id)}`, request);
+      return await api.put(`${transactionsPath(tenant.id)}/test`, request);
     } catch (e) {
       return e.response;
     }
@@ -165,11 +166,9 @@ export interface IGetTransactionResponseContract {
   id: string;
   name: string;
   note: string;
-  plaidPendingId: string;
-  plaidTransactionId: string;
   tenantId: string;
   transactionState: TransactionState;
-  verifiedDate: string;
+  verified: boolean;
 }
 
 export interface IGetUserResponseContract {
@@ -199,9 +198,16 @@ export interface ISignInResponseContractV1 {
 }
 
 export interface IPutTransactionRequestContractV1 {
-  id: string;
+  accountId: string;
+  amount: number;
   date: string;
-  value: number;
+  expenseCategory: ExpenseCategory;
+  id: string;
+  name: string;
+  note: string;
+  tenantId: string;
+  transactionState: TransactionState;
+  verified: boolean;
 }
 
 export enum GoldStoneAccountState {

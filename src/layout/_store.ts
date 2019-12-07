@@ -1,5 +1,6 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import _ from 'lodash';
+import LayoutConstants from './_constants';
 import { IMenu, Menus, Page, Theme } from './_data';
 import store from '@/shared/_store';
 import router from '@/router';
@@ -24,7 +25,6 @@ const initialState: ILayoutState = {
   showSetting: false,
   showSignInButton: false,
   snackBar: {
-    duration: undefined,
     isSuccess: undefined,
     message: '',
     show: false,
@@ -33,7 +33,7 @@ const initialState: ILayoutState = {
 };
 
 export interface ISnackBar {
-  duration: number | undefined;
+  // true = success, false = failure, undefined = dismiss
   isSuccess?: boolean;
   message: string;
   show: boolean;
@@ -120,7 +120,15 @@ class LayoutStore extends VuexModule {
   }
 
   @Action
-  public setSnackBar(payload: ISnackBar): void {
+  public setSnackBar(param: ISnackBar): void {
+    const duration = (param.isSuccess === undefined)
+      ? undefined : (param.isSuccess === true)
+        ? LayoutConstants.SnackBar.SuccessDuration : Infinity;
+    const payload = {
+      ...param,
+      duration,
+    };
+
     this.context.commit('SetSnackBar', payload);
   }
 
@@ -164,7 +172,6 @@ class LayoutStore extends VuexModule {
   @Mutation
   private DismissSnackBar(): void {
     this.State.snackBar = {
-      duration: undefined,
       isSuccess: undefined,
       message: '',
       show: false,
@@ -182,7 +189,12 @@ class LayoutStore extends VuexModule {
   }
 
   @Mutation
-  private SetSnackBar(payload: ISnackBar): void {
+  private SetSnackBar(payload: {
+    duration: number | undefined;
+    isSuccess: boolean | undefined;
+    message: string;
+    show: boolean;
+  }): void {
     this.State.snackBar = _.cloneDeep(payload);
   }
 

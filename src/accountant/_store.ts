@@ -1,7 +1,7 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { AxiosResponse } from 'Axios';
 import _ from 'lodash';
-import { ExpenseCategory, ExpenseType, TransactionState } from './_data';
+import { ExpenseCategory, ExpenseType, TransactionState, TransactionType } from './_data';
 import manager from './_manager';
 import goldStoneClient from '@/clients/goldStoneClient';
 import {
@@ -10,6 +10,7 @@ import {
   IGetUserResponseContract,
   IPutTransactionRequestContractV1,
 } from '@/clients/goldStoneClient';
+import layout from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import sharedManager from '@/shared/_manager';
 import store from '@/shared/_store';
@@ -31,7 +32,7 @@ interface IAccountantState {
   floatingTransactions: { [ id: string ]: ITransaction };
   transactions: { [ id: string ]: ITransaction };
   selectedTransactionIds: string[];
-  showPendingEdit: boolean;
+  showEditPending: boolean;
 }
 
 export interface ITransaction {
@@ -42,11 +43,9 @@ export interface ITransaction {
   id: string;
   name: string;
   note: string;
-  plaidPendingId: string;
-  plaidTransactionId: string;
   state: TransactionState;
   tenantId: string;
-  verifiedDate: string;
+  verified: boolean;
 }
 
 // initial state
@@ -55,7 +54,7 @@ const initialState: IAccountantState = {
   floatingTransactions: {},
   transactions: {},
   selectedTransactionIds: [],
-  showPendingEdit: false,
+  showEditPending: false,
 };
 
 @Module({
@@ -76,29 +75,8 @@ class AccountantStore extends VuexModule {
     return this.State.transactions;
   }
 
-  get pendings(): ITransaction[] {
-    return this.transactions.filter((t) => t.state === TransactionState.Pending);
-  }
-
-  get selectedFloatingPendings(): ITransaction[] {
-    return this.selectedFloatingTransactions
-      .filter((t) => t.state === TransactionState.Pending);
-  }
-
-  get selectedFloatingTransactions(): ITransaction[] {
-    const selectedTransactions: ITransaction[] = [];
-
-    this.State.selectedTransactionIds.forEach((id) => {
-      if (this.State.floatingTransactions[id]) {
-        selectedTransactions.push(this.State.floatingTransactions[id]);
-      }
-    });
-
-    return selectedTransactions.sort((a, b) => b.date.localeCompare(a.date));
-  }
-
-  get showPendingEdit(): boolean {
-    return this.State.showPendingEdit;
+  get showEditPending(): boolean {
+    return this.State.showEditPending;
   }
 
   /* getters with parameters */
@@ -113,13 +91,52 @@ class AccountantStore extends VuexModule {
         : '';
   }
 
+  get getFloatingTransaction() {
+    return (id: string): ITransaction => this.State.floatingTransactions[id];
+  }
+
   get getSelectedTransaction() {
     return (id: string): ITransaction =>
-      this.selectedFloatingTransactions.filter((t) => t.id === id)[0];
+      this.context.getters.getSelectedTransactions().filter((t) => t.id === id)[0];
+  }
+
+  get getSelectedTransactions() {
+    return (type?: TransactionType): ITransaction[] => {
+      const selectedTransactions: ITransaction[] = [];
+
+      this.State.selectedTransactionIds.forEach((id) => {
+        const transaction: ITransaction = this.State.floatingTransactions[id];
+
+        if (transaction) {
+          if (type) {
+            if (type === TransactionType.Pending &&
+                transaction.state === TransactionState.Pending) {
+              // get specified state
+              selectedTransactions.push(this.State.floatingTransactions[id]);
+            } else if (type !== TransactionType.Pending &&
+                transaction.state !== TransactionState.Pending) {
+              selectedTransactions.push(this.State.floatingTransactions[id]);
+            }
+          } else {
+            // get all
+            selectedTransactions.push(this.State.floatingTransactions[id]);
+          }
+        }
+      });
+
+      return selectedTransactions.sort((a, b) => b.date.localeCompare(a.date));
+    };
   }
 
   get getTransaction() {
     return (id: string): ITransaction => this.State.transactions[id];
+  }
+
+  get getTransactions() {
+    return (type: TransactionType): ITransaction[] =>
+      (type === TransactionType.Pending)
+        ? this.transactions.filter((t) => t.state === TransactionState.Pending)
+        : this.transactions.filter((t) => t.state !== TransactionState.Pending);
   }
 
   get getUserProfileImage() {
@@ -190,22 +207,25 @@ class AccountantStore extends VuexModule {
   }
 
   @Action
-  public resetFloatingTransaction(id: string): void {
-    this.context.commit('ResetFloatingTransaction', id);
+  public resetSelectedTransaction(id: string): void {
+    this.context.commit('ResetSelectedTransaction', id);
   }
 
   @Action
-  public resetFloatingTransactions(): void {
-    this.context.commit('ResetFloatingTransactions', this.State.selectedTransactionIds);
+  public resetSelectedTransactions(type: TransactionType): void {
+    const selectedTransactionIds: string[] =
+      this.context.getters
+        .getSelectedTransactions(type)
+        .map((t) => t.id);
+
+    this.context.commit('ResetSelectedTransactions', selectedTransactionIds);
   }
 
   @Action
-  public async saveFloatingTransactionAsync(id: string): Promise<void> {
-    const request: IPutTransactionRequestContractV1 = {
-      id,
-      date: '',
-      value: 0,
-    };
+  public async saveSelectedTransactionAsync(id: string): Promise<void> {
+    const selectedTransaction: ITransaction =
+      this.context.getters.getSelectedTransaction(id);
+    const request = manager.converToPutTransactionRequest(selectedTransaction);
 
     const response: AxiosResponse<void | any>
       = await loaderAction.sendAsync(() => goldStoneClient.putTransactionAsync(request));
@@ -214,23 +234,48 @@ class AccountantStore extends VuexModule {
     if (result.success === false) {
       return;
     }
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: 'Saved 1 transaction',
+      show: true,
+    });
+
+    this.context.commit('SaveTransaction', id);
   }
 
   @Action
-  public async saveFloatingTransactionsAsync(): Promise<void> {
-    // const request: IPutTransactionRequestContractV1 = {
-    //   id,
-    //   date: '',
-    //   value: 0,
-    // };
+  public async saveSelectedTransactionsAsync(type: TransactionType): Promise<void> {
+    const selectedTransactions: ITransaction[] =
+      this.context.getters.getSelectedTransactions(type);
+    const request: IPutTransactionRequestContractV1[] =
+      selectedTransactions
+      // only save the transactions that are modified
+        .filter((t) => manager.transactionHasChanged(t.id) === true)
+        .map((t) => manager.converToPutTransactionRequest(t));
 
-    // const response: AxiosResponse<void | any>
-    //   = await loaderAction.sendAsync(() => goldStoneClient.putTransactionAsync(request));
+    const response: AxiosResponse<void | any>
+      = await loaderAction.sendAsync(() => goldStoneClient.putTransactionsAsync(request));
 
-    // const result = sharedManager.handleApiResponse(response);
-    // if (result.success === false) {
-    //   return;
-    // }
+    const result = sharedManager.handleApiResponse(response);
+    if (result.success === false) {
+      return;
+    }
+
+    const plural = (request.length > 1) ? 's' : '';
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: `Saved ${request.length} transaction${plural}`,
+      show: true,
+    });
+
+    const ids: string[] = selectedTransactions.map((t) => t.id);
+
+    this.context.commit('SaveTransactions', {
+      ids,
+      type,
+    });
   }
 
   @Action
@@ -239,8 +284,8 @@ class AccountantStore extends VuexModule {
   }
 
   @Action
-  public togglePendingEdit(show: boolean): void {
-    if (this.State.showPendingEdit === show) {
+  public toggleEditPending(show: boolean): void {
+    if (this.State.showEditPending === show) {
       return;
     }
     if (show === true) {
@@ -249,7 +294,7 @@ class AccountantStore extends VuexModule {
       this.context.commit('SetFloatingTransactions', this.State.selectedTransactionIds);
     }
 
-    this.context.commit('TogglePendingEdit', show);
+    this.context.commit('ToggleEditPending', show);
   }
 
   @Mutation
@@ -273,15 +318,45 @@ class AccountantStore extends VuexModule {
   }
 
   @Mutation
-  private ResetFloatingTransaction(id: string): void {
+  private ResetSelectedTransaction(id: string): void {
     this.State.floatingTransactions[id] = _.cloneDeep(this.State.transactions[id]);
   }
 
   @Mutation
-  private ResetFloatingTransactions(ids: string[]): void {
+  private ResetSelectedTransactions(ids: string[]): void {
     ids.forEach((id) => {
       this.State.floatingTransactions[id] = _.cloneDeep(this.State.transactions[id]);
     });
+  }
+
+  @Mutation
+  private SaveTransaction(id: string): void {
+    this.State.transactions[id] = _.cloneDeep(this.State.floatingTransactions[id]);
+  }
+
+  @Mutation
+  private SaveTransactions(params: {
+    ids: string[],
+    type: TransactionType,
+  }): void {
+    const { ids, type } = params;
+
+    ids.forEach((id) => {
+      this.State.transactions[id] = _.cloneDeep(this.State.floatingTransactions[id]);
+    });
+
+    this.State.selectedTransactionIds.forEach((id) => {
+      // deselect rows
+      const row = document.getElementById(id);
+      // @ts-ignore
+      row.click();
+    });
+
+    if (type === TransactionType.Pending) {
+      this.State.showEditPending = false;
+    } else {
+      //
+    }
   }
 
   @Mutation
@@ -305,8 +380,8 @@ class AccountantStore extends VuexModule {
   }
 
   @Mutation
-  private TogglePendingEdit(showPendingEdit: boolean): void {
-    this.State.showPendingEdit = showPendingEdit;
+  private ToggleEditPending(show: boolean): void {
+    this.State.showEditPending = show;
   }
 }
 

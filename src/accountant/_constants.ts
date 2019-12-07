@@ -11,14 +11,14 @@ interface ILayoutColor {
   Test: string;
 }
 
-interface IPending {
+interface ITransaction {
   Colors: {
-    Light: IPendingColor;
-    Dark: IPendingColor;
+    Light: ITransactionColor;
+    Dark: ITransactionColor;
   };
 }
 
-interface IPendingColor {
+interface ITransactionColor {
   Font: string;
 }
 
@@ -34,13 +34,24 @@ export default class AccountantConstants {
     },
   };
 
-  public static Pending: IPending = {
+  public static Pending: ITransaction = {
     Colors: {
       Light: {
         Font: '',
       },
       Dark: {
         Font: '#ffcf44',
+      },
+    },
+  };
+
+  public static Transaction: ITransaction = {
+    Colors: {
+      Light: {
+        Font: '',
+      },
+      Dark: {
+        Font: 'lightBlue',
       },
     },
   };

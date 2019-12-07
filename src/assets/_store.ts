@@ -432,7 +432,6 @@ class AssetsStore extends VuexModule {
     }
 
     layout.setSnackBar({
-      duration: 4000,
       isSuccess: true,
       message: 'Save successful!',
       show: true,

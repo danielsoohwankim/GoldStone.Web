@@ -1,9 +1,12 @@
 <template>
   <div 
-    class="reset"
-    @click="click"
+    :class="(canReset === true) ? 'reset' : ''"
+    @click="reset"
   >
-    <md-icon class="md-primary">
+    <md-icon 
+      :class="(canReset === true) ? 'md-primary': ''"
+      :style="(canReset === true) ? '' : 'color: gray;'"
+    >
       refresh
       <md-tooltip
         md-direction="right"
@@ -16,7 +19,8 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
-import accountant from './_store';
+import manager from './_manager';
+import accountant, { ITransaction } from './_store';
 import SharedConstants from '@/shared/_constants';
 
 @Component
@@ -28,10 +32,17 @@ export default class EditReset extends Vue {
   // styles
 
   // computed
+  get canReset(): boolean {
+    return manager.transactionHasChanged(this.transactionId) === true;
+  }
 
   // methods
-  public click(): void {
-    accountant.resetFloatingTransaction(this.transactionId);
+  public reset(): void {
+    if (this.canReset === false) {
+      return;
+    }
+
+    accountant.resetSelectedTransaction(this.transactionId);
   }
 }
 </script>

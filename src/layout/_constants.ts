@@ -31,6 +31,10 @@ interface IHeaderColor {
   Theme: string;
 }
 
+interface ISnackBar {
+  SuccessDuration: number;
+}
+
 export default class LayoutConstants {
   public static Layout: ILayout = {
     Colors: {
@@ -70,5 +74,9 @@ export default class LayoutConstants {
         Theme: '#98c6ff',
       },
     },
+  };
+
+  public static SnackBar: ISnackBar = {
+    SuccessDuration: 4000,
   };
 }

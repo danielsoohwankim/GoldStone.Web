@@ -14,7 +14,7 @@
           <h1 
             class="md-title"
             :style="titleStyle"
-          >Pending
+          >{{ `${type}s` }}
           </h1>
         </div>
 
@@ -36,7 +36,7 @@
         <div class="md-toolbar-section-end">
           <md-button
             class="md-icon-button"
-            @click.prevent="showPendingEdit()"
+            @click.prevent="showEdit()"
           >
             <md-icon>edit</md-icon>
           </md-button>
@@ -52,6 +52,7 @@
       </md-table-empty-state>
 
       <md-table-row
+        :id="item.id"
         slot="md-table-row" 
         slot-scope="{ item }"
         class="md-primary"
@@ -74,21 +75,21 @@
           md-label="Symbol"
           md-sort-by="symbol"
           class="symbol"
-          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
+          :style="accountant.isSelected(item.id) ? {} : rowStyle"
         >{{ accountant.getAccountSymbol(item.accountId) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Date" 
           md-sort-by="date"
           class="date"
-          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
+          :style="accountant.isSelected(item.id) ? {} : rowStyle"
         >{{ item.date }}
         </md-table-cell>
         <md-table-cell 
           md-label="Name" 
           md-sort-by="name"
           class="name"
-          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
+          :style="accountant.isSelected(item.id) ? {} : rowStyle"
         >{{ item.name }}
         </md-table-cell>
         <md-table-cell 
@@ -102,18 +103,31 @@
           md-label="Category" 
           md-sort-by="category"
           class="category"
-          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
-        >{{ item.expenseCategory }}</md-table-cell>
+          :style="accountant.isSelected(item.id) ? {} : rowStyle"
+        >{{ getCategory(item.id) }}</md-table-cell>
         <md-table-cell 
           md-label="Note" 
           md-sort-by="note"
           class="note"
-          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
-        >{{ item.note }}
+          :style="accountant.isSelected(item.id) ? {} : rowStyle"
+        >{{ getNote(item.id) }}
         </md-table-cell>
         <md-table-cell 
           class="verified"
+          :md-label="(showVerified === true) ? 'verified' : ''"
         >
+          <div
+            v-if="showVerified === true"
+          >
+            <md-icon 
+            >
+              done <!-- or clear -->
+              <md-tooltip
+                md-direction="right"
+              >Verify
+              </md-tooltip>
+            </md-icon>
+          </div>
         </md-table-cell>
       </md-table-row>
     </md-table>
@@ -121,39 +135,36 @@
     <md-button class="md-primary" @click="toLegacy">
       To Legacy
     </md-button>
-    <PendingEdit />
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import AccountConstants from './_constants';
+import { ExpenseCategory, TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
-import PendingEdit from './PendingEdit.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
 import tenant from '@/tenant/_store';
 
-@Component({
-  components: {
-    PendingEdit,
-  },
-})
-export default class Pending extends Vue {
+@Component
+export default class TransactionTable extends Vue {
+  @Prop() public readonly type!: TransactionType;
   // data
   public readonly accountant = accountant;
   public readonly manager = manager;
   public readonly sharedManager = sharedManager;
+  public readonly showVerified = this.type === TransactionType.Transaction;
   public search: string | null = null;
-  public searched: ITransaction[] = accountant.pendings;
+  public searched: ITransaction[] = accountant.getTransactions(this.type);
   public transactionMap = accountant.transactionMap;
 
   // style
-  get pendingStyle(): object {
+  get rowStyle(): object {
     return {
-      color: AccountConstants.Pending.Colors[layout.theme].Font,
+      color: AccountConstants[this.type].Colors[layout.theme].Font,
     };
   }
 
@@ -173,6 +184,14 @@ export default class Pending extends Vue {
     return `${count} Transaction${plural} selected`;
   }
 
+  public getCategory(id: string): ExpenseCategory {
+    return accountant.getTransaction(id).expenseCategory;
+  }
+
+  public getNote(id: string): string {
+    return accountant.getTransaction(id).note;
+  }
+
   public onSelect(transactions: ITransaction[]): void {
     const selectedIds: string[] = transactions.map((t) => t.id);
 
@@ -180,7 +199,8 @@ export default class Pending extends Vue {
   }
 
   public searchOnTable(): void {
-    this.searched = this.searchByName(accountant.pendings, this.search);
+    const transactions: ITransaction[] = accountant.getTransactions(this.type);
+    this.searched = this.searchByName(transactions, this.search);
   }
 
   public searchByName(transactions: ITransaction[], term: string | null): ITransaction[] {
@@ -189,11 +209,15 @@ export default class Pending extends Vue {
       : transactions;
   }
 
-  public showPendingEdit(): void {
-    accountant.togglePendingEdit(true);
+  public showEdit(): void {
+    if (this.type === TransactionType.Pending) {
+      accountant.toggleEditPending(true);
+    } else {
+      //
+    }
   }
 
-  public toLower(text: string) {
+  public toLower(text: string): string {
     return text.toString().toLowerCase();
   }
 

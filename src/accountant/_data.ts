@@ -23,3 +23,8 @@ export enum TransactionState {
   Merged = 'Merged',
   Verified = 'Verified',
 }
+
+export enum TransactionType {
+  Pending = 'Pending',
+  Transaction = 'Transaction',
+}

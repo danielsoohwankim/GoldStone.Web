@@ -39,8 +39,8 @@ export default class SharedConstants {
         Text: 'black',
       },
       Dark: {
-        Failure: colors.red[500],
-        Success: colors.green[500],
+        Failure: colors.red.a200,
+        Success: colors.green.a200,
         Text: 'white',
       },
     },

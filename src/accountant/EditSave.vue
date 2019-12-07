@@ -1,10 +1,13 @@
 <template>
   <div
-    class="save"
-   :style="divStyle"
-   @click="saveAsync"
+    :class="(canSave === true) ? 'save' : ''"
+    :style="divStyle"
+    @click="saveAsync"
   >
-    <md-icon class="md-accent">
+    <md-icon 
+      :class="(canSave === true) ? 'md-accent' : ''"
+      :style="(canSave === true) ? '' : 'color: gray;'"
+    >
       save
       <md-tooltip
         md-direction="right"
@@ -17,7 +20,9 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
-import accountant from './_store';
+import _ from 'lodash';
+import manager from './_manager';
+import accountant, { ITransaction } from './_store';
 import SharedConstants from '@/shared/_constants';
 
 @Component
@@ -30,16 +35,23 @@ export default class EditSave extends Vue {
   // styles
 
   // computed
+  get canSave(): boolean {
+    return manager.transactionHasChanged(this.transactionId) === true;
+  }
 
   // methods
   public async saveAsync(): Promise<void> {
-    await accountant.saveFloatingTransactionAsync(this.transactionId);
+    if (this.canSave === false) {
+      return;
+    }
+
+    await accountant.saveSelectedTransactionAsync(this.transactionId);
   }
 }
 </script>
 
 <style lang="scss" scoped>
-  .save {
-    cursor: pointer;
-  }
+.save {
+  cursor: pointer;
+}
 </style>
