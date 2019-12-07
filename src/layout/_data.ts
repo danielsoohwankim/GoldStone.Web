@@ -5,12 +5,6 @@ export interface IMenu {
   title: string;
 }
 
-export interface ISnackBarView {
-  duration: number | undefined;
-  message: string;
-  show: boolean;
-}
-
 export class Menus {
   // empty state for initialization
   public static Empty: IMenu = {

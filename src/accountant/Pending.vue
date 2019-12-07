@@ -6,7 +6,7 @@
       md-fixed-header
       md-sort="date"
       md-sort-order="desc"
-      :style="scrollStyle"
+      :style="manager.getScrollStyle()"
       @md-selected="onSelect"
     >
       <md-table-toolbar>
@@ -21,6 +21,7 @@
         <md-field 
           md-clearable
           class="md-toolbar-section-end"
+          style="max-width: 300px;"
         >
           <md-input
             placeholder="Search by name"
@@ -32,8 +33,13 @@
 
       <md-table-toolbar slot="md-table-alternate-header" slot-scope="{ count }">
         <div class="md-toolbar-section-start">{{ getAlternateLabel(count) }}</div>
-
         <div class="md-toolbar-section-end">
+          <md-button
+            class="md-icon-button"
+            @click.prevent="showPendingEdit()"
+          >
+            <md-icon>edit</md-icon>
+          </md-button>
           <md-button class="md-icon-button">
             <md-icon>delete</md-icon>
           </md-button>
@@ -51,13 +57,15 @@
         class="md-primary"
         md-selectable="multiple"
         md-auto-select
+        style="height: 57px;"
       >
         <md-table-cell 
           md-label="Users"
+          class="user"
         >
           <md-avatar>
             <img
-              :src="getUserProfileImage(item.accountId)"
+              :src="accountant.getUserProfileImage(item.accountId)"
               alt="Avatar"
             >
           </md-avatar>
@@ -65,76 +73,81 @@
         <md-table-cell 
           md-label="Symbol"
           md-sort-by="symbol"
-          :style="isSelected(item.id) ? {} : pendingStyle"
-        >Symbol
+          class="symbol"
+          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
+        >{{ accountant.getAccountSymbol(item.accountId) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Date" 
           md-sort-by="date"
-          :style="isSelected(item.id) ? {} : pendingStyle"
+          class="date"
+          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
         >{{ item.date }}
         </md-table-cell>
         <md-table-cell 
           md-label="Name" 
           md-sort-by="name"
-          :style="isSelected(item.id) ? {} : pendingStyle"
+          class="name"
+          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
         >{{ item.name }}
         </md-table-cell>
         <md-table-cell 
           md-label="Amount" 
           md-sort-by="amount"
-          :style="isSelected(item.id) ? {} : getAmountStyle(item.amount)"
-        >{{ getFormattedAmount(item.amount) }}
+          class="amount"
+          :style="accountant.isSelected(item.id) ? {} : manager.getAmountStyle(item.amount)"
+        >{{ sharedManager.getFormattedAmount(item.amount) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Category" 
           md-sort-by="category"
-          :style="isSelected(item.id) ? {} : pendingStyle"
-        >{{ item.expenseCategory }}
-        </md-table-cell>
+          class="category"
+          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
+        >{{ item.expenseCategory }}</md-table-cell>
         <md-table-cell 
           md-label="Note" 
           md-sort-by="note"
-          :style="isSelected(item.id) ? {} : pendingStyle"
-        >
-          <div style="margin-top: -30px; margin-bottom: -35px;">
-            <md-field>
-              <md-textarea
-                v-model="transactionMap[item.id].note"
-                md-autogrow
-              ></md-textarea>
-            </md-field>
-          </div>
+          class="note"
+          :style="accountant.isSelected(item.id) ? {} : pendingStyle"
+        >{{ item.note }}
         </md-table-cell>
         <md-table-cell 
-          md-label="Save" 
+          class="verified"
         >
-          <md-icon :style="saveStyle">
-            <!-- <span style="color: white;">{{ AssetView.Icon }}</span> -->
-            save
-          </md-icon>
         </md-table-cell>
       </md-table-row>
     </md-table>
+    <!-- todo: remove -->
+    <md-button class="md-primary" @click="toLegacy">
+      To Legacy
+    </md-button>
+    <PendingEdit />
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import AccountConstants from './_constants';
+import manager from './_manager';
 import accountant, { ITransaction } from './_store';
+import PendingEdit from './PendingEdit.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
-import { device } from '@/shared/_tools';
 import tenant from '@/tenant/_store';
 
-@Component
+@Component({
+  components: {
+    PendingEdit,
+  },
+})
 export default class Pending extends Vue {
   // data
+  public readonly accountant = accountant;
+  public readonly manager = manager;
+  public readonly sharedManager = sharedManager;
   public search: string | null = null;
-  public searched: ITransaction[] = accountant.pendingTransactions;
-  public selectedIds: string[] = [];
+  public searched: ITransaction[] = accountant.pendings;
   public transactionMap = accountant.transactionMap;
 
   // style
@@ -142,18 +155,6 @@ export default class Pending extends Vue {
     return {
       color: AccountConstants.Pending.Colors[layout.theme].Font,
     };
-  }
-
-  get saveStyle(): object {
-    return {
-      color: LayoutConstants.Layout.Colors[layout.theme].Accent,
-    };
-  }
-
-  get scrollStyle(): object {
-    return (device.isMobile() === true)
-      ? { overflowX: 'scroll' }
-      : {};
   }
 
   get titleStyle(): object {
@@ -169,40 +170,17 @@ export default class Pending extends Vue {
   public getAlternateLabel(count): string {
     const plural = (count > 1) ? 's' : '';
 
-    return `${count} transaction${plural} selected`;
-  }
-
-  public getAmountStyle(amount: number): object {
-    return {
-      color: sharedManager.getAmountColor(amount, layout.theme),
-    };
-  }
-
-  public getFormattedAmount(amount: number): string {
-    return sharedManager.getFormattedAmount(amount);
-  }
-
-  public getUserProfileImage(accountId: string): string | undefined {
-    const account = accountant.getAccount(accountId);
-    // todo: remove
-    if (!account) {
-      return undefined;
-    }
-    const user = tenant.getUser(account.userId);
-
-    return (user) ? user.profileImageUrl : undefined;
-  }
-
-  public isSelected(id: string): boolean {
-    return this.selectedIds.includes(id);
+    return `${count} Transaction${plural} selected`;
   }
 
   public onSelect(transactions: ITransaction[]): void {
-    this.selectedIds = transactions.map((t) => t.id);
+    const selectedIds: string[] = transactions.map((t) => t.id);
+
+    accountant.selectTransactions(selectedIds);
   }
 
   public searchOnTable(): void {
-    this.searched = this.searchByName(accountant.pendingTransactions, this.search);
+    this.searched = this.searchByName(accountant.pendings, this.search);
   }
 
   public searchByName(transactions: ITransaction[], term: string | null): ITransaction[] {
@@ -211,14 +189,62 @@ export default class Pending extends Vue {
       : transactions;
   }
 
+  public showPendingEdit(): void {
+    accountant.togglePendingEdit(true);
+  }
+
   public toLower(text: string) {
     return text.toString().toLowerCase();
+  }
+
+  // todo: remove
+  public toLegacy(): void {
+    window.open(`https://goldstone.azurewebsites.net/expenses?${tenant.id}`, '_blank');
   }
 }
 </script>
 
 <style lang="scss" scoped>
-  .md-field {
-    max-width: 300px;
-  }
+$fixed-width: 2500px;
+
+.user {
+  width: 3%;
+  max-width: $fixed-width * 0.03;
+}
+
+.symbol {
+  width: 5%;
+  max-width: $fixed-width * 0.05;
+}
+
+.date {
+  width: 7%;
+  max-width: $fixed-width * 0.07;
+}
+
+.name {
+  // todo
+  width: 500px;
+  max-width: $fixed-width * 0.43;
+}
+
+.amount {
+  width: 5%;
+  max-width: $fixed-width * 0.05;
+}
+
+.category {
+  width: 7%;
+  max-width: $fixed-width * 0.07;
+}
+
+.note {
+  width: 25%;
+  max-width:$fixed-width * 0.25;
+}
+
+.verified {
+  width: 5%;
+  max-width: $fixed-width * 0.05;
+}
 </style>

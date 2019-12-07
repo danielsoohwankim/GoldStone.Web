@@ -8,6 +8,7 @@
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import accountant from './_store';
 import Pending from './Pending.vue';
+import Test from './Test.vue';
 
 @Component({
   components: {
@@ -15,6 +16,7 @@ import Pending from './Pending.vue';
   },
 })
 export default class Accountant extends Vue {
+  // data
   public accountant = accountant;
 
   // lifecycle

@@ -36,14 +36,15 @@ class SharedManager {
       tenant.signOut(Menus.Assets.path);
 
       success = false;
-    } else if (response.status !== HttpStatus.OK) {
+    } else if (this.isSuccessfulStatusCode(response.status) === false) {
       // failed to get catalogs
       // tslint:disable-next-line
       console.log(response);
 
       layout.setSnackBar({
         duration: Infinity,
-        message: response.data as string,
+        isSuccess: false,
+        message: `${response.status} ${response.statusText}`,
         show: true,
       });
 
@@ -60,22 +61,26 @@ class SharedManager {
     success: boolean;
     statusCode: number;
   } {
-    if (response.status !== HttpStatus.OK) {
+    if (this.isSuccessfulStatusCode(response.status) === false) {
       // tslint:disable-next-line
       console.log(response);
 
       layout.setSnackBar({
         duration: Infinity,
-        // todo - construct customMessage and errorMessage
+        isSuccess: false,
         message: response.data as string,
         show: true,
       });
     }
 
     return {
-      success: 200 <= response.status && response.status < 300,
+      success: this.isSuccessfulStatusCode(response.status),
       statusCode: response.status,
     };
+  }
+
+  public isSuccessfulStatusCode(statusCode: number): boolean {
+    return (200 <= statusCode && statusCode < 300) || statusCode === HttpStatus.NOT_MODIFIED;
   }
 
   public toCurrencyString(num: number): string {

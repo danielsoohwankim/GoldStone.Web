@@ -39,6 +39,7 @@
 
       <md-app-content :style="contentStyle">
         <router-view />
+        <SnackBar />
       </md-app-content>
     </md-app>
   </div>
@@ -52,11 +53,13 @@ import { IMenu, Theme } from './_data';
 import layout from './_store';
 import LayoutMenu from './LayoutMenu.vue';
 import LayoutSetting from './LayoutSetting.vue';
+import SnackBar from './SnackBar.vue';
 
 @Component({
   components: {
     LayoutMenu,
     LayoutSetting,
+    SnackBar,
   },
 })
 export default class Layout extends Vue {

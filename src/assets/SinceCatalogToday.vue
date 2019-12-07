@@ -116,7 +116,7 @@
           >
             <md-tooltip
               md-direction="bottom"
-              md-delay="400"
+              :md-delay="delay"
             >{{ editCatalogMessage }}
             </md-tooltip>
             <span
@@ -142,6 +142,7 @@ import assets, { AssetType, IAccount, ICatalog } from './_store';
 import SinceCatalogChange from './SinceCatalogChange.vue';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
+import SharedConstants from '@/shared/_constants';
 import { BaseStatus } from '@/shared/_data';
 import sharedManager from '@/shared/_manager';
 import tenant from '@/tenant/_store';
@@ -156,6 +157,7 @@ export default class SinceCatalog extends Vue {
 
   // data
   public readonly BaseStatus = BaseStatus;
+  public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly layout = layout;
   public readonly tenant = tenant;
   public hover: boolean = false;

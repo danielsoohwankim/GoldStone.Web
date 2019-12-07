@@ -254,7 +254,7 @@ class AssetsStore extends VuexModule {
   public async initAsync(): Promise<void> {
     const startDate: Date = Sinces.getDate(this.context.getters.minSince);
     const endDate: Date = Date.Today();
-    const getAccountsPromise = goldStoneClient.getAccountsAsync(true);
+    const getAccountsPromise = goldStoneClient.getAccountsAsync(true, false);
     const getCatalogsPromise = goldStoneClient.getCatalogsAsync(startDate, endDate);
     const getUsersPromise = goldStoneClient.getUsersAsync();
     // @ts-ignore
@@ -433,6 +433,7 @@ class AssetsStore extends VuexModule {
 
     layout.setSnackBar({
       duration: 4000,
+      isSuccess: true,
       message: 'Save successful!',
       show: true,
     });
@@ -544,8 +545,7 @@ class AssetsStore extends VuexModule {
     if (expand === true) {
       this.State.expandedAccounts.push(id);
     } else {
-      this.State.expandedAccounts.splice(
-        this.State.expandedAccounts.indexOf(id), 1);
+      this.State.expandedAccounts.splice(this.State.expandedAccounts.indexOf(id), 1);
     }
   }
 

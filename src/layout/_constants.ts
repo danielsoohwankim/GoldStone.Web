@@ -13,7 +13,9 @@ interface ILayoutColor {
   Font: string;
   Gold: string;
   Primary: string;
+  SnackBar: string;
   Stone: string;
+  Text: string;
 }
 
 interface IHeader {
@@ -38,7 +40,9 @@ export default class LayoutConstants {
         Font: '#000',
         Gold: '#907200',
         Primary: '',
+        SnackBar: colors.grey[300],
         Stone: '#8a898d',
+        Text: 'black',
       },
       Dark: {
         Accent: colors.red.a200,
@@ -46,7 +50,9 @@ export default class LayoutConstants {
         Font: '#fff',
         Gold: '#907200',
         Primary: colors.lightBlue[200],
+        SnackBar: colors.grey[800],
         Stone: '#8a898d',
+        Text: 'white',
       },
     },
   };

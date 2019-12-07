@@ -69,7 +69,6 @@ export default class AssetConstants {
         ChartBackground: 'white',
         Error: colors.red[600],
         ListBackground: '#fff',
-        SnackBar: colors.grey[300],
         Success: colors.grey[600],
         Warning: colors.yellow[700],
         Text: 'black',
@@ -81,7 +80,6 @@ export default class AssetConstants {
         ChartBackground: '#424242',
         Error: colors.red[400],
         ListBackground: '#2a2a2a',
-        SnackBar: colors.grey[800],
         Success: colors.blueGrey[300],
         Warning: colors.yellow[300],
         Text: 'white',
@@ -150,7 +148,6 @@ interface IAssetLayoutColor {
   ChartBackground: string;
   Error: string;
   ListBackground: string;
-  SnackBar: string;
   Success: string;
   Text: string;
   Warning: string;

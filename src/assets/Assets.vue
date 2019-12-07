@@ -15,11 +15,10 @@
       </md-button>
       <md-tooltip
         md-direction="bottom"
-        md-delay="400"
+        :md-delay="delay"
       >{{ editCatalogMessage }}
       </md-tooltip>
     </div>
-    <SnackBar />
   </div>
 </template>
 
@@ -32,9 +31,9 @@ import Asset from './Asset.vue';
 import AssetTotal from './AssetTotal.vue';
 import EditCatalog from './EditCatalog.vue';
 import SinceSelect from './SinceSelect.vue';
-import SnackBar from './SnackBar.vue';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
+import SharedConstants from '@/shared/_constants';
 import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
 
@@ -44,7 +43,6 @@ import tenant from '@/tenant/_store';
     AssetTotal,
     EditCatalog,
     SinceSelect,
-    SnackBar,
   },
 })
 export default class Assets extends Vue {
@@ -53,6 +51,7 @@ export default class Assets extends Vue {
   // data
   public readonly assets = assets;
   public readonly AssetType = AssetType;
+  public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly tenant = tenant;
 
   // styles

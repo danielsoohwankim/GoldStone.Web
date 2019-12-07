@@ -1,6 +1,6 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import _ from 'lodash';
-import { IMenu, ISnackBarView, Menus, Page, Theme } from './_data';
+import { IMenu, Menus, Page, Theme } from './_data';
 import store from '@/shared/_store';
 import router from '@/router';
 
@@ -11,7 +11,7 @@ interface ILayoutState {
   showMenu: boolean;
   showSetting: boolean;
   showSignInButton: boolean;
-  snackBarView: ISnackBarView;
+  snackBar: ISnackBar;
   theme: Theme;
 }
 
@@ -23,13 +23,21 @@ const initialState: ILayoutState = {
   showMenu: false,
   showSetting: false,
   showSignInButton: false,
-  snackBarView: {
+  snackBar: {
     duration: undefined,
+    isSuccess: undefined,
     message: '',
     show: false,
   },
   theme: Theme.Dark,
 };
+
+export interface ISnackBar {
+  duration: number | undefined;
+  isSuccess?: boolean;
+  message: string;
+  show: boolean;
+}
 
 @Module({
   namespaced: true,
@@ -69,8 +77,8 @@ class LayoutStore extends VuexModule {
     return this.State.showSignInButton;
   }
 
-  get snackBarView(): ISnackBarView {
-    return this.State.snackBarView;
+  get snackBar(): ISnackBar {
+    return this.State.snackBar;
   }
 
   get theme(): Theme {
@@ -102,6 +110,7 @@ class LayoutStore extends VuexModule {
     if (this.context.getters.page === page) {
       return;
     }
+
     this.context.commit('SetPage', page);
   }
 
@@ -110,9 +119,9 @@ class LayoutStore extends VuexModule {
     return theme;
   }
 
-  @Action({commit: 'SetSnackBar'})
-  public setSnackBar(payload: ISnackBarView): ISnackBarView {
-    return payload;
+  @Action
+  public setSnackBar(payload: ISnackBar): void {
+    this.context.commit('SetSnackBar', payload);
   }
 
   @Action({commit: 'ToggleLoader'})
@@ -154,8 +163,9 @@ class LayoutStore extends VuexModule {
 
   @Mutation
   private DismissSnackBar(): void {
-    this.State.snackBarView = {
+    this.State.snackBar = {
       duration: undefined,
+      isSuccess: undefined,
       message: '',
       show: false,
     };
@@ -172,8 +182,8 @@ class LayoutStore extends VuexModule {
   }
 
   @Mutation
-  private SetSnackBar(payload: ISnackBarView): void {
-    this.State.snackBarView = payload;
+  private SetSnackBar(payload: ISnackBar): void {
+    this.State.snackBar = _.cloneDeep(payload);
   }
 
   @Mutation

@@ -8,7 +8,9 @@ interface ILayout {
 }
 
 interface ILayoutColor {
-  Test: string;
+  Failure: string;
+  Success: string;
+  Text: string;
 }
 
 interface INumber {
@@ -24,14 +26,22 @@ interface INumberColor {
   Plus: string;
 }
 
+interface ITooltip {
+  Delay: number;
+}
+
 export default class SharedConstants {
   public static Layout: ILayout = {
     Colors: {
       Light: {
-        Test: '',
+        Failure: '',
+        Success: '',
+        Text: 'black',
       },
       Dark: {
-        Test: '',
+        Failure: colors.red[500],
+        Success: colors.green[500],
+        Text: 'white',
       },
     },
   };
@@ -49,5 +59,9 @@ export default class SharedConstants {
         Plus: colors.green.a400,
       },
     },
+  };
+
+  public static Tooltip: ITooltip = {
+    Delay: 400,
   };
 }

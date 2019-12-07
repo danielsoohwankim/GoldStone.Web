@@ -1,13 +1,19 @@
 export enum ExpenseCategory {
-  None = 'None',
   Grocery = 'Grocery',
   Meal = 'Meal',
   Recreation = 'Recreation',
-  Shopping = 'Shoppiong',
+  Shopping = 'Shopping',
   Utility = 'Utility',
   Vehicle = 'Vehicle',
   Others = 'Others',
   Special = 'Special',
+}
+
+export enum ExpenseType {
+  Cash = 'Cash',
+  Checking = 'Checking',
+  Credit = 'Credit',
+  Saving = 'Saving',
 }
 
 export enum TransactionState {

@@ -22,12 +22,23 @@ const api = axios.create({
 });
 
 class GoldStoneClient {
-  public async getAccountsAsync(assetOnly?: boolean): Promise<AxiosResponse<IGetAccountResponseContract[] | any>> {
+  public async getAccountsAsync(
+    isAsset?: boolean,
+    isExpense?: boolean,
+    ): Promise<AxiosResponse<IGetAccountResponseContract[] | any>> {
     this.setJwtToken();
 
-    const path = (assetOnly && assetOnly === true)
-      ? `${accountsPath(tenant.id)}?assetOnly=true`
-      : accountsPath(tenant.id);
+    let path = accountsPath(tenant.id);
+
+    if (isAsset && isAsset === true) {
+      path = `${path}?isAsset=true`;
+
+      if (isExpense && isExpense === true) {
+        path = `${path}&isExpense=true`;
+      }
+    } else if (isExpense && isExpense === true) {
+      path = `${path}?isExpense=true`;
+    }
 
     try {
       return await api.get(path);
@@ -84,6 +95,29 @@ class GoldStoneClient {
     }
   }
 
+  public async putTransactionAsync(request: IPutTransactionRequestContractV1)
+  : Promise<AxiosResponse<void | any>> {
+    const { id } = request;
+    this.setJwtToken();
+
+    try {
+      return await api.put(`${transactionsPath(tenant.id)}/${id}`, request);
+    } catch (e) {
+      return e.response;
+    }
+  }
+
+  public async putTransactionsAsync(request: IPutTransactionRequestContractV1[])
+  : Promise<AxiosResponse<void | any>> {
+    this.setJwtToken();
+
+    try {
+      return await api.put(`${transactionsPath(tenant.id)}`, request);
+    } catch (e) {
+      return e.response;
+    }
+  }
+
   public async signIn(token: string): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
     this.setJwtToken(token);
 
@@ -105,6 +139,7 @@ export default new GoldStoneClient();
 
 export interface IGetAccountResponseContract {
   assetType?: GoldStoneAssetType;
+  expenseType?: GoldStoneExpenseType;
   id: string;
   isTracked: boolean;
   name: string;
@@ -163,6 +198,12 @@ export interface ISignInResponseContractV1 {
   userRole: UserRole;
 }
 
+export interface IPutTransactionRequestContractV1 {
+  id: string;
+  date: string;
+  value: number;
+}
+
 export enum GoldStoneAccountState {
   None = 'None',
   Active = 'Active',
@@ -173,4 +214,11 @@ export enum GoldStoneAssetType {
   Cash = 'Cash',
   Investment = 'Investment',
   Retirement = 'Retirement',
+}
+
+export enum GoldStoneExpenseType {
+  Cash = 'Cash',
+  Checking = 'Checking',
+  Credit = 'Credit',
+  Saving = 'Saving',
 }
