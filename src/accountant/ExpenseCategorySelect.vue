@@ -4,7 +4,7 @@
       <div class="md-layout-item" style="width: 150px; margin-top: -30px; margin-bottom: -35px;">
         <md-field>
           <md-select
-            v-model="accountant.getSelectedTransaction(transactionId).expenseCategory"
+            v-model="accountant.getSelectedFloatingTransaction(transactionId).expenseCategory"
             id="category"
             name="category"
           >

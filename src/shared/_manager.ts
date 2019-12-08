@@ -2,7 +2,7 @@ import { AxiosResponse } from 'axios';
 import HttpStatus from 'http-status-codes';
 import _ from 'lodash';
 import moment from 'moment';
-import { Menus, Theme } from '@/layout/_data';
+import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { goldStoneException } from '@/shared/GoldStoneException';
 import SharedConstants from '@/shared/_constants';
@@ -24,7 +24,15 @@ class SharedManager {
     return `${sign}$${formattedAmount}`;
   }
 
-  public handleApiResponse(response: AxiosResponse<any>): {
+  public getUtcNowDateTime(): Date {
+    return moment.utc().toDate();
+  }
+
+  public getUtcNowDateTimeStr(): string {
+    return moment.utc().toDate().toJSON();
+  }
+
+  public handleApiResponse(response: AxiosResponse<any>, path?: string): {
     success: boolean;
     statusCode: number;
   } {
@@ -34,7 +42,7 @@ class SharedManager {
       // tslint:disable-next-line
       console.log(response);
 
-      tenant.signOut(Menus.Assets.path);
+      tenant.signOut(path);
 
       success = false;
     } else if (this.isSuccessfulStatusCode(response.status) === false) {
@@ -57,12 +65,38 @@ class SharedManager {
     };
   }
 
-  public getUtcNowDateTime(): Date {
-    return moment.utc().toDate();
-  }
+  public handleDeleteApiResponse(response: AxiosResponse<any>, path?: string): {
+    success: boolean;
+    statusCode: number;
+  } {
+    let success: boolean = true;
 
-  public getUtcNowDateTimeStr(): string {
-    return moment.utc().toDate().toJSON();
+    if (response.status === HttpStatus.UNAUTHORIZED) {
+      // tslint:disable-next-line
+      console.log(response);
+
+      tenant.signOut(path);
+
+      success = false;
+    } else if (this.isSuccessfulStatusCode(response.status) === false
+              && response.status !== HttpStatus.NOT_FOUND) {
+      // failed to get catalogs
+      // tslint:disable-next-line
+      console.log(response);
+
+      layout.setSnackBar({
+        isSuccess: false,
+        message: `${response.status}: ${response.data as string}`,
+        show: true,
+      });
+
+      success = false;
+    }
+
+    return {
+      success,
+      statusCode: response.status,
+    };
   }
 
   public handleInitApiResponse(response: AxiosResponse<any>): {

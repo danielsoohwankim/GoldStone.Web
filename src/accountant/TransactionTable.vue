@@ -36,12 +36,36 @@
         <div class="md-toolbar-section-end">
           <md-button
             class="md-icon-button"
+            @click.prevent="unselectAll()"
+          >
+            <md-icon>
+              tab_unselected
+              <md-tooltip md-direction="bottom" :md-delay="delay">
+                Unselect All
+              </md-tooltip>
+            </md-icon>
+          </md-button>
+          <md-button
+            class="md-icon-button"
             @click.prevent="showEdit()"
           >
-            <md-icon>edit</md-icon>
+            <md-icon>
+              edit
+              <md-tooltip md-direction="bottom" :md-delay="delay">
+                Edit
+              </md-tooltip>
+            </md-icon>
           </md-button>
-          <md-button class="md-icon-button">
-            <md-icon>delete</md-icon>
+          <md-button
+            class="md-icon-button"
+            @click.prevent="showDelete()"
+          >
+            <md-icon>
+              delete
+              <md-tooltip md-direction="bottom" :md-delay="delay">
+                Delete
+              </md-tooltip>
+            </md-icon>
           </md-button>
         </div>
       </md-table-toolbar>
@@ -75,41 +99,41 @@
           md-label="Symbol"
           md-sort-by="symbol"
           class="symbol"
-          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+          :style="getRowStyle(item.id)"
         >{{ accountant.getAccountSymbol(item.accountId) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Date" 
           md-sort-by="date"
           class="date"
-          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+          :style="getRowStyle(item.id)"
         >{{ getDate(item.id) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Name" 
           md-sort-by="name"
           class="name"
-          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+          :style="getRowStyle(item.id)"
         >{{ getName(item.id) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Amount" 
           md-sort-by="amount"
           class="amount"
-          :style="accountant.isSelected(item.id) ? {} : manager.getAmountStyle(item.amount)"
+          :style="getAmountStyle(item)"
         >{{ getAmount(item.id) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Category" 
           md-sort-by="category"
           class="category"
-          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+          :style="getRowStyle(item.id)"
         >{{ getCategory(item.id) }}</md-table-cell>
         <md-table-cell 
           md-label="Note" 
           md-sort-by="note"
           class="note"
-          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+          :style="getRowStyle(item.id)"
         >{{ getNote(item.id) }}
         </md-table-cell>
         <md-table-cell 
@@ -136,6 +160,7 @@ import accountant, { ITransaction } from './_store';
 import Verify from './Verify.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
+import SharedConstants from '@/shared/_constants';
 import sharedManager from '@/shared/_manager';
 
 @Component({
@@ -147,6 +172,7 @@ export default class TransactionTable extends Vue {
   @Prop() public readonly type!: TransactionType;
   // data
   public readonly accountant = accountant;
+  public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly manager = manager;
   public readonly sharedManager = sharedManager;
   public readonly showVerified = this.type === TransactionType.Transaction;
@@ -168,6 +194,12 @@ export default class TransactionTable extends Vue {
   public getAmount(id: string): string {
     const transaction: ITransaction = accountant.getTransaction(id);
     return sharedManager.getFormattedAmount(transaction.amount);
+  }
+
+  public getAmountStyle(transaction: ITransaction): object {
+    return accountant.isSelected(transaction.id) === true
+      ? this.getSelectedStyle()
+      : manager.getAmountStyle(transaction.amount);
   }
 
   public getAlternateLabel(count): string {
@@ -197,6 +229,10 @@ export default class TransactionTable extends Vue {
   }
 
   public getRowStyle(id: string): object {
+    if (accountant.isSelected(id) === true) {
+      return this.getSelectedStyle();
+    }
+
     const transaction: ITransaction = accountant.getTransaction(id);
     const state: TransactionState = accountant.getTransactionState(id);
     if (state === TransactionState.Verified) {
@@ -208,6 +244,12 @@ export default class TransactionTable extends Vue {
     };
   }
 
+  public getSelectedStyle(): object {
+    return {
+      fontWeight: 'bold',
+    };
+  }
+
   public getVerifyStyle(id: string): object {
     if (accountant.isSelected(id) === false) {
       return this.getRowStyle(id);
@@ -215,6 +257,7 @@ export default class TransactionTable extends Vue {
 
     return {
       color: AccountConstants.Layout.Colors[layout.theme].Selected,
+      fontWeight: 'bold',
     };
   }
 
@@ -245,8 +288,19 @@ export default class TransactionTable extends Vue {
     });
   }
 
+  public showDelete(): void {
+    accountant.toggleDelete({
+      show: true,
+      type: this.type,
+    });
+  }
+
   public toLower(text: string): string {
     return text.toString().toLowerCase();
+  }
+
+  public unselectAll(): void {
+    accountant.unselectAll(this.type);
   }
 }
 </script>
@@ -265,14 +319,14 @@ $fixed-width: 2500px;
 }
 
 .date {
-  width: 7%;
-  max-width: $fixed-width * 0.07;
+  width: 8%;
+  max-width: $fixed-width * 0.08;
 }
 
 .name {
   // todo
   width: 500px;
-  max-width: $fixed-width * 0.43;
+  max-width: $fixed-width * 0.42;
 }
 
 .amount {

@@ -1,13 +1,13 @@
 <template>
-  <div v-if="accountant.showEditPending">
+  <div v-if="accountant.showDeleteTransactions">
     <md-dialog 
-      :md-active="accountant.showEditPending"
+      :md-active="accountant.showDeleteTransactions"
       style="width: 90%;"
       :style="manager.getScrollStyle()">
-      <md-dialog-title :style="titleStyle">Edit Pending Transactions</md-dialog-title>
+      <md-dialog-title :style="titleStyle">{{ title }}</md-dialog-title>
 
       <md-table
-        v-model="selectedPendings"
+        v-model="selectedTransactions"
         md-fixed-header
       >
         <md-table-row
@@ -56,40 +56,29 @@
             md-label="Category" 
             md-sort-by="category"
             class="edit-category"
-          >
-            <ExpenseCategorySelect :transactionId="item.id" />
+          >{{ item.expenseCategory }}
           </md-table-cell>
           <md-table-cell 
             md-label="Note" 
             md-sort-by="note"
             class="edit-note"
-          >
-            <EditNote :transactionId="item.id" />
+          >{{ item.note }}
           </md-table-cell>
           <md-table-cell 
-            md-label="Actions" 
+            md-label="Delete" 
             class="edit-actions"
           >
-            <EditReset :transactionId="item.id" divStyle="float: left;" />
-            <div style="width: 4px; float: left;">&nbsp;</div>
-            <EditSave :transactionId="item.id" divStyle="" />
+            <DeleteIcon :transactionId="item.id" />
           </md-table-cell>
         </md-table-row>
       </md-table>
 
       <md-dialog-actions>
-        <md-button @click="closeEdit()">Close</md-button>
-        <md-button
-          class="md-primary"
-          :disabled="isChanged === false"
-          @click="accountant.resetSelectedTransactions(type)"
-        >Reset All
-        </md-button>
+        <md-button @click="closeDelete()">Close</md-button>
         <md-button
           class="md-accent"
-          :disabled="isChanged === false"
           @click="accountant.saveSelectedTransactionsAsync(type)"
-        >Save All
+        >Delete All
         </md-button>
       </md-dialog-actions>
     </md-dialog>
@@ -101,10 +90,7 @@ import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
-import EditNote from './EditNote.vue';
-import EditReset from './EditReset.vue';
-import EditSave from './EditSave.vue';
-import ExpenseCategorySelect from './ExpenseCategorySelect.vue';
+import DeleteIcon from './DeleteIcon.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
 import SharedConstants from '@/shared/_constants';
@@ -112,19 +98,15 @@ import sharedManager from '@/shared/_manager';
 
 @Component({
   components: {
-    EditNote,
-    EditReset,
-    EditSave,
-    ExpenseCategorySelect,
+    DeleteIcon,
   },
 })
-export default class EditPending extends Vue {
+export default class DeleteTransactions extends Vue {
   // data
   public readonly accountant = accountant;
   public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly manager = manager;
   public readonly sharedManager = sharedManager;
-  public readonly type = TransactionType.Pending;
 
   // styles
   get titleStyle(): object {
@@ -134,27 +116,24 @@ export default class EditPending extends Vue {
   }
 
   // computed
-  get isChanged(): boolean {
-    const selectedPendings: ITransaction[] = accountant.getSelectedTransactions(this.type);
-    for (const key of Object.keys(selectedPendings)) {
-      const transaction: ITransaction = selectedPendings[key];
-      if (manager.transactionHasChanged(transaction.id) === true) {
-        return true;
-      }
-    }
-
-    return false;
+  get title(): string {
+    return (this.type === TransactionType.Pending)
+      ? 'Delete Pending Transactions'
+      : 'Delete Transactions';
   }
 
-  get selectedPendings(): ITransaction[] {
+  get type(): TransactionType {
+    return accountant.selectedDeleteTransactionType!;
+  }
+
+  get selectedTransactions(): ITransaction[] {
     return accountant.getSelectedTransactions(this.type);
   }
 
   // methods
-  public closeEdit(): void {
-    accountant.toggleEdit({
+  public closeDelete(): void {
+    accountant.toggleDelete({
       show: false,
-      type: this.type,
     });
   }
 }
@@ -194,12 +173,12 @@ $fixed-width: 2000px;
 }
 
 .edit-note {
-  width: 25%;
-  max-width:$fixed-width * 0.25;
+  width: 27%;
+  max-width:$fixed-width * 0.27;
 }
 
 .edit-actions {
-  width: 7%;
-  max-width: $fixed-width * 0.07;
+  width: 5%;
+  max-width: $fixed-width * 0.05;
 }
 </style>

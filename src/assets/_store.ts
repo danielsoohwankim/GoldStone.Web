@@ -5,6 +5,7 @@ import { Since, Sinces } from './_data';
 import manager from './_manager';
 import goldStoneClient from '@/clients/goldStoneClient';
 import { IGetAccountResponseContract, IGetCatalogResponseContract, IGetUserResponseContract } from '@/clients/goldStoneClient';
+import { Menus } from '@/layout/_data';
 import layout from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import { GuidDate } from '@/shared/_data';
@@ -92,6 +93,8 @@ const initialState: IAssetsState = {
     Since[Since.TwoWeeks],
   ],
 };
+
+const path: string = Menus.Assets.path;
 
 @Module({
   namespaced: true,
@@ -262,19 +265,19 @@ class AssetsStore extends VuexModule {
       = await loaderAction.sendAsync(() => Promise.all([getAccountsPromise, getCatalogsPromise, getUsersPromise]));
 
     // failed to get accounts
-    let result = sharedManager.handleApiResponse(getAccountsResponse);
+    let result = sharedManager.handleApiResponse(getAccountsResponse, path);
     if (result.success === false) {
       return;
     }
 
     // failed to get account catalogs
-    result = sharedManager.handleApiResponse(getCatalogsResponse);
+    result = sharedManager.handleApiResponse(getCatalogsResponse, path);
     if (result.success === false) {
       return;
     }
 
     // failed to get users
-    result = sharedManager.handleApiResponse(getUsersResponse);
+    result = sharedManager.handleApiResponse(getUsersResponse, path);
     if (result.success === false) {
       return;
     }
@@ -368,7 +371,7 @@ class AssetsStore extends VuexModule {
     const response: AxiosResponse<IGetCatalogResponseContract | any>
       = await loaderAction.sendAsync(() => goldStoneClient.getCatalogsAsync(startDate, endDate));
 
-    const result = sharedManager.handleApiResponse(response);
+    const result = sharedManager.handleApiResponse(response, path);
     if (result.success === false) {
       return false;
     }
@@ -426,7 +429,7 @@ class AssetsStore extends VuexModule {
         value: balance,
       }));
 
-    const result = sharedManager.handleApiResponse(response);
+    const result = sharedManager.handleApiResponse(response, path);
     if (result.success === false) {
       return;
     }

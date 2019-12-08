@@ -1,7 +1,7 @@
 <template>
-  <div v-if="accountant.showEditTransaction">
+  <div v-if="accountant.showEditTransactions">
     <md-dialog 
-      :md-active="accountant.showEditTransaction"
+      :md-active="accountant.showEditTransactions"
       style="width: 90%;"
       :style="manager.getScrollStyle()">
       <md-dialog-title :style="titleStyle">Edit Settled Transactions</md-dialog-title>
@@ -84,7 +84,7 @@
         <md-button
           class="md-primary"
           :disabled="isChanged === false"
-          @click="accountant.resetSelectedTransactions(type)"
+          @click="accountant.resetFloatingTransactionss(type)"
         >Reset All
         </md-button>
         <md-button
@@ -128,7 +128,7 @@ import sharedManager from '@/shared/_manager';
     ExpenseCategorySelect,
   },
 })
-export default class EditTransaction extends Vue {
+export default class EditTransactions extends Vue {
   // data
   public readonly accountant = accountant;
   public readonly delay = SharedConstants.Tooltip.Delay;
@@ -145,7 +145,7 @@ export default class EditTransaction extends Vue {
 
   // computed
   get canVerifyAll(): boolean {
-    const selectedTransactions: ITransaction[] = accountant.getSelectedTransactions(this.type);
+    const selectedTransactions: ITransaction[] = accountant.getSelectedFloatingTransactions(this.type);
     for (const key of Object.keys(selectedTransactions)) {
       const transaction: ITransaction = selectedTransactions[key];
       if (accountant.isVerified(transaction.id) === false) {
@@ -157,7 +157,7 @@ export default class EditTransaction extends Vue {
   }
 
   get isChanged(): boolean {
-    const selectedTransactions: ITransaction[] = accountant.getSelectedTransactions(this.type);
+    const selectedTransactions: ITransaction[] = accountant.getSelectedFloatingTransactions(this.type);
     for (const key of Object.keys(selectedTransactions)) {
       const transaction: ITransaction = selectedTransactions[key];
       if (manager.transactionHasChanged(transaction.id) === true) {
@@ -169,7 +169,7 @@ export default class EditTransaction extends Vue {
   }
 
   get selectedTransactions(): ITransaction[] {
-    return accountant.getSelectedTransactions(this.type);
+    return accountant.getSelectedFloatingTransactions(this.type);
   }
 
   // methods

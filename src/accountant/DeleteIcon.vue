@@ -1,18 +1,14 @@
 <template>
-  <div 
-    :class="(canReset === true) ? 'reset' : ''"
-    :style="divStyle"
-    @click="reset"
+  <div
+    class="delete"
+    @click="deleteTransaction()"
   >
-    <md-icon 
-      :class="(canReset === true) ? 'md-primary': ''"
-      :style="(canReset === true) ? '' : 'color: gray;'"
-    >
-      refresh
+    <md-icon class="md-accent">
+      delete
       <md-tooltip
         md-direction="right"
         :md-delay="delay"
-      >Reset
+      >Delete
       </md-tooltip>
     </md-icon>
   </div>
@@ -25,8 +21,7 @@ import accountant, { ITransaction } from './_store';
 import SharedConstants from '@/shared/_constants';
 
 @Component
-export default class EditReset extends Vue {
-  @Prop() public readonly divStyle!: string;
+export default class DeleteIcon extends Vue {
   @Prop() public readonly transactionId!: string;
   // data
   public readonly delay = SharedConstants.Tooltip.Delay;
@@ -34,23 +29,16 @@ export default class EditReset extends Vue {
   // styles
 
   // computed
-  get canReset(): boolean {
-    return manager.transactionHasChanged(this.transactionId) === true;
-  }
 
   // methods
-  public reset(): void {
-    if (this.canReset === false) {
-      return;
-    }
-
-    accountant.resetFloatingTransactions(this.transactionId);
+  public async deleteTransaction(): Promise<void> {
+    await accountant.deleteTransactionAsync(this.transactionId);
   }
 }
 </script>
 
 <style lang="scss" scoped>
-  .reset {
+  .delete {
     cursor: pointer;
   }
 </style>

@@ -2,7 +2,7 @@
   <div>
     <md-field md-clearable style="margin-top: -30px; margin-bottom: -35px;">
       <md-textarea
-        v-model="accountant.getSelectedTransaction(transactionId).note"
+        v-model="accountant.getSelectedFloatingTransaction(transactionId).note"
         md-autogrow
       ></md-textarea>
     </md-field>

@@ -14,7 +14,8 @@ const accountsPath = (tenantId: string): string => `${basePath(tenantId)}/accoun
 const basePath = (tenantId: string): string => `/${version}/tenants/${tenantId}`;
 const catalogsPath = (tenantId: string, accountId: string): string =>
   `${basePath(tenantId)}/accounts/${accountId}/catalogs`;
-const transactionsPath = (tenantId: string): string => `${basePath(tenantId)}/transactions`;
+// todo: remove -test
+const transactionsPath = (tenantId: string): string => `${basePath(tenantId)}/transactions-test`;
 const usersPath = (tenantId: string): string => `${basePath(tenantId)}/users`;
 
 const api = axios.create({
@@ -77,8 +78,7 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      // todo: remove /test
-      return await api.get(`${transactionsPath(tenant.id)}/test?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+      return await api.get(`${transactionsPath(tenant.id)}?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
     } catch (e) {
       return e.response;
     }
@@ -102,8 +102,7 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      // todo: remove test
-      return await api.put(`${transactionsPath(tenant.id)}/${id}/test`, request);
+      return await api.put(`${transactionsPath(tenant.id)}/${id}`, request);
     } catch (e) {
       return e.response;
     }
@@ -114,7 +113,18 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      return await api.put(`${transactionsPath(tenant.id)}/test`, request);
+      return await api.put(`${transactionsPath(tenant.id)}`, request);
+    } catch (e) {
+      return e.response;
+    }
+  }
+
+  public async deleteTransactionAsync(id: string)
+  : Promise<AxiosResponse<void | any>> {
+    this.setJwtToken();
+
+    try {
+      return await api.delete(`${transactionsPath(tenant.id)}/${id}`);
     } catch (e) {
       return e.response;
     }
