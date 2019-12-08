@@ -1,13 +1,13 @@
 <template>
-  <div v-if="accountant.showEditPending">
+  <div v-if="accountant.showEditTransaction">
     <md-dialog 
-      :md-active="accountant.showEditPending"
+      :md-active="accountant.showEditTransaction"
       style="width: 90%;"
       :style="manager.getScrollStyle()">
-      <md-dialog-title :style="titleStyle">Edit Pending Transactions</md-dialog-title>
+      <md-dialog-title :style="titleStyle">Edit Settled Transactions</md-dialog-title>
 
       <md-table
-        v-model="selectedPendings"
+        v-model="selectedTransactions"
         md-fixed-header
       >
         <md-table-row
@@ -72,7 +72,9 @@
           >
             <EditReset :transactionId="item.id" divStyle="float: left;" />
             <div style="width: 4px; float: left;">&nbsp;</div>
-            <EditSave :transactionId="item.id" divStyle="" />
+            <EditSave :transactionId="item.id" divStyle="float: left;" />
+            <div style="width: 5px; float: left;">&nbsp;</div>
+            <EditVerify :transactionId="item.id" />
           </md-table-cell>
         </md-table-row>
       </md-table>
@@ -91,6 +93,12 @@
           @click="accountant.saveSelectedTransactionsAsync(type)"
         >Save All
         </md-button>
+        <md-button
+          class="md-accent"
+          :disabled="canVerifyAll === false"
+          @click="accountant.verifySelectedTransactionsAsync()"
+        >Verify All
+        </md-button>
       </md-dialog-actions>
     </md-dialog>
   </div>
@@ -104,6 +112,7 @@ import accountant, { ITransaction } from './_store';
 import EditNote from './EditNote.vue';
 import EditReset from './EditReset.vue';
 import EditSave from './EditSave.vue';
+import EditVerify from './EditVerify.vue';
 import ExpenseCategorySelect from './ExpenseCategorySelect.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
@@ -115,16 +124,17 @@ import sharedManager from '@/shared/_manager';
     EditNote,
     EditReset,
     EditSave,
+    EditVerify,
     ExpenseCategorySelect,
   },
 })
-export default class EditPending extends Vue {
+export default class EditTransaction extends Vue {
   // data
   public readonly accountant = accountant;
   public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly manager = manager;
   public readonly sharedManager = sharedManager;
-  public readonly type = TransactionType.Pending;
+  public readonly type = TransactionType.Transaction;
 
   // styles
   get titleStyle(): object {
@@ -134,10 +144,22 @@ export default class EditPending extends Vue {
   }
 
   // computed
+  get canVerifyAll(): boolean {
+    const selectedTransactions: ITransaction[] = accountant.getSelectedTransactions(this.type);
+    for (const key of Object.keys(selectedTransactions)) {
+      const transaction: ITransaction = selectedTransactions[key];
+      if (accountant.isVerified(transaction.id) === false) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   get isChanged(): boolean {
-    const selectedPendings: ITransaction[] = accountant.getSelectedTransactions(this.type);
-    for (const key of Object.keys(selectedPendings)) {
-      const transaction: ITransaction = selectedPendings[key];
+    const selectedTransactions: ITransaction[] = accountant.getSelectedTransactions(this.type);
+    for (const key of Object.keys(selectedTransactions)) {
+      const transaction: ITransaction = selectedTransactions[key];
       if (manager.transactionHasChanged(transaction.id) === true) {
         return true;
       }
@@ -146,7 +168,7 @@ export default class EditPending extends Vue {
     return false;
   }
 
-  get selectedPendings(): ITransaction[] {
+  get selectedTransactions(): ITransaction[] {
     return accountant.getSelectedTransactions(this.type);
   }
 
@@ -179,8 +201,8 @@ $fixed-width: 2000px;
 }
 
 .edit-name {
-  width: 33%;
-  max-width: $fixed-width * 0.33;
+  width: 30%;
+  max-width: $fixed-width * 0.30;
 }
 
 .edit-amount {
@@ -199,7 +221,7 @@ $fixed-width: 2000px;
 }
 
 .edit-actions {
-  width: 7%;
-  max-width: $fixed-width * 0.07;
+  width: 10%;
+  max-width: $fixed-width * 0.1;
 }
 </style>

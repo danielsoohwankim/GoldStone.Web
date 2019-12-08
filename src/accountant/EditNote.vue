@@ -1,6 +1,6 @@
 <template>
   <div>
-    <md-field style="margin-top: -30px; margin-bottom: -35px;">
+    <md-field md-clearable style="margin-top: -30px; margin-bottom: -35px;">
       <md-textarea
         v-model="accountant.getSelectedTransaction(transactionId).note"
         md-autogrow

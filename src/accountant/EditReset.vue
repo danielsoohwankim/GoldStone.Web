@@ -1,6 +1,7 @@
 <template>
   <div 
     :class="(canReset === true) ? 'reset' : ''"
+    :style="divStyle"
     @click="reset"
   >
     <md-icon 
@@ -25,6 +26,7 @@ import SharedConstants from '@/shared/_constants';
 
 @Component
 export default class EditReset extends Vue {
+  @Prop() public readonly divStyle!: string;
   @Prop() public readonly transactionId!: string;
   // data
   public readonly delay = SharedConstants.Tooltip.Delay;

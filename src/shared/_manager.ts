@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios';
 import HttpStatus from 'http-status-codes';
 import _ from 'lodash';
+import moment from 'moment';
 import { Menus, Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { goldStoneException } from '@/shared/GoldStoneException';
@@ -54,6 +55,14 @@ class SharedManager {
       success,
       statusCode: response.status,
     };
+  }
+
+  public getUtcNowDateTime(): Date {
+    return moment.utc().toDate();
+  }
+
+  public getUtcNowDateTimeStr(): string {
+    return moment.utc().toDate().toJSON();
   }
 
   public handleInitApiResponse(response: AxiosResponse<any>): {

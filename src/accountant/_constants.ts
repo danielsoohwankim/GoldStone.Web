@@ -8,50 +8,29 @@ interface ILayout {
 }
 
 interface ILayoutColor {
-  Test: string;
-}
-
-interface ITransaction {
-  Colors: {
-    Light: ITransactionColor;
-    Dark: ITransactionColor;
-  };
-}
-
-interface ITransactionColor {
-  Font: string;
+  Pending: string;
+  Selected: string;
+  Settled: string;
+  Merged: string;
+  Verified: string;
 }
 
 export default class AccountantConstants {
   public static Layout: ILayout = {
     Colors: {
       Light: {
-        Test: '',
+        Pending: '',
+        Selected: '#fff',
+        Settled: '',
+        Merged: '',
+        Verified: '',
       },
       Dark: {
-        Test: '',
-      },
-    },
-  };
-
-  public static Pending: ITransaction = {
-    Colors: {
-      Light: {
-        Font: '',
-      },
-      Dark: {
-        Font: '#ffcf44',
-      },
-    },
-  };
-
-  public static Transaction: ITransaction = {
-    Colors: {
-      Light: {
-        Font: '',
-      },
-      Dark: {
-        Font: 'lightBlue',
+        Pending: '#ffcf44',
+        Selected: '#000',
+        Settled: '#ffcf44',
+        Merged: colors.lightBlue[200],
+        Verified: '',
       },
     },
   };

@@ -27,8 +27,8 @@ import SharedConstants from '@/shared/_constants';
 
 @Component
 export default class EditSave extends Vue {
-  @Prop() public readonly transactionId!: string;
   @Prop() public readonly divStyle!: string;
+  @Prop() public readonly transactionId!: string;
   // data
   public readonly delay = SharedConstants.Tooltip.Delay;
 

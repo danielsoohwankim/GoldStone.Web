@@ -1,7 +1,10 @@
 <template>
   <div v-if="isLoaded === true">
     <TransactionTable :type="TransactionType.Transaction" />
+    <Actions />
     <TransactionTable :type="TransactionType.Pending" />
+    <div class="bottom-padding"></div>
+    <EditTransaction />
     <EditPending />
   </div>
 </template>
@@ -10,19 +13,21 @@
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import accountant from './_store';
+import Actions from './Actions.vue';
 import EditPending from './EditPending.vue';
+import EditTransaction from './EditTransaction.vue';
 import TransactionTable from './TransactionTable.vue';
-import Test from './Test.vue';
 
 @Component({
   components: {
+    Actions,
     EditPending,
+    EditTransaction,
     TransactionTable,
   },
 })
 export default class Accountant extends Vue {
   // data
-  public accountant = accountant;
   public TransactionType = TransactionType;
 
   // lifecycle
@@ -39,5 +44,13 @@ export default class Accountant extends Vue {
   get isLoaded(): boolean {
     return accountant.transactions.length > 0;
   }
+
+  // methods
 }
 </script>
+
+<style lang="scss" scoped>
+.bottom-padding {
+  padding-bottom: 15px;
+}
+</style>

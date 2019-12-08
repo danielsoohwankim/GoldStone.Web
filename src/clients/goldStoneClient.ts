@@ -77,7 +77,8 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      return await api.get(`${transactionsPath(tenant.id)}?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+      // todo: remove /test
+      return await api.get(`${transactionsPath(tenant.id)}/test?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
     } catch (e) {
       return e.response;
     }
@@ -164,11 +165,12 @@ export interface IGetTransactionResponseContract {
   date: string;
   expenseCategory: ExpenseCategory;
   id: string;
+  isPending: boolean;
+  mergedDate?: string;
   name: string;
   note: string;
   tenantId: string;
-  transactionState: TransactionState;
-  verified: boolean;
+  verifiedDate?: string;
 }
 
 export interface IGetUserResponseContract {
@@ -206,8 +208,7 @@ export interface IPutTransactionRequestContractV1 {
   name: string;
   note: string;
   tenantId: string;
-  transactionState: TransactionState;
-  verified: boolean;
+  verifiedDate?: string;
 }
 
 export enum GoldStoneAccountState {

@@ -31,8 +31,10 @@ interface IAccountantState {
   accounts: { [ key: string ]: IAccount };
   floatingTransactions: { [ id: string ]: ITransaction };
   transactions: { [ id: string ]: ITransaction };
+  selectedPendingIds: string[];
   selectedTransactionIds: string[];
   showEditPending: boolean;
+  showEditTransaction: boolean;
 }
 
 export interface ITransaction {
@@ -41,11 +43,12 @@ export interface ITransaction {
   date: string;
   expenseCategory: ExpenseCategory;
   id: string;
+  isPending: boolean;
+  mergedDate?: string;
   name: string;
   note: string;
-  state: TransactionState;
   tenantId: string;
-  verified: boolean;
+  verifiedDate?: string;
 }
 
 // initial state
@@ -53,8 +56,10 @@ const initialState: IAccountantState = {
   accounts: {},
   floatingTransactions: {},
   transactions: {},
+  selectedPendingIds: [],
   selectedTransactionIds: [],
   showEditPending: false,
+  showEditTransaction: false,
 };
 
 @Module({
@@ -75,8 +80,20 @@ class AccountantStore extends VuexModule {
     return this.State.transactions;
   }
 
+  get selectedPendingIds(): string[] {
+    return this.State.selectedPendingIds;
+  }
+
+  get selectedTransactionIds(): string[] {
+    return this.State.selectedTransactionIds;
+  }
+
   get showEditPending(): boolean {
     return this.State.showEditPending;
+  }
+
+  get showEditTransaction(): boolean {
+    return this.State.showEditTransaction;
   }
 
   /* getters with parameters */
@@ -95,6 +112,15 @@ class AccountantStore extends VuexModule {
     return (id: string): ITransaction => this.State.floatingTransactions[id];
   }
 
+  get getFloatingTransactions() {
+    return (type: TransactionType): ITransaction[] =>
+      (type === TransactionType.Pending)
+        ? _.values(this.State.floatingTransactions)
+          .filter((t) => t.state === TransactionState.Pending)
+        : _.values(this.State.floatingTransactions)
+          .filter((t) => t.state !== TransactionState.Pending);
+  }
+
   get getSelectedTransaction() {
     return (id: string): ITransaction =>
       this.context.getters.getSelectedTransactions().filter((t) => t.id === id)[0];
@@ -103,24 +129,18 @@ class AccountantStore extends VuexModule {
   get getSelectedTransactions() {
     return (type?: TransactionType): ITransaction[] => {
       const selectedTransactions: ITransaction[] = [];
+      const selectedIds: string[] =
+        (type === undefined)
+        ? [
+          ...this.State.selectedPendingIds,
+          ...this.State.selectedTransactionIds,
+        ] : (type === TransactionType.Pending)
+          ? this.State.selectedPendingIds
+          : this.State.selectedTransactionIds;
 
-      this.State.selectedTransactionIds.forEach((id) => {
-        const transaction: ITransaction = this.State.floatingTransactions[id];
-
-        if (transaction) {
-          if (type) {
-            if (type === TransactionType.Pending &&
-                transaction.state === TransactionState.Pending) {
-              // get specified state
-              selectedTransactions.push(this.State.floatingTransactions[id]);
-            } else if (type !== TransactionType.Pending &&
-                transaction.state !== TransactionState.Pending) {
-              selectedTransactions.push(this.State.floatingTransactions[id]);
-            }
-          } else {
-            // get all
-            selectedTransactions.push(this.State.floatingTransactions[id]);
-          }
+      selectedIds.forEach((id) => {
+        if (this.State.floatingTransactions[id]) {
+          selectedTransactions.push(this.State.floatingTransactions[id]);
         }
       });
 
@@ -135,8 +155,24 @@ class AccountantStore extends VuexModule {
   get getTransactions() {
     return (type: TransactionType): ITransaction[] =>
       (type === TransactionType.Pending)
-        ? this.transactions.filter((t) => t.state === TransactionState.Pending)
-        : this.transactions.filter((t) => t.state !== TransactionState.Pending);
+        ? this.transactions.filter((t) => this.getTransactionState(t.id) === TransactionState.Pending)
+        : this.transactions.filter((t) => this.getTransactionState(t.id) !== TransactionState.Pending);
+  }
+
+  get getTransactionState() {
+    return (id: string): TransactionState => {
+      const transaction: ITransaction = this.State.transactions[id];
+
+      if (transaction.verifiedDate) {
+        return TransactionState.Verified;
+      } else if (transaction.mergedDate) {
+        return TransactionState.Merged;
+      } else if (transaction.isPending === false) {
+        return TransactionState.Settled;
+      } else {
+        return TransactionState.Pending;
+      }
+    };
   }
 
   get getUserProfileImage() {
@@ -149,7 +185,16 @@ class AccountantStore extends VuexModule {
   }
 
   get isSelected() {
-    return (id: string): boolean => this.State.selectedTransactionIds.includes(id);
+    return (id: string): boolean =>
+      this.State.selectedPendingIds.includes(id) ||
+      this.State.selectedTransactionIds.includes(id);
+  }
+
+  get isVerified() {
+    return (id: string): boolean => {
+      const transaction: ITransaction = this.State.transactions[id];
+      return this.getTransactionState(transaction.id) === TransactionState.Verified;
+    };
   }
 
   @Action
@@ -159,7 +204,7 @@ class AccountantStore extends VuexModule {
 
   @Action
   public async initAsync(): Promise<void> {
-    const startDate: Date = Date.Today().addDays(-2);
+    const startDate: Date = Date.Today().addDays(-3);
     const endDate: Date = Date.Today();
     const getAccountsPromise = goldStoneClient.getAccountsAsync(false, true);
     const getTransactionsPromise = goldStoneClient.getTransactionsAsync(startDate, endDate);
@@ -279,22 +324,171 @@ class AccountantStore extends VuexModule {
   }
 
   @Action
-  public selectTransactions(ids: string[]): void {
-    this.context.commit('SelectTransactions', ids);
+  public selectTransactions(params: {
+    ids: string[],
+    type: TransactionType,
+  }): void {
+    const { ids, type } = params;
+
+    this.context.commit('SelectTransactions', params);
   }
 
   @Action
-  public toggleEditPending(show: boolean): void {
-    if (this.State.showEditPending === show) {
+  public toggleEdit(params: {
+    show: boolean,
+    type: TransactionType,
+  }): void {
+    const { show, type } = params;
+    if (type === TransactionType.Pending && this.State.showEditPending === show) {
+      return;
+    } else if (type === TransactionType.Transaction && this.State.showEditTransaction === show) {
       return;
     }
     if (show === true) {
       // add floating transactions if they do not exist
-      // send ids
-      this.context.commit('SetFloatingTransactions', this.State.selectedTransactionIds);
+      if (type === TransactionType.Pending) {
+        this.context.commit('SetFloatingTransactions', this.State.selectedPendingIds);
+      } else {
+        this.context.commit('SetFloatingTransactions', this.State.selectedTransactionIds);
+      }
     }
 
-    this.context.commit('ToggleEditPending', show);
+    this.context.commit('ToggleEdit', params);
+  }
+
+  @Action
+  public unselectAll(): void {
+    if (this.State.selectedPendingIds.length <= 0 &&
+        this.State.selectedTransactionIds.length <= 0) {
+      return;
+    }
+
+    this.context.commit('UnselectAll');
+  }
+
+  /**
+   * Opens EditTransaction dialog with only the
+   * verifiable transactions selected
+   */
+  @Action
+  public verifyAll(): void {
+    if (this.State.showEditTransaction === true) {
+      return;
+    }
+
+    const verifiableIds: string[] =
+      this.getTransactions(TransactionType.Transaction)
+          .filter((t) => this.isVerified(t.id) === false)
+          .map((t) => t.id);
+
+    if (verifiableIds.length <= 0) {
+      return;
+    }
+
+    verifiableIds.forEach((id) => {
+      if (this.isSelected(id) === true) {
+        return;
+      }
+      // select rows
+      const row = document.getElementById(id);
+      // @ts-ignore
+      row.click();
+    });
+
+    this.context.commit('SetFloatingTransactions', verifiableIds);
+
+    this.context.commit('VerifyAll', verifiableIds);
+  }
+
+  /**
+   * Saves and verifies a transaction
+   */
+  @Action
+  public async verifySelectedTransactionAsync(params: {
+    id: string,
+    verify: boolean,
+  }): Promise<void> {
+    const { id, verify } = params;
+    const selectedTransaction: ITransaction =
+      this.getSelectedTransaction(id);
+    const currentState: TransactionState =
+      this.getTransactionState(selectedTransaction.id);
+
+    if (verify === true && currentState === TransactionState.Verified) {
+      return;
+    } else if (verify === false && currentState !== TransactionState.Verified) {
+      return;
+    }
+
+    const verifiedDate = (verify === true) ? sharedManager.getUtcNowDateTimeStr() : undefined;
+    const verifiedTransaction: ITransaction = {
+      ...selectedTransaction,
+      verifiedDate,
+    };
+    const request = manager.converToPutTransactionRequest(verifiedTransaction);
+
+    const response: AxiosResponse<void | any>
+      = await loaderAction.sendAsync(() => goldStoneClient.putTransactionAsync(request));
+
+    const result = sharedManager.handleApiResponse(response);
+    if (result.success === false) {
+      return;
+    }
+
+    const verifyStr: string = (verify === true) ? 'Verified' : 'Unverified';
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: `${verifyStr} and saved 1 transaction`,
+      show: true,
+    });
+
+    this.context.commit('VerifyTransaction', {
+      id,
+      verifiedDate,
+    });
+  }
+
+  /**
+   * Saves and verifies selected eligible transactions
+   */
+  @Action
+  public async verifySelectedTransactionsAsync(): Promise<void> {
+    const selectedTransactions: ITransaction[] =
+      this.context.getters.getSelectedTransactions(TransactionType.Transaction);
+    const verifiableTransactions: ITransaction[] =
+      selectedTransactions.filter((t) =>
+        this.getTransactionState(t.id) !== TransactionState.Verified);
+    const verifiedDate = sharedManager.getUtcNowDateTimeStr();
+    const request = verifiableTransactions.map((t) => {
+      return {
+        ...manager.converToPutTransactionRequest(t),
+        verifiedDate,
+      };
+    });
+
+    const response: AxiosResponse<void | any>
+      = await loaderAction.sendAsync(() => goldStoneClient.putTransactionsAsync(request));
+
+    const result = sharedManager.handleApiResponse(response);
+    if (result.success === false) {
+      return;
+    }
+
+    const plural = (request.length > 1) ? 's' : '';
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: `Verified and saved ${request.length} transaction${plural}`,
+      show: true,
+    });
+
+    const ids: string[] = verifiableTransactions.map((t) => t.id);
+
+    this.context.commit('VerifyTransactions', {
+      ids,
+      verifiedDate,
+    });
   }
 
   @Mutation
@@ -334,6 +528,9 @@ class AccountantStore extends VuexModule {
     this.State.transactions[id] = _.cloneDeep(this.State.floatingTransactions[id]);
   }
 
+  /**
+   * Saves and closes the edit dialog upon saving
+   */
   @Mutation
   private SaveTransactions(params: {
     ids: string[],
@@ -345,7 +542,11 @@ class AccountantStore extends VuexModule {
       this.State.transactions[id] = _.cloneDeep(this.State.floatingTransactions[id]);
     });
 
-    this.State.selectedTransactionIds.forEach((id) => {
+    const selectedIds: string[] = (type === TransactionType.Pending)
+      ? this.State.selectedPendingIds
+      : this.State.selectedTransactionIds;
+
+    selectedIds.forEach((id) => {
       // deselect rows
       const row = document.getElementById(id);
       // @ts-ignore
@@ -355,13 +556,22 @@ class AccountantStore extends VuexModule {
     if (type === TransactionType.Pending) {
       this.State.showEditPending = false;
     } else {
-      //
+      this.State.showEditTransaction = false;
     }
   }
 
   @Mutation
-  private SelectTransactions(ids: string[]): void {
-    this.State.selectedTransactionIds = _.cloneDeep(ids);
+  private SelectTransactions(params: {
+    ids: string[],
+    type: TransactionType,
+  }): void {
+    const { ids, type } = params;
+
+    if (type === TransactionType.Pending) {
+      this.State.selectedPendingIds = _.cloneDeep(ids);
+    } else {
+      this.State.selectedTransactionIds = _.cloneDeep(ids);
+    }
   }
 
   @Mutation
@@ -380,8 +590,86 @@ class AccountantStore extends VuexModule {
   }
 
   @Mutation
-  private ToggleEditPending(show: boolean): void {
-    this.State.showEditPending = show;
+  private ToggleEdit(params: {
+    show: boolean,
+    type: TransactionType,
+  }): void {
+    const { show, type } = params;
+
+    if (type === TransactionType.Pending) {
+      this.State.showEditPending = show;
+    } else if (type === TransactionType.Transaction) {
+      this.State.showEditTransaction = show;
+    }
+  }
+
+  @Mutation
+  private UnselectAll(): void {
+    const selectedIds: string[] = [
+      ...this.State.selectedPendingIds,
+      ...this.State.selectedTransactionIds,
+    ];
+
+    selectedIds.forEach((id) => {
+      // select rows
+      const row = document.getElementById(id);
+      // @ts-ignore
+      row.click();
+    });
+  }
+
+  @Mutation
+  private VerifyAll(ids: string[]): void {
+    this.State.showEditTransaction = true;
+    this.State.selectedTransactionIds = [
+      ...ids,
+    ];
+  }
+
+  @Mutation
+  private VerifyTransaction(params: {
+    id: string,
+    verifiedDate?: string,
+  }): void {
+    const { id, verifiedDate } = params;
+    const transaction: ITransaction = {
+      ..._.cloneDeep(this.State.floatingTransactions[id]),
+      verifiedDate,
+    };
+
+    this.State.transactions[id] = transaction;
+    this.State.floatingTransactions[id] = _.cloneDeep(transaction);
+  }
+
+  /**
+   * Verifies, saves and closes the edit dialog upon updating
+   */
+  @Mutation
+  private VerifyTransactions(params: {
+    ids: string[],
+    verifiedDate: string,
+  }): void {
+    const { ids, verifiedDate } = params;
+
+    ids.forEach((id) => {
+      this.State.floatingTransactions[id] = {
+        ..._.cloneDeep(this.State.floatingTransactions[id]),
+        verifiedDate,
+      };
+      this.State.transactions[id] = {
+        ..._.cloneDeep(this.State.transactions[id]),
+        verifiedDate,
+      };
+    });
+
+    this.State.selectedTransactionIds.forEach((id) => {
+      // deselect rows
+      const row = document.getElementById(id);
+      // @ts-ignore
+      row.click();
+    });
+
+    this.State.showEditTransaction = false;
   }
 }
 

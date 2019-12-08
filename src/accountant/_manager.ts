@@ -34,8 +34,7 @@ class AccountantManager {
       name: transaction.name,
       note: transaction.note,
       tenantId: transaction.tenantId,
-      transactionState: transaction.state,
-      verified: transaction.verified,
+      verifiedDate: transaction.verifiedDate,
     };
   }
 
@@ -46,11 +45,12 @@ class AccountantManager {
       date: item.date,
       expenseCategory: item.expenseCategory,
       id: item.id,
+      isPending: item.isPending,
+      mergedDate: item.mergedDate,
       name: item.name,
-      note: item.note,
-      state: item.transactionState,
+      note: (item.note) ? item.note : '',
       tenantId: item.tenantId,
-      verified: item.verified,
+      verifiedDate: item.verifiedDate,
     };
   }
 

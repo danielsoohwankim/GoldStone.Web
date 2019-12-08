@@ -75,81 +75,74 @@
           md-label="Symbol"
           md-sort-by="symbol"
           class="symbol"
-          :style="accountant.isSelected(item.id) ? {} : rowStyle"
+          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
         >{{ accountant.getAccountSymbol(item.accountId) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Date" 
           md-sort-by="date"
           class="date"
-          :style="accountant.isSelected(item.id) ? {} : rowStyle"
-        >{{ item.date }}
+          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+        >{{ getDate(item.id) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Name" 
           md-sort-by="name"
           class="name"
-          :style="accountant.isSelected(item.id) ? {} : rowStyle"
-        >{{ item.name }}
+          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
+        >{{ getName(item.id) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Amount" 
           md-sort-by="amount"
           class="amount"
           :style="accountant.isSelected(item.id) ? {} : manager.getAmountStyle(item.amount)"
-        >{{ sharedManager.getFormattedAmount(item.amount) }}
+        >{{ getAmount(item.id) }}
         </md-table-cell>
         <md-table-cell 
           md-label="Category" 
           md-sort-by="category"
           class="category"
-          :style="accountant.isSelected(item.id) ? {} : rowStyle"
+          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
         >{{ getCategory(item.id) }}</md-table-cell>
         <md-table-cell 
           md-label="Note" 
           md-sort-by="note"
           class="note"
-          :style="accountant.isSelected(item.id) ? {} : rowStyle"
+          :style="accountant.isSelected(item.id) ? {} : getRowStyle(item.id)"
         >{{ getNote(item.id) }}
         </md-table-cell>
         <md-table-cell 
           class="verified"
-          :md-label="(showVerified === true) ? 'verified' : ''"
+          :md-label="(showVerified === true) ? 'Verified' : ''"
         >
-          <div
+          <Verify
             v-if="showVerified === true"
-          >
-            <md-icon 
-            >
-              done <!-- or clear -->
-              <md-tooltip
-                md-direction="right"
-              >Verify
-              </md-tooltip>
-            </md-icon>
-          </div>
+            :iconStyle="getVerifyStyle(item.id)"
+            :transactionId="item.id"
+          />
         </md-table-cell>
       </md-table-row>
     </md-table>
-    <!-- todo: remove -->
-    <md-button class="md-primary" @click="toLegacy">
-      To Legacy
-    </md-button>
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import AccountConstants from './_constants';
-import { ExpenseCategory, TransactionType } from './_data';
+import { ExpenseCategory, TransactionState, TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
+import Verify from './Verify.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
-import tenant from '@/tenant/_store';
 
-@Component
+@Component({
+  components: {
+    Verify,
+  },
+})
 export default class TransactionTable extends Vue {
   @Prop() public readonly type!: TransactionType;
   // data
@@ -162,12 +155,6 @@ export default class TransactionTable extends Vue {
   public transactionMap = accountant.transactionMap;
 
   // style
-  get rowStyle(): object {
-    return {
-      color: AccountConstants[this.type].Colors[layout.theme].Font,
-    };
-  }
-
   get titleStyle(): object {
     return {
       color: LayoutConstants.Layout.Colors[layout.theme].Accent,
@@ -178,24 +165,66 @@ export default class TransactionTable extends Vue {
   // computed
 
   // methods
-  public getAlternateLabel(count): string {
-    const plural = (count > 1) ? 's' : '';
+  public getAmount(id: string): string {
+    const transaction: ITransaction = accountant.getTransaction(id);
+    return sharedManager.getFormattedAmount(transaction.amount);
+  }
 
-    return `${count} Transaction${plural} selected`;
+  public getAlternateLabel(count): string {
+    const prefix: string = (this.type === TransactionType.Pending)
+      ? 'pending ' : '';
+    const plural: string = (count > 1) ? 's' : '';
+
+    return `${count} ${prefix}transaction${plural} selected`;
   }
 
   public getCategory(id: string): ExpenseCategory {
     return accountant.getTransaction(id).expenseCategory;
   }
 
+  public getDate(id: string): string {
+    const transaction: ITransaction = accountant.getTransaction(id);
+    return accountant.getTransaction(id).date;
+  }
+
+  public getName(id: string): string {
+    const transaction: ITransaction = accountant.getTransaction(id);
+    return accountant.getTransaction(id).name;
+  }
+
   public getNote(id: string): string {
     return accountant.getTransaction(id).note;
+  }
+
+  public getRowStyle(id: string): object {
+    const transaction: ITransaction = accountant.getTransaction(id);
+    const state: TransactionState = accountant.getTransactionState(id);
+    if (state === TransactionState.Verified) {
+      return {};
+    }
+
+    return {
+      color: AccountConstants.Layout.Colors[layout.theme][state],
+    };
+  }
+
+  public getVerifyStyle(id: string): object {
+    if (accountant.isSelected(id) === false) {
+      return this.getRowStyle(id);
+    }
+
+    return {
+      color: AccountConstants.Layout.Colors[layout.theme].Selected,
+    };
   }
 
   public onSelect(transactions: ITransaction[]): void {
     const selectedIds: string[] = transactions.map((t) => t.id);
 
-    accountant.selectTransactions(selectedIds);
+    accountant.selectTransactions({
+      ids: selectedIds,
+      type: this.type,
+    });
   }
 
   public searchOnTable(): void {
@@ -210,20 +239,14 @@ export default class TransactionTable extends Vue {
   }
 
   public showEdit(): void {
-    if (this.type === TransactionType.Pending) {
-      accountant.toggleEditPending(true);
-    } else {
-      //
-    }
+    accountant.toggleEdit({
+      show: true,
+      type: this.type,
+    });
   }
 
   public toLower(text: string): string {
     return text.toString().toLowerCase();
-  }
-
-  // todo: remove
-  public toLegacy(): void {
-    window.open(`https://goldstone.azurewebsites.net/expenses?${tenant.id}`, '_blank');
   }
 }
 </script>
