@@ -1,7 +1,7 @@
 <template>
   <div v-if="isLoaded === true">
     <TransactionTable :type="TransactionType.Transaction" />
-    <Actions />
+    <ActionButtons />
     <TransactionTable :type="TransactionType.Pending" />
     <div class="bottom-padding"></div>
     
@@ -17,7 +17,7 @@
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import accountant from './_store';
-import Actions from './Actions.vue';
+import ActionButtons from './ActionButtons.vue';
 import DeleteTransactions from './DeleteTransactions.vue';
 import EditPendings from './EditPendings.vue';
 import EditTransactions from './EditTransactions.vue';
@@ -25,7 +25,7 @@ import TransactionTable from './TransactionTable.vue';
 
 @Component({
   components: {
-    Actions,
+    ActionButtons,
     DeleteTransactions,
     EditPendings,
     EditTransactions,

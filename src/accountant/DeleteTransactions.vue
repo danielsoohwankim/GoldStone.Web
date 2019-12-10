@@ -5,7 +5,9 @@
       style="width: 90%;"
       :style="manager.getScrollStyle()">
       <md-dialog-title :style="titleStyle">{{ title }}</md-dialog-title>
-
+      <span class="warning-message" :style="warningStyle">
+        Warning: This action cannot be undone. Delete the following?
+      </span>
       <md-table
         v-model="selectedTransactions"
         md-fixed-header
@@ -66,9 +68,9 @@
           </md-table-cell>
           <md-table-cell 
             md-label="Delete" 
-            class="edit-actions"
+            class="delete-icon"
           >
-            <DeleteIcon :transactionId="item.id" />
+            <DeleteIcon :id="item.id" :type="type" />
           </md-table-cell>
         </md-table-row>
       </md-table>
@@ -77,7 +79,7 @@
         <md-button @click="closeDelete()">Close</md-button>
         <md-button
           class="md-accent"
-          @click="accountant.saveSelectedTransactionsAsync(type)"
+          @click="accountant.deleteTransactionsAsync()"
         >Delete All
         </md-button>
       </md-dialog-actions>
@@ -112,6 +114,12 @@ export default class DeleteTransactions extends Vue {
   get titleStyle(): object {
     return {
       color: LayoutConstants.Layout.Colors[layout.theme].Primary,
+    };
+  }
+
+  get warningStyle(): object {
+    return {
+      color: LayoutConstants.Layout.Colors[layout.theme].Accent,
     };
   }
 
@@ -158,8 +166,8 @@ $fixed-width: 2000px;
 }
 
 .edit-name {
-  width: 33%;
-  max-width: $fixed-width * 0.33;
+  width: 32%;
+  max-width: $fixed-width * 0.32;
 }
 
 .edit-amount {
@@ -173,12 +181,17 @@ $fixed-width: 2000px;
 }
 
 .edit-note {
-  width: 27%;
-  max-width:$fixed-width * 0.27;
+  width: 28%;
+  max-width:$fixed-width * 0.28;
 }
 
-.edit-actions {
+.delete-icon {
   width: 5%;
-  max-width: $fixed-width * 0.05;
+  max-width:$fixed-width * 0.05;
+}
+
+.warning-message {
+  padding-left: 23px;
+  font-size: 17px;
 }
 </style>

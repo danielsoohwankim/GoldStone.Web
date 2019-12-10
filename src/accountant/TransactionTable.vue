@@ -1,13 +1,12 @@
 <template>
   <div>
     <md-table
-      v-model="searched"
+      v-model="transactions"
       md-card
       md-fixed-header
       md-sort="date"
       md-sort-order="desc"
       :style="manager.getScrollStyle()"
-      @md-selected="onSelect"
     >
       <md-table-toolbar>
         <div class="md-toolbar-section-start">
@@ -26,47 +25,11 @@
           <md-input
             placeholder="Search by name"
             v-model="search" 
-            @input="searchOnTable"
           />
         </md-field>
-      </md-table-toolbar>
 
-      <md-table-toolbar slot="md-table-alternate-header" slot-scope="{ count }">
-        <div class="md-toolbar-section-start">{{ getAlternateLabel(count) }}</div>
-        <div class="md-toolbar-section-end">
-          <md-button
-            class="md-icon-button"
-            @click.prevent="unselectAll()"
-          >
-            <md-icon>
-              tab_unselected
-              <md-tooltip md-direction="bottom" :md-delay="delay">
-                Unselect All
-              </md-tooltip>
-            </md-icon>
-          </md-button>
-          <md-button
-            class="md-icon-button"
-            @click.prevent="showEdit()"
-          >
-            <md-icon>
-              edit
-              <md-tooltip md-direction="bottom" :md-delay="delay">
-                Edit
-              </md-tooltip>
-            </md-icon>
-          </md-button>
-          <md-button
-            class="md-icon-button"
-            @click.prevent="showDelete()"
-          >
-            <md-icon>
-              delete
-              <md-tooltip md-direction="bottom" :md-delay="delay">
-                Delete
-              </md-tooltip>
-            </md-icon>
-          </md-button>
+        <div style="padding-right: 10px;">
+          <ActionIcons :type="type" />
         </div>
       </md-table-toolbar>
 
@@ -76,13 +39,13 @@
       </md-table-empty-state>
 
       <md-table-row
-        :id="item.id"
+        md-auto-select
         slot="md-table-row" 
         slot-scope="{ item }"
-        class="md-primary"
-        md-selectable="multiple"
-        md-auto-select
         style="height: 57px;"
+        :class="getRowClass(item.id)"
+        :id="item.id"
+        @click="selectRow(item)"
       >
         <md-table-cell 
           md-label="Users"
@@ -157,14 +120,15 @@ import AccountConstants from './_constants';
 import { ExpenseCategory, TransactionState, TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
+import ActionIcons from './ActionIcons.vue';
 import Verify from './Verify.vue';
 import LayoutConstants from '@/layout/_constants';
 import layout from '@/layout/_store';
-import SharedConstants from '@/shared/_constants';
 import sharedManager from '@/shared/_manager';
 
 @Component({
   components: {
+    ActionIcons,
     Verify,
   },
 })
@@ -172,13 +136,15 @@ export default class TransactionTable extends Vue {
   @Prop() public readonly type!: TransactionType;
   // data
   public readonly accountant = accountant;
-  public readonly delay = SharedConstants.Tooltip.Delay;
   public readonly manager = manager;
   public readonly sharedManager = sharedManager;
   public readonly showVerified = this.type === TransactionType.Transaction;
   public search: string | null = null;
-  public searched: ITransaction[] = accountant.getTransactions(this.type);
   public transactionMap = accountant.transactionMap;
+  public originals: ITransaction[] = this.transactions;
+  // this flag is needed to prevent Vue Material from auto-deselecting table rows
+  // upon transaction changes.
+  private isBlocked: boolean = false;
 
   // style
   get titleStyle(): object {
@@ -189,6 +155,18 @@ export default class TransactionTable extends Vue {
   }
 
   // computed
+  get transactions(): ITransaction[] {
+    if (!this.search || this.search === '') {
+      return accountant.getTransactions(this.type);
+    } else {
+      const transactions: ITransaction[] = accountant.getTransactions(this.type);
+      return this.searchByName(transactions, this.search);
+    }
+  }
+
+  set transactions(transactions: ITransaction[]) {
+    this.originals = transactions;
+  }
 
   // methods
   public getAmount(id: string): string {
@@ -228,6 +206,10 @@ export default class TransactionTable extends Vue {
     return accountant.getTransaction(id).note;
   }
 
+  public getRowClass(id: string): string {
+    return (accountant.isSelected(id) === true) ? 'md-primary md-selected' : 'md-primary';
+  }
+
   public getRowStyle(id: string): object {
     if (accountant.isSelected(id) === true) {
       return this.getSelectedStyle();
@@ -261,18 +243,11 @@ export default class TransactionTable extends Vue {
     };
   }
 
-  public onSelect(transactions: ITransaction[]): void {
-    const selectedIds: string[] = transactions.map((t) => t.id);
-
-    accountant.selectTransactions({
-      ids: selectedIds,
+  public selectRow(transaction: ITransaction) {
+    accountant.selectTransaction({
+      id: transaction.id,
       type: this.type,
     });
-  }
-
-  public searchOnTable(): void {
-    const transactions: ITransaction[] = accountant.getTransactions(this.type);
-    this.searched = this.searchByName(transactions, this.search);
   }
 
   public searchByName(transactions: ITransaction[], term: string | null): ITransaction[] {
@@ -281,26 +256,8 @@ export default class TransactionTable extends Vue {
       : transactions;
   }
 
-  public showEdit(): void {
-    accountant.toggleEdit({
-      show: true,
-      type: this.type,
-    });
-  }
-
-  public showDelete(): void {
-    accountant.toggleDelete({
-      show: true,
-      type: this.type,
-    });
-  }
-
   public toLower(text: string): string {
     return text.toString().toLowerCase();
-  }
-
-  public unselectAll(): void {
-    accountant.unselectAll(this.type);
   }
 }
 </script>

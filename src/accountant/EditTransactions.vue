@@ -37,7 +37,7 @@
             md-label="Date" 
             md-sort-by="date"
             class="edit-date"
-          >{{ item.date }}
+          ><EditDate :transactionId="item.id" />
           </md-table-cell>
           <md-table-cell 
             md-label="Name" 
@@ -109,6 +109,7 @@ import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
+import EditDate from './EditDate.vue';
 import EditNote from './EditNote.vue';
 import EditReset from './EditReset.vue';
 import EditSave from './EditSave.vue';
@@ -121,6 +122,7 @@ import sharedManager from '@/shared/_manager';
 
 @Component({
   components: {
+    EditDate,
     EditNote,
     EditReset,
     EditSave,
@@ -196,13 +198,13 @@ $fixed-width: 2000px;
 }
 
 .edit-date {
-  width: 10%;
-  max-width: $fixed-width * 0.1;
+  width: 12%;
+  max-width: $fixed-width * 0.12;
 }
 
 .edit-name {
-  width: 30%;
-  max-width: $fixed-width * 0.30;
+  width: 28%;
+  max-width: $fixed-width * 0.28;
 }
 
 .edit-amount {

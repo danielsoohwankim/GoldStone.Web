@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ExpenseCategory, TransactionState } from '@/accountant/_data';
+import { ExpenseCategory } from '@/accountant/_data';
 import { storageTools } from '@/shared/_tools';
 import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
@@ -119,12 +119,12 @@ class GoldStoneClient {
     }
   }
 
-  public async deleteTransactionAsync(id: string)
-  : Promise<AxiosResponse<void | any>> {
+  public async deleteTransactionsAsync(transactionIds: string[]): Promise<AxiosResponse<void | any>> {
     this.setJwtToken();
+    const ids: string = transactionIds.join(',');
 
     try {
-      return await api.delete(`${transactionsPath(tenant.id)}/${id}`);
+      return await api.delete(`${transactionsPath(tenant.id)}?ids=${ids}`);
     } catch (e) {
       return e.response;
     }
