@@ -9,6 +9,7 @@ import {
   IGetAccountResponseContractV1,
   IGetTransactionResponseContractV1,
   IGetUserResponseContractV1,
+  IMergeTransactionResponseContractV1,
   IPutTransactionRequestContractV1,
 } from '@/clients/goldStoneClient';
 import { Menus } from '@/layout/_data';
@@ -361,13 +362,16 @@ class AccountantStore extends VuexModule {
     const transactionId: string = this.State.selectedTransactionIds[0];
     const pendingId: string = this.State.selectedPendingIds[0];
 
-    // const response: AxiosResponse<void | any>
-    //   = await loaderAction.sendAsync(() => goldStoneClient.mergeTransactionsAsync(transactionId, pendingId));
+    const response: AxiosResponse<IMergeTransactionResponseContractV1 | any>
+      = await loaderAction.sendAsync(() => goldStoneClient.mergeTransactionsAsync(transactionId, pendingId));
 
-    // const result = sharedManager.handleApiResponse(response, path);
-    // if (result.success === false) {
-    //   return;
-    // }
+    const result = sharedManager.handleApiResponse(response, path);
+    if (result.success === false) {
+      return;
+    }
+
+    const data = response.data as IMergeTransactionResponseContractV1;
+    const transaction: ITransaction = manager.convertMergeResposneToTransaction(data);
 
     layout.setSnackBar({
       isSuccess: true,
@@ -376,7 +380,7 @@ class AccountantStore extends VuexModule {
     });
 
     this.context.commit('MergeTransactions', {
-      transactionId,
+      transaction,
       pendingId,
     });
 
@@ -621,7 +625,7 @@ class AccountantStore extends VuexModule {
   @Action
   public async verifySelectedTransactionsAsync(): Promise<void> {
     const selectedTransactions: ITransaction[] =
-      this.context.getters.getSelectedFloatingTransactions(TransactionType.Transaction);
+      this.getSelectedFloatingTransactions(TransactionType.Transaction);
     const verifiableTransactions: ITransaction[] =
       selectedTransactions.filter((t) =>
         this.getTransactionState(t.id) !== TransactionState.Verified);
@@ -719,15 +723,13 @@ class AccountantStore extends VuexModule {
 
   @Mutation
   private MergeTransactions(params: {
-    transactionId,
-    pendingId,
+    transaction: ITransaction,
+    pendingId: string,
   }): void {
-    const { transactionId, pendingId } = params;
+    const { transaction, pendingId } = params;
 
     this.State.selectedPendingIds = [];
     this.State.selectedTransactionIds = [];
-
-    const pendingTransaction: ITransaction = this.State.transactions[pendingId];
 
     Vue.delete(this.State.transactions, pendingId);
 
@@ -735,12 +737,7 @@ class AccountantStore extends VuexModule {
       Vue.delete(this.State.floatingTransactions, pendingId);
     }
 
-    this.State.transactions[transactionId] = {
-      ...this.State.transactions[transactionId],
-      date: pendingTransaction.date,
-      expenseCategory: pendingTransaction.expenseCategory,
-      note: pendingTransaction.note,
-    };
+    this.State.transactions[transaction.id] = transaction;
   }
 
   @Mutation

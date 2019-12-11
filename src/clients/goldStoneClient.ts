@@ -85,7 +85,7 @@ class GoldStoneClient {
   }
 
   public async mergeTransactionsAsync(transactionId: string, pendingId: string)
-  : Promise<AxiosResponse<IGetTransactionResponseContractV1[] | any>> {
+  : Promise<AxiosResponse<IMergeTransactionResponseContractV1 | any>> {
     this.setJwtToken();
 
     const data: IMergeTransactionsRequestContractV1 = {
@@ -207,6 +207,20 @@ export interface IGetUserResponseContractV1 {
 
 export interface IMergeTransactionsRequestContractV1 {
   pendingTransactionId: string;
+}
+
+export interface IMergeTransactionResponseContractV1 {
+  accountId: string;
+  amount: number;
+  date: string;
+  expenseCategory: ExpenseCategory;
+  id: string;
+  isPending: boolean;
+  mergedDate?: string;
+  name: string;
+  note: string;
+  tenantId: string;
+  verifiedDate?: string;
 }
 
 export interface IPutAccountCatalogRequestContractV1 {

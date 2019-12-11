@@ -5,6 +5,7 @@ import {
   GoldStoneExpenseType,
   IGetAccountResponseContractV1,
   IGetTransactionResponseContractV1,
+  IMergeTransactionResponseContractV1,
   IPutTransactionRequestContractV1,
 } from '@/clients/goldStoneClient';
 import layout from '@/layout/_store';
@@ -39,6 +40,22 @@ class AccountantManager {
   }
 
   public convertToTransaction(item: IGetTransactionResponseContractV1): ITransaction {
+    return {
+      accountId: item.accountId,
+      amount: item.amount,
+      date: item.date,
+      expenseCategory: item.expenseCategory,
+      id: item.id,
+      isPending: item.isPending,
+      mergedDate: item.mergedDate,
+      name: item.name,
+      note: (item.note) ? item.note : '',
+      tenantId: item.tenantId,
+      verifiedDate: item.verifiedDate,
+    };
+  }
+
+  public convertMergeResposneToTransaction(item: IMergeTransactionResponseContractV1): ITransaction {
     return {
       accountId: item.accountId,
       amount: item.amount,

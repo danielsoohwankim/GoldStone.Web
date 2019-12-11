@@ -205,8 +205,8 @@ $fixed-width: 2000px;
 }
 
 .edit-date {
-  width: 12%;
-  max-width: $fixed-width * 0.12;
+  width: 11%;
+  max-width: $fixed-width * 0.11;
 }
 
 .edit-name {
@@ -226,11 +226,11 @@ $fixed-width: 2000px;
 
 .edit-note {
   width: 25%;
-  max-width:$fixed-width * 0.25;
+  max-width: $fixed-width * 0.25;
 }
 
 .edit-actions {
-  width: 12%;
-  max-width: $fixed-width * 0.12;
+  width: 13%;
+  max-width: $fixed-width * 0.13;
 }
 </style>
