@@ -52,7 +52,7 @@ class SharedManager {
 
       layout.setSnackBar({
         isSuccess: false,
-        message: `${response.status}: ${response.data as string}`,
+        message: `${response.status}: ${JSON.stringify(response.data)}`,
         show: true,
       });
 
@@ -86,7 +86,7 @@ class SharedManager {
 
       layout.setSnackBar({
         isSuccess: false,
-        message: `${response.status}: ${response.data as string}`,
+        message: `${response.status}: ${JSON.stringify(response.data)}`,
         show: true,
       });
 
@@ -109,7 +109,7 @@ class SharedManager {
 
       layout.setSnackBar({
         isSuccess: false,
-        message: response.data as string,
+        message: `${response.status}: ${JSON.stringify(response.data)}`,
         show: true,
       });
     }

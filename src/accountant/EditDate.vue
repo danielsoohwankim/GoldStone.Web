@@ -1,9 +1,9 @@
 <template>
   <div>
     <md-datepicker
-    v-model="accountant.getSelectedFloatingTransaction(transactionId).date"
+      v-model="accountant.getSelectedFloatingTransaction(transactionId).date"
       md-immediately
-      style="margin-top: -30px; margin-bottom: -5px;"
+      style="margin-top: -30px; margin-bottom: -15px;"
       :md-disabled-dates="disabledDates"
     >
     </md-datepicker>
@@ -13,7 +13,7 @@
 <script lang="ts">
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import _ from 'lodash';
-import accountant, { ITransaction } from './_store';
+import accountant from './_store';
 import { Date } from '@/shared/Date';
 
 @Component

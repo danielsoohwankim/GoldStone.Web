@@ -1,8 +1,8 @@
 import { IUser } from './_store';
-import { IGetUserResponseContract } from '@/clients/goldStoneClient';
+import { IGetUserResponseContractV1 } from '@/clients/goldStoneClient';
 
 class TenantManager {
-  public convertToUser(user: IGetUserResponseContract): IUser {
+  public convertToUser(user: IGetUserResponseContractV1): IUser {
     return {
       id: user.id,
       profileImageUrl: user.profileImageUrl,

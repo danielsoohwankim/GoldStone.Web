@@ -6,9 +6,9 @@ import { ExpenseCategory, ExpenseType, TransactionState, TransactionType } from 
 import manager from './_manager';
 import goldStoneClient from '@/clients/goldStoneClient';
 import {
-  IGetAccountResponseContract,
-  IGetTransactionResponseContract,
-  IGetUserResponseContract,
+  IGetAccountResponseContractV1,
+  IGetTransactionResponseContractV1,
+  IGetUserResponseContractV1,
   IPutTransactionRequestContractV1,
 } from '@/clients/goldStoneClient';
 import { Menus } from '@/layout/_data';
@@ -39,6 +39,7 @@ interface IAccountantState {
   showDeleteTransactions: boolean;
   showEditPendings: boolean;
   showEditTransactions: boolean;
+  showMergeTransactions: boolean;
 }
 
 export interface ITransaction {
@@ -66,6 +67,7 @@ const initialState: IAccountantState = {
   showDeleteTransactions: false,
   showEditPendings: false,
   showEditTransactions: false,
+  showMergeTransactions: false,
 };
 
 const path: string = Menus.Accountant.path;
@@ -79,12 +81,6 @@ const path: string = Menus.Accountant.path;
 class AccountantStore extends VuexModule {
   // lowercase 'state' is reserved in Vuex
   private State: IAccountantState = _.cloneDeep(initialState);
-
-  get isEditing(): boolean {
-    return this.State.showDeleteTransactions === true ||
-            this.State.showEditPendings === true ||
-            this.State.showEditTransactions === true;
-  }
 
   get selectedDeleteTransactionType(): TransactionType | undefined {
     return this.State.selectedDeleteTransactionType;
@@ -108,6 +104,10 @@ class AccountantStore extends VuexModule {
 
   get showEditTransactions(): boolean {
     return this.State.showEditTransactions;
+  }
+
+  get showMergeTransactions(): boolean {
+    return this.State.showMergeTransactions;
   }
 
   get transactions(): ITransaction[] {
@@ -211,6 +211,13 @@ class AccountantStore extends VuexModule {
     };
   }
 
+  get getTransactionType() {
+    return (id: string): TransactionType =>
+      (this.getTransactionState(id) === TransactionState.Pending)
+        ? TransactionType.Pending
+        : TransactionType.Transaction;
+  }
+
   get getUserProfileImage() {
     return (accountId: string): string | undefined => {
       const account = this.getAccount(accountId);
@@ -302,7 +309,7 @@ class AccountantStore extends VuexModule {
   // @Action({ rawError: true })
   @Action
   public async initAsync(): Promise<void> {
-    const startDate: Date = Date.Today().addDays(-3);
+    const startDate: Date = Date.Today().addDays(-5);
     const endDate: Date = Date.Today();
     const getAccountsPromise = goldStoneClient.getAccountsAsync(false, true);
     const getTransactionsPromise = goldStoneClient.getTransactionsAsync(startDate, endDate);
@@ -329,9 +336,9 @@ class AccountantStore extends VuexModule {
       return;
     }
 
-    const accountResponses = getAccountsResponse.data as IGetAccountResponseContract[];
-    const transactionResponses = getTransactionsResponse.data as IGetTransactionResponseContract[];
-    const userResponses = getUsersResponse.data as IGetUserResponseContract[];
+    const accountResponses = getAccountsResponse.data as IGetAccountResponseContractV1[];
+    const transactionResponses = getTransactionsResponse.data as IGetTransactionResponseContractV1[];
+    const userResponses = getUsersResponse.data as IGetUserResponseContractV1[];
 
     if (!accountResponses || !transactionResponses || !userResponses ||
         accountResponses.length <= 0 || transactionResponses.length <= 0 || userResponses.length <= 0) {
@@ -347,6 +354,55 @@ class AccountantStore extends VuexModule {
 
     tenant.setUsers(users);
     this.context.commit('Init', { accounts, transactions });
+  }
+
+  @Action
+  public async mergeTransactionsAsync(): Promise<void> {
+    const transactionId: string = this.State.selectedTransactionIds[0];
+    const pendingId: string = this.State.selectedPendingIds[0];
+
+    // const response: AxiosResponse<void | any>
+    //   = await loaderAction.sendAsync(() => goldStoneClient.mergeTransactionsAsync(transactionId, pendingId));
+
+    // const result = sharedManager.handleApiResponse(response, path);
+    // if (result.success === false) {
+    //   return;
+    // }
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: 'Merged 2 transactions',
+      show: true,
+    });
+
+    this.context.commit('MergeTransactions', {
+      transactionId,
+      pendingId,
+    });
+
+    this.context.commit('ToggleMerge', false);
+  }
+
+  @Action
+  public removeTransaction(id: string): void {
+    const type: TransactionType = this.getTransactionType(id);
+
+    this.context.commit('RemoveTransaction', {
+      id,
+      type,
+    });
+
+    if (type === TransactionType.Pending && this.State.selectedPendingIds.length <= 0) {
+      this.context.commit('ToggleEdit', {
+        show: false,
+        type,
+      });
+    } else if (type === TransactionType.Transaction && this.State.selectedTransactionIds.length <= 0) {
+      this.context.commit('ToggleEdit', {
+        show: false,
+        type,
+      });
+    }
   }
 
   @Action
@@ -469,6 +525,11 @@ class AccountantStore extends VuexModule {
     }
 
     this.context.commit('ToggleEdit', params);
+  }
+
+  @Action
+  public toggleMerge(): void {
+    this.context.commit('ToggleMerge', !this.State.showMergeTransactions);
   }
 
   @Action
@@ -657,6 +718,46 @@ class AccountantStore extends VuexModule {
   }
 
   @Mutation
+  private MergeTransactions(params: {
+    transactionId,
+    pendingId,
+  }): void {
+    const { transactionId, pendingId } = params;
+
+    this.State.selectedPendingIds = [];
+    this.State.selectedTransactionIds = [];
+
+    const pendingTransaction: ITransaction = this.State.transactions[pendingId];
+
+    Vue.delete(this.State.transactions, pendingId);
+
+    if (this.State.floatingTransactions) {
+      Vue.delete(this.State.floatingTransactions, pendingId);
+    }
+
+    this.State.transactions[transactionId] = {
+      ...this.State.transactions[transactionId],
+      date: pendingTransaction.date,
+      expenseCategory: pendingTransaction.expenseCategory,
+      note: pendingTransaction.note,
+    };
+  }
+
+  @Mutation
+  private RemoveTransaction(params: {
+    id: string,
+    type: TransactionType,
+  }): void {
+    const { id, type } = params;
+
+    if (type === TransactionType.Pending) {
+      this.State.selectedPendingIds.splice(this.State.selectedPendingIds.indexOf(id), 1);
+    } else {
+      this.State.selectedTransactionIds.splice(this.State.selectedTransactionIds.indexOf(id), 1);
+    }
+  }
+
+  @Mutation
   private ResetFloatingTransactions(id: string): void {
     this.State.floatingTransactions[id] = _.cloneDeep(this.State.transactions[id]);
   }
@@ -755,6 +856,11 @@ class AccountantStore extends VuexModule {
     } else if (type === TransactionType.Transaction) {
       this.State.showEditTransactions = show;
     }
+  }
+
+  @Mutation
+  private ToggleMerge(show: boolean): void {
+    this.State.showMergeTransactions = show;
   }
 
   @Mutation

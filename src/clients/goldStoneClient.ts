@@ -26,7 +26,7 @@ class GoldStoneClient {
   public async getAccountsAsync(
     isAsset?: boolean,
     isExpense?: boolean,
-    ): Promise<AxiosResponse<IGetAccountResponseContract[] | any>> {
+    ): Promise<AxiosResponse<IGetAccountResponseContractV1[] | any>> {
     this.setJwtToken();
 
     let path = accountsPath(tenant.id);
@@ -50,7 +50,7 @@ class GoldStoneClient {
 
   public async getCatalogsAsync(
     startDate: Date,
-    endDate: Date): Promise<AxiosResponse<IGetCatalogResponseContract[] | any>> {
+    endDate: Date): Promise<AxiosResponse<IGetCatalogResponseContractV1[] | any>> {
     this.setJwtToken();
 
     try {
@@ -61,7 +61,7 @@ class GoldStoneClient {
     }
   }
 
-  public async getUsersAsync(): Promise<AxiosResponse<IGetUserResponseContract[] | any>> {
+  public async getUsersAsync(): Promise<AxiosResponse<IGetUserResponseContractV1[] | any>> {
     this.setJwtToken();
 
     try {
@@ -74,11 +74,26 @@ class GoldStoneClient {
   public async getTransactionsAsync(
     startDate: Date,
     endDate: Date,
-  ): Promise<AxiosResponse<IGetTransactionResponseContract[] | any>> {
+  ): Promise<AxiosResponse<IGetTransactionResponseContractV1[] | any>> {
     this.setJwtToken();
 
     try {
       return await api.get(`${transactionsPath(tenant.id)}?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+    } catch (e) {
+      return e.response;
+    }
+  }
+
+  public async mergeTransactionsAsync(transactionId: string, pendingId: string)
+  : Promise<AxiosResponse<IGetTransactionResponseContractV1[] | any>> {
+    this.setJwtToken();
+
+    const data: IMergeTransactionsRequestContractV1 = {
+      pendingTransactionId: pendingId,
+    };
+
+    try {
+      return await api.put(`${transactionsPath(tenant.id)}/${transactionId}/merge`, data);
     } catch (e) {
       return e.response;
     }
@@ -149,7 +164,7 @@ class GoldStoneClient {
 
 export default new GoldStoneClient();
 
-export interface IGetAccountResponseContract {
+export interface IGetAccountResponseContractV1 {
   assetType?: GoldStoneAssetType;
   expenseType?: GoldStoneExpenseType;
   id: string;
@@ -161,7 +176,7 @@ export interface IGetAccountResponseContract {
   userId: string;
 }
 
-export interface IGetCatalogResponseContract {
+export interface IGetCatalogResponseContractV1 {
   accountId: string;
   date: Date;
   tenant: string;
@@ -169,7 +184,7 @@ export interface IGetCatalogResponseContract {
   value: number;
 }
 
-export interface IGetTransactionResponseContract {
+export interface IGetTransactionResponseContractV1 {
   accountId: string;
   amount: number;
   date: string;
@@ -183,11 +198,15 @@ export interface IGetTransactionResponseContract {
   verifiedDate?: string;
 }
 
-export interface IGetUserResponseContract {
+export interface IGetUserResponseContractV1 {
   id: string;
   tenantId: string;
   profileImageUrl: string;
   role: UserRole;
+}
+
+export interface IMergeTransactionsRequestContractV1 {
+  pendingTransactionId: string;
 }
 
 export interface IPutAccountCatalogRequestContractV1 {

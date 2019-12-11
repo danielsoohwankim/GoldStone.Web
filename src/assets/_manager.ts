@@ -2,14 +2,14 @@ import _ from 'lodash';
 import AssetConstants from './_constants';
 import { AssetType, IAccount, ICatalog } from './_store';
 import {
-  IGetCatalogResponseContract,
-  IGetAccountResponseContract,
+  IGetCatalogResponseContractV1,
+  IGetAccountResponseContractV1,
   GoldStoneAssetType,
 } from '@/clients/goldStoneClient';
 import { goldStoneException } from '@/shared/GoldStoneException';
 
 class AssetManager {
-  public convertToAccount(item: IGetAccountResponseContract): IAccount {
+  public convertToAccount(item: IGetAccountResponseContractV1): IAccount {
     return {
       assetType: this.getAssetType(item.assetType!),
       id: item.id,
@@ -20,7 +20,7 @@ class AssetManager {
     };
   }
 
-  public convertToCatalog(item: IGetCatalogResponseContract): ICatalog {
+  public convertToCatalog(item: IGetCatalogResponseContractV1): ICatalog {
     return {
       accountId: item.accountId,
       balance: item.value,

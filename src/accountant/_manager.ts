@@ -3,8 +3,8 @@ import { ExpenseType } from './_data';
 import accountant, { IAccount, ITransaction } from './_store';
 import {
   GoldStoneExpenseType,
-  IGetAccountResponseContract,
-  IGetTransactionResponseContract,
+  IGetAccountResponseContractV1,
+  IGetTransactionResponseContractV1,
   IPutTransactionRequestContractV1,
 } from '@/clients/goldStoneClient';
 import layout from '@/layout/_store';
@@ -13,7 +13,7 @@ import { device } from '@/shared/_tools';
 import { goldStoneException } from '@/shared/GoldStoneException';
 
 class AccountantManager {
-  public convertToAccount(item: IGetAccountResponseContract): IAccount {
+  public convertToAccount(item: IGetAccountResponseContractV1): IAccount {
     return {
       id: item.id,
       name: item.name,
@@ -38,7 +38,7 @@ class AccountantManager {
     };
   }
 
-  public convertToTransaction(item: IGetTransactionResponseContract): ITransaction {
+  public convertToTransaction(item: IGetTransactionResponseContractV1): ITransaction {
     return {
       accountId: item.accountId,
       amount: item.amount,

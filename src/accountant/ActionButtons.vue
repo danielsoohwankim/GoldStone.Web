@@ -11,7 +11,7 @@
       <md-button
         class="md-accent button merge"
         :disabled="canMerge === false"
-        @click="merge()"
+        @click="accountant.toggleMerge()"
       >
         Merge
       </md-button>
@@ -41,6 +41,7 @@ import tenant from '@/tenant/_store';
 @Component
 export default class Actions extends Vue {
   // data
+  public accountant = accountant;
 
   // computed
   get canMerge(): boolean {
@@ -68,10 +69,6 @@ export default class Actions extends Vue {
   }
 
   // methods
-  public merge(): void {
-    //
-  }
-
   public unselectAll(): void {
     accountant.unselectAll();
   }

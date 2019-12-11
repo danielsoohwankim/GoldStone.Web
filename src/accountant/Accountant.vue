@@ -10,6 +10,7 @@
     <DeleteTransactions />
     <EditTransactions />
     <EditPendings />
+    <MergeTransactions />
   </div>
 </template>
 
@@ -21,6 +22,7 @@ import ActionButtons from './ActionButtons.vue';
 import DeleteTransactions from './DeleteTransactions.vue';
 import EditPendings from './EditPendings.vue';
 import EditTransactions from './EditTransactions.vue';
+import MergeTransactions from './MergeTransactions.vue';
 import TransactionTable from './TransactionTable.vue';
 
 @Component({
@@ -29,6 +31,7 @@ import TransactionTable from './TransactionTable.vue';
     DeleteTransactions,
     EditPendings,
     EditTransactions,
+    MergeTransactions,
     TransactionTable,
   },
 })

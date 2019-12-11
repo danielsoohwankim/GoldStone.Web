@@ -42,10 +42,10 @@ export default class LayoutConstants {
       Light: {
         Accent: colors.red.a200,
         Background: '#fafafa',
-        Disabled: colors.grey[200],
+        Disabled: colors.grey[500],
         Font: '#000',
         Gold: '#907200',
-        Primary: '',
+        Primary: colors.blueGrey[400],
         SnackBar: colors.grey[300],
         Stone: '#8a898d',
         Text: 'black',
@@ -53,7 +53,7 @@ export default class LayoutConstants {
       Dark: {
         Accent: colors.red.a200,
         Background: '#2a2a2a',
-        Disabled: colors.grey[500],
+        Disabled: colors.grey[400],
         Font: '#fff',
         Gold: '#907200',
         Primary: colors.lightBlue[200],

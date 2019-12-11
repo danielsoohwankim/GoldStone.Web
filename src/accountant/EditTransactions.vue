@@ -50,7 +50,8 @@
             md-sort-by="amount"
             class="edit-amount"
             :style="manager.getAmountStyle(item.amount)"
-          >{{ sharedManager.getFormattedAmount(item.amount) }}
+          >
+            <EditAmount :transactionId="item.id" />
           </md-table-cell>
           <md-table-cell 
             md-label="Category" 
@@ -70,6 +71,8 @@
             md-label="Actions" 
             class="edit-actions"
           >
+            <EditRemove :transactionId="item.id" divStyle="float: left;" />
+            <div style="width: 4px; float: left;">&nbsp;</div>
             <EditReset :transactionId="item.id" divStyle="float: left;" />
             <div style="width: 4px; float: left;">&nbsp;</div>
             <EditSave :transactionId="item.id" divStyle="float: left;" />
@@ -109,8 +112,10 @@ import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
+import EditAmount from './EditAmount.vue';
 import EditDate from './EditDate.vue';
 import EditNote from './EditNote.vue';
+import EditRemove from './EditRemove.vue';
 import EditReset from './EditReset.vue';
 import EditSave from './EditSave.vue';
 import EditVerify from './EditVerify.vue';
@@ -122,8 +127,10 @@ import sharedManager from '@/shared/_manager';
 
 @Component({
   components: {
+    EditAmount,
     EditDate,
     EditNote,
+    EditRemove,
     EditReset,
     EditSave,
     EditVerify,
@@ -203,13 +210,13 @@ $fixed-width: 2000px;
 }
 
 .edit-name {
-  width: 28%;
-  max-width: $fixed-width * 0.28;
+  width: 25%;
+  max-width: $fixed-width * 0.25;
 }
 
 .edit-amount {
-  width: 5%;
-  max-width: $fixed-width * 0.05;
+  width: 6%;
+  max-width: $fixed-width * 0.06;
 }
 
 .edit-category {
@@ -223,7 +230,7 @@ $fixed-width: 2000px;
 }
 
 .edit-actions {
-  width: 10%;
-  max-width: $fixed-width * 0.1;
+  width: 12%;
+  max-width: $fixed-width * 0.12;
 }
 </style>

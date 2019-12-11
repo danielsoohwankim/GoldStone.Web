@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="md-layout md-gutter">
-      <div class="md-layout-item" style="width: 150px; margin-top: -30px; margin-bottom: -35px;">
+      <div class="md-layout-item" style="width: 150px; margin-top: -30px; margin-bottom: -38px;">
         <md-field>
           <md-select
             v-model="accountant.getSelectedFloatingTransaction(transactionId).expenseCategory"

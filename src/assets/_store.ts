@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { Since, Sinces } from './_data';
 import manager from './_manager';
 import goldStoneClient from '@/clients/goldStoneClient';
-import { IGetAccountResponseContract, IGetCatalogResponseContract, IGetUserResponseContract } from '@/clients/goldStoneClient';
+import { IGetAccountResponseContractV1, IGetCatalogResponseContractV1, IGetUserResponseContractV1 } from '@/clients/goldStoneClient';
 import { Menus } from '@/layout/_data';
 import layout from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
@@ -282,9 +282,9 @@ class AssetsStore extends VuexModule {
       return;
     }
 
-    const accountResponses = getAccountsResponse.data as IGetAccountResponseContract[];
-    const catalogResponses = getCatalogsResponse.data as IGetCatalogResponseContract[];
-    const userResponses = getUsersResponse.data as IGetUserResponseContract[];
+    const accountResponses = getAccountsResponse.data as IGetAccountResponseContractV1[];
+    const catalogResponses = getCatalogsResponse.data as IGetCatalogResponseContractV1[];
+    const userResponses = getUsersResponse.data as IGetUserResponseContractV1[];
 
     if (!accountResponses || !catalogResponses || !userResponses ||
         accountResponses.length <= 0 || catalogResponses.length <= 0 || userResponses.length <= 0) {
@@ -368,7 +368,7 @@ class AssetsStore extends VuexModule {
 
     const startDate: Date = Sinces.getDate(since);
     const endDate: Date = Sinces.getDate(this.context.getters.minSince).addDays(-1);
-    const response: AxiosResponse<IGetCatalogResponseContract | any>
+    const response: AxiosResponse<IGetCatalogResponseContractV1 | any>
       = await loaderAction.sendAsync(() => goldStoneClient.getCatalogsAsync(startDate, endDate));
 
     const result = sharedManager.handleApiResponse(response, path);
@@ -376,7 +376,7 @@ class AssetsStore extends VuexModule {
       return false;
     }
 
-    const catalogResponses = response.data as IGetCatalogResponseContract[];
+    const catalogResponses = response.data as IGetCatalogResponseContractV1[];
     const catalogList: ICatalog[] = catalogResponses.map((c) => manager.convertToCatalog(c));
     const catalogs: { [ key: string ]: ICatalog } = _.keyBy(catalogList, (c) => GuidDate.GetId(c.accountId, c.date));
     const sinceChanges: string[] = Sinces.getChanges(this.context.getters.minSince, since);
