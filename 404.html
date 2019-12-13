@@ -4,7 +4,7 @@
   // remove trailing slash if it exists
   path = (path.charAt(path.length - 1) === '/')
     ? path.slice(0, -1) : path;
-
-  sessionStorage.setItem('path', path);
-  window.location.href='../';
+console.log(window.location.pathname, path);
+  // sessionStorage.setItem('path', path);
+  // window.location.href='../';
 </script>
