@@ -55,11 +55,20 @@ export default class ChartDonut extends Vue {
   // styles
 
   // computed
+  get theme(): Theme {
+    return layout.theme;
+  }
+
   get transactions(): ITransaction[] {
     return accountant.transactions;
   }
 
   // watch
+  @Watch('theme')
+  public onThemeChange(val: Theme, oldVal: Theme): void {
+    this.drawChart();
+  }
+
   @Watch('transactions')
   public onSelectedCatalogsChange(val: ITransaction, oldVal: ITransaction): void {
     this.drawChart();

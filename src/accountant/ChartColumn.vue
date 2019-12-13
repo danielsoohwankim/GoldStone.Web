@@ -76,11 +76,20 @@ export default class ChartColumn extends Vue {
   // styles
 
   // computed
+  get theme(): Theme {
+    return layout.theme;
+  }
+
   get transactions(): ITransaction[] {
     return accountant.transactions;
   }
 
   // watch
+  @Watch('theme')
+  public onThemeChange(val: Theme, oldVal: Theme): void {
+    this.drawChart();
+  }
+
   @Watch('transactions')
   public onSelectedCatalogsChange(val: ITransaction, oldVal: ITransaction): void {
     this.drawChart();
@@ -163,7 +172,7 @@ export default class ChartColumn extends Vue {
   private setOptions(): void {
     this.options.annotations.textStyle.auraColor = AccountantConstants.Chart.Colors[layout.theme].AuraColumn;
     this.options.hAxis.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
-    this.options.titleTextStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
+    this.options.titleTextStyle.color = AccountantConstants.Chart.Colors[layout.theme].Title;
     this.options.vAxis.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
   }
 }

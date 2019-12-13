@@ -45,7 +45,7 @@ export default class LayoutConstants {
         Disabled: colors.grey[500],
         Font: '#000',
         Gold: '#907200',
-        Primary: colors.blueGrey[400],
+        Primary: colors.cyan[200],
         SnackBar: colors.grey[300],
         Stone: '#8a898d',
         Text: 'black',
