@@ -5,6 +5,6 @@
   path = (path.charAt(path.length - 1) === '/')
     ? path.slice(0, -1) : path;
 
-  sessionStorage.setItem('path', path.slice(0, -1));
+  sessionStorage.setItem('path', path);
   window.location.href='../';
 </script>
