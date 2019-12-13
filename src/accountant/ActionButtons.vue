@@ -28,10 +28,6 @@
       >
         {{ expandLabel }}
       </md-button>
-      <!-- todo: remove -->
-      <md-button class="md-primary button" @click="toLegacy()">
-        To Legacy
-      </md-button>
     </div>
     <div class="padding-bottom"></div>
   </div>
@@ -41,8 +37,6 @@
 import { Vue, Prop, Component } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import accountant, { ITransaction } from './_store';
-// todo: remove
-import tenant from '@/tenant/_store';
 
 @Component
 export default class Actions extends Vue {
@@ -90,11 +84,6 @@ export default class Actions extends Vue {
 
   public verifyAll(): void {
     accountant.verifyAll();
-  }
-
-  // todo: remove
-  public toLegacy(): void {
-    window.open(`https://goldstone.azurewebsites.net/expenses?${tenant.id}`, '_blank');
   }
 }
 </script>
