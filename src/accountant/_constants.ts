@@ -34,6 +34,10 @@ interface IChartColor {
   Title: string;
 }
 
+interface IDateTime {
+  StartYear: number;
+}
+
 interface ILayout {
   Colors: {
     Dark: ILayoutColor;
@@ -77,6 +81,10 @@ export default class AccountantConstants {
         Vehicle: '#ffc107',
       },
     },
+  };
+
+  public static DateTime: IDateTime = {
+    StartYear: 2018,
   };
 
   public static Chart: IChart = {

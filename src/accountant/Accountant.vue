@@ -1,5 +1,6 @@
 <template>
   <div v-if="isLoaded === true">
+    <SelectYearDate />
     <!-- Charts -->
     <div style="margin-left: 15px;">
       <ChartLayout />
@@ -29,6 +30,7 @@ import DeleteTransactions from './DeleteTransactions.vue';
 import EditPendings from './EditPendings.vue';
 import EditTransactions from './EditTransactions.vue';
 import MergeTransactions from './MergeTransactions.vue';
+import SelectYearDate from './SelectYearDate.vue';
 import TransactionTable from './TransactionTable.vue';
 
 @Component({
@@ -39,6 +41,7 @@ import TransactionTable from './TransactionTable.vue';
     EditPendings,
     EditTransactions,
     MergeTransactions,
+    SelectYearDate,
     TransactionTable,
   },
 })

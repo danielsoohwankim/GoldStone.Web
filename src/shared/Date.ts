@@ -8,6 +8,10 @@ export class Date implements IDate {
     return new Date(moment().format(DATE_FORMAT));
   }
 
+  public static GetDate(year: number, month: number, day: number): Date {
+    return new Date(moment([year, month - 1, day]).format(DATE_FORMAT));
+  }
+
   public static Max(a: Date, b: Date): Date {
     return (a.toString() > b.toString()) ? a : b;
   }

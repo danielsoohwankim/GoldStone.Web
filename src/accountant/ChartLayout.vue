@@ -43,17 +43,20 @@ export default class ChartLayout extends Vue {
 <style lang="scss" scoped>
 .donut {
   float: left;
+  height: 450px;
   width: 20%;
 }
 
 .column {
   float: left;
+  height: 450px;
   margin-left: 10px;
   width: 45%;
 }
 
 .bar {
   float: left;
+  height: 450px;
   margin-left: -50px;
   width: 35%;
 }

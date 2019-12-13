@@ -16,7 +16,7 @@ import moment from 'moment';
 import AccountantConstants from './_constants';
 import { ExpenseCategory } from './_data';
 import manager from './_manager';
-import accountant from './_store';
+import accountant, { ITransaction } from './_store';
 import LayoutConstants from '@/layout/_constants';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
@@ -76,6 +76,15 @@ export default class ChartColumn extends Vue {
   // styles
 
   // computed
+  get transactions(): ITransaction[] {
+    return accountant.transactions;
+  }
+
+  // watch
+  @Watch('transactions')
+  public onSelectedCatalogsChange(val: ITransaction, oldVal: ITransaction): void {
+    this.drawChart();
+  }
 
   // methods
   public getTooltipString(
@@ -121,16 +130,16 @@ export default class ChartColumn extends Vue {
     data.addColumn({ type: 'string', role: 'annotation' });
 
     this.chartCategories.forEach((category) => {
-      const prevTotal: number = accountant.getTotal({
+      const prevTotal: number = Math.max(accountant.getTotal({
         category,
         startDate: prevStartDate,
         endDate: prevEndDate,
-      });
-      const curTotal: number = accountant.getTotal({
+      }), 0);
+      const curTotal: number = Math.max(accountant.getTotal({
         category,
         startDate: curStartDate,
         endDate: curEndDate,
-      });
+      }), 0);
       const color: string = AccountantConstants.Category.Colors[layout.theme][category];
       const row = [
         category,

@@ -221,7 +221,7 @@ class AccountantStore extends VuexModule {
       } else {
         transactions = this.chartTransactions
           .filter((t) => t.expenseCategory === category && startDate <= t.date && t.date <= endDate);
-        return  _.sumBy(transactions, (t) => t.amount);
+        return _.sumBy(transactions, (t) => t.amount);
       }
     };
   }
@@ -361,9 +361,9 @@ class AccountantStore extends VuexModule {
   // @Action({ rawError: true })
   @Action
   public async initAsync(): Promise<void> {
-    const twoMonthsAgo: Date = Date.Today().addMonths(-2);
-    const startDate: Date = new Date(sharedManager.getStartDay(twoMonthsAgo.getYear(), twoMonthsAgo.getMonth()));
-    const endDate: Date = new Date(sharedManager.getLastDay(Date.Today().getYear(), Date.Today().getMonth()));
+    const curMonth: Date = Date.GetDate(this.selectedYear, this.selectedMonth, 1);
+    const startDate: Date = curMonth.addMonths(-2);
+    const endDate: Date = curMonth.addMonths(1).addDays(-1);
     const getAccountsPromise = goldStoneClient.getAccountsAsync(false, true);
     const getTransactionsPromise = goldStoneClient.getTransactionsAsync(startDate, endDate);
     const getUsersPromise = goldStoneClient.getUsersAsync();
@@ -538,6 +538,58 @@ class AccountantStore extends VuexModule {
     type: TransactionType,
   }): void {
     this.context.commit('SelectTransaction', params);
+  }
+
+  @Action
+  public async selectMonthAsync(month: number): Promise<void> {
+    const selectedDate: Date = Date.GetDate(this.selectedYear, month, 1);
+    const startDate: Date = selectedDate.addMonths(-2);
+    const endDate: Date = selectedDate.addMonths(1).addDays(-1);
+
+    const response: AxiosResponse<void | any>
+      = await loaderAction.sendAsync(() => goldStoneClient.getTransactionsAsync(startDate, endDate));
+
+    const result = sharedManager.handleApiResponse(response, path);
+    if (result.success === false) {
+      return;
+    }
+
+    const transactions: ITransaction[] = response.data.map((c) => manager.convertToTransaction(c));
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: `Fetched ${transactions.length} transactions for ${this.selectedYear}-${this.selectedMonth}`,
+      show: true,
+    });
+
+    this.context.commit('SetSelectedMonth', month);
+    this.context.commit('SetTransactions', transactions);
+  }
+
+  @Action
+  public async selectYearAsync(year: number): Promise<void> {
+    const selectedDate: Date = Date.GetDate(year, this.selectedMonth, 1);
+    const startDate: Date = selectedDate.addMonths(-2);
+    const endDate: Date = selectedDate.addMonths(1).addDays(-1);
+
+    const response: AxiosResponse<void | any>
+      = await loaderAction.sendAsync(() => goldStoneClient.getTransactionsAsync(startDate, endDate));
+
+    const result = sharedManager.handleApiResponse(response, path);
+    if (result.success === false) {
+      return;
+    }
+
+    const transactions: ITransaction[] = response.data.map((c) => manager.convertToTransaction(c));
+
+    layout.setSnackBar({
+      isSuccess: true,
+      message: `Fetched ${transactions.length} transactions for ${this.selectedYear}-${this.selectedMonth}`,
+      show: true,
+    });
+
+    this.context.commit('SetSelectedYear', year);
+    this.context.commit('SetTransactions', transactions);
   }
 
   @Action
@@ -863,6 +915,11 @@ class AccountantStore extends VuexModule {
   }
 
   @Mutation
+  private SetTransactions(transactions: ITransaction[]): void {
+    this.State.transactions =  _.keyBy(transactions, (c) => c.id);
+  }
+
+  @Mutation
   private SetFloatingTransactions(ids: string[]): void {
     const floatingTransactions = _.cloneDeep(this.State.floatingTransactions);
 
@@ -875,6 +932,16 @@ class AccountantStore extends VuexModule {
     });
 
     this.State.floatingTransactions = floatingTransactions;
+  }
+
+  @Mutation
+  private SetSelectedYear(year: number): void {
+    this.State.selectedYear = year;
+  }
+
+  @Mutation
+  private SetSelectedMonth(month: number): void {
+    this.State.selectedMonth = month;
   }
 
   @Mutation

@@ -16,7 +16,7 @@ import moment from 'moment';
 import AccountantConstants from './_constants';
 import { ExpenseCategory } from './_data';
 import manager from './_manager';
-import accountant from './_store';
+import accountant, { ITransaction } from './_store';
 import LayoutConstants from '@/layout/_constants';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
@@ -55,31 +55,15 @@ export default class ChartDonut extends Vue {
   // styles
 
   // computed
-  // get selectedCatalogs() {
-  //   return assets.getCatalogs(this.selectedChartId);
-  // }
-
-  // get selectedChartId(): string {
-  //   return assets.getSelectedChartId(this.assetType);
-  // }
-
-  // get selectedChartSince(): string {
-  //   return assets.getSelectedChartSince(this.assetType);
-  // }
+  get transactions(): ITransaction[] {
+    return accountant.transactions;
+  }
 
   // watch
-  @Watch('selectedCatalogs')
-  public onSelectedCatalogsChange(val: string, oldVal: string): void {
+  @Watch('transactions')
+  public onSelectedCatalogsChange(val: ITransaction, oldVal: ITransaction): void {
     this.drawChart();
   }
-  // @Watch('selectedChartSince')
-  // public onSelectedChartSince(val: Since, oldVal: Since) {
-  //   this.drawChart();
-  // }
-  // @Watch('theme')
-  // public onThemeChanged(val: Theme, oldVal: Theme) {
-  //   this.drawChart();
-  // }
 
   // methods
   public getTooltipString(
@@ -116,11 +100,11 @@ export default class ChartDonut extends Vue {
     data.addColumn({ type: 'string', role: 'tooltip', p: { html: true } });
 
     this.chartCategories.forEach((category) => {
-      const total: number = accountant.getTotal({
+      const total: number = Math.max(accountant.getTotal({
         category,
         startDate,
         endDate,
-      });
+      }), 0);
       const percentage: number = accountant.getProportion({
         category,
         startDate,

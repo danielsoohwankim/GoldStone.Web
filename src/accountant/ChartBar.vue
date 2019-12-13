@@ -16,7 +16,7 @@ import moment from 'moment';
 import AccountantConstants from './_constants';
 import { ExpenseCategory } from './_data';
 import manager from './_manager';
-import accountant from './_store';
+import accountant, { ITransaction } from './_store';
 import LayoutConstants from '@/layout/_constants';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
@@ -80,6 +80,15 @@ export default class ChartBar extends Vue {
   // styles
 
   // computed
+  get transactions(): ITransaction[] {
+    return accountant.transactions;
+  }
+
+  // watch
+  @Watch('transactions')
+  public onSelectedCatalogsChange(val: ITransaction, oldVal: ITransaction): void {
+    this.drawChart();
+  }
 
   // methods
   public onChartReady(gchart, google): void {
@@ -115,23 +124,31 @@ export default class ChartBar extends Vue {
 
   private getChartRow(startDate: Date, endDate: Date) {
     const month: number = startDate.getMonth();
+    // cases where total of an expense category is negative
+    let negativeTotal: number = 0;
 
     const row: any = [ sharedManager.getMonthAbbr(month) ];
     this.chartCategories.forEach((category) => {
-      const total: number = accountant.getTotal({
+      let total: number = accountant.getTotal({
         category,
         startDate: startDate.toString(),
         endDate: endDate.toString(),
       });
 
+      if (total < 0) {
+        negativeTotal += total;
+        total = 0;
+      }
+
       row.push(total);
       row.push(this.getTooltipString(category, total, month));
     });
 
-    const monthlyTotal: number = accountant.getTotal({
+    let monthlyTotal: number = accountant.getTotal({
       startDate: startDate.toString(),
       endDate: endDate.toString(),
     });
+    monthlyTotal -= negativeTotal;
 
     row.push('$' + sharedManager.toCurrencyString(monthlyTotal)); // annotation
 
