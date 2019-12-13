@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { ExpenseType } from './_data';
+import { ExpenseCategory, ExpenseType } from './_data';
 import accountant, { IAccount, ITransaction } from './_store';
 import {
   GoldStoneExpenseType,
@@ -75,6 +75,10 @@ class AccountantManager {
     return {
       color: sharedManager.getAmountColor(amount, layout.theme),
     };
+  }
+
+  public getChartCategories(): ExpenseCategory[] {
+    return _.keys(ExpenseCategory).filter((ec) => ec !== ExpenseCategory.Special);
   }
 
   public getScrollStyle(): object {

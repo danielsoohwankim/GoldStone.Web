@@ -157,7 +157,12 @@ export default class TransactionTable extends Vue {
   // computed
   get transactions(): ITransaction[] {
     if (!this.search || this.search === '') {
-      return accountant.getTransactions(this.type);
+      const transactions: ITransaction[] =
+        accountant.getTransactions(this.type).sort((a, b) => b.date.localeCompare(a.date));
+
+      return (accountant.showAllTransactions === true)
+        ? transactions
+        : transactions.splice(0, AccountConstants.Transactions.TableSize);
     } else {
       const transactions: ITransaction[] = accountant.getTransactions(this.type);
       return this.searchByName(transactions, this.search);

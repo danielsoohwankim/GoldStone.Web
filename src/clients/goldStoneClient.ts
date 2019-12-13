@@ -4,6 +4,8 @@ import { storageTools } from '@/shared/_tools';
 import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
 import { UserRole } from '@/tenant/_data';
+// todo: remove
+import getTransactionsResponse from '@/accountant/testData.js';
 
 const authorizationHeader = 'Authorization';
 const baseUrl: string = `https://goldstone.azurewebsites.net`;
@@ -78,7 +80,9 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      return await api.get(`${transactionsPath(tenant.id)}?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+      // return await api.get(`${transactionsPath(tenant.id)}
+      // ?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+      return getTransactionsResponse;
     } catch (e) {
       return e.response;
     }

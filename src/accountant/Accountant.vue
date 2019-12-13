@@ -1,12 +1,17 @@
 <template>
   <div v-if="isLoaded === true">
+    <!-- Charts -->
+    <div style="margin-left: 15px;">
+      <ChartLayout />
+    </div>
+
+    <!-- Transaction Table -->
     <TransactionTable :type="TransactionType.Transaction" />
     <ActionButtons />
     <TransactionTable :type="TransactionType.Pending" />
     <div class="bottom-padding"></div>
     
     <!-- Dialogs -->
-
     <DeleteTransactions />
     <EditTransactions />
     <EditPendings />
@@ -19,6 +24,7 @@ import { Vue, Prop, Component } from 'vue-property-decorator';
 import { TransactionType } from './_data';
 import accountant from './_store';
 import ActionButtons from './ActionButtons.vue';
+import ChartLayout from './ChartLayout.vue';
 import DeleteTransactions from './DeleteTransactions.vue';
 import EditPendings from './EditPendings.vue';
 import EditTransactions from './EditTransactions.vue';
@@ -28,6 +34,7 @@ import TransactionTable from './TransactionTable.vue';
 @Component({
   components: {
     ActionButtons,
+    ChartLayout,
     DeleteTransactions,
     EditPendings,
     EditTransactions,

@@ -22,6 +22,12 @@
       >
         Unselect All
       </md-button>
+      <md-button
+        class="button expand"
+        @click="expand()"
+      >
+        {{ expandLabel }}
+      </md-button>
       <!-- todo: remove -->
       <md-button class="md-primary button" @click="toLegacy()">
         To Legacy
@@ -45,13 +51,13 @@ export default class Actions extends Vue {
 
   // computed
   get canMerge(): boolean {
-    return accountant.selectedPendingIds.length === 1
-      && accountant.selectedTransactionIds.length === 1;
+    return accountant.getSelectedSize(TransactionType.Pending) === 1
+      && accountant.getSelectedSize(TransactionType.Transaction) === 1;
   }
 
   get canUnselect(): boolean {
-    return accountant.selectedPendingIds.length > 0
-      || accountant.selectedTransactionIds.length > 0;
+    return accountant.getSelectedSize(TransactionType.Pending) > 0
+      || accountant.getSelectedSize(TransactionType.Transaction) > 0;
   }
 
   get canVerify(): boolean {
@@ -68,7 +74,16 @@ export default class Actions extends Vue {
     return false;
   }
 
+  get expandLabel(): string {
+    return (accountant.showAllTransactions === true)
+      ? 'Reduce' : 'Expand';
+  }
+
   // methods
+  public expand(): void {
+    accountant.toggleShowAllTransactions();
+  }
+
   public unselectAll(): void {
     accountant.unselectAll();
   }
@@ -104,6 +119,10 @@ export default class Actions extends Vue {
 
 .unselect {
   margin-right: 0px;
+}
+
+.expand {
+  margin-right: 5px;
 }
 
 .verify {

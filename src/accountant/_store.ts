@@ -2,6 +2,7 @@ import { Vue } from 'vue-property-decorator';
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import { AxiosResponse } from 'Axios';
 import _ from 'lodash';
+import moment from 'moment';
 import { ExpenseCategory, ExpenseType, TransactionState, TransactionType } from './_data';
 import manager from './_manager';
 import goldStoneClient from '@/clients/goldStoneClient';
@@ -33,14 +34,17 @@ export interface IAccount {
 interface IAccountantState {
   accounts: { [ key: string ]: IAccount };
   floatingTransactions: { [ id: string ]: ITransaction };
-  transactions: { [ id: string ]: ITransaction };
   selectedDeleteTransactionType: TransactionType | undefined;
-  selectedPendingIds: string[];
-  selectedTransactionIds: string[];
+  selectedPendingIds: { [ id: string ]: boolean };
+  selectedTransactionIds: { [ id: string ]: boolean };
+  selectedMonth: number;
+  selectedYear: number;
+  showAllTransactions: boolean;
   showDeleteTransactions: boolean;
   showEditPendings: boolean;
   showEditTransactions: boolean;
   showMergeTransactions: boolean;
+  transactions: { [ id: string ]: ITransaction };
 }
 
 export interface ITransaction {
@@ -61,14 +65,17 @@ export interface ITransaction {
 const initialState: IAccountantState = {
   accounts: {},
   floatingTransactions: {},
-  transactions: {},
   selectedDeleteTransactionType: undefined,
-  selectedPendingIds: [],
-  selectedTransactionIds: [],
+  selectedPendingIds: {},
+  selectedTransactionIds: {},
+  selectedMonth: moment().month(),
+  selectedYear: moment().year(),
+  showAllTransactions: false,
   showDeleteTransactions: false,
   showEditPendings: false,
   showEditTransactions: false,
   showMergeTransactions: false,
+  transactions: {},
 };
 
 const path: string = Menus.Accountant.path;
@@ -83,16 +90,24 @@ class AccountantStore extends VuexModule {
   // lowercase 'state' is reserved in Vuex
   private State: IAccountantState = _.cloneDeep(initialState);
 
+  get chartTransactions(): ITransaction[] {
+    return this.transactions.filter((t) => t.expenseCategory !== ExpenseCategory.Special);
+  }
+
+  get showAllTransactions(): boolean {
+    return this.State.showAllTransactions;
+  }
+
   get selectedDeleteTransactionType(): TransactionType | undefined {
     return this.State.selectedDeleteTransactionType;
   }
 
-  get selectedPendingIds(): string[] {
-    return this.State.selectedPendingIds;
+  get selectedMonth(): number {
+    return this.State.selectedMonth;
   }
 
-  get selectedTransactionIds(): string[] {
-    return this.State.selectedTransactionIds;
+  get selectedYear(): number {
+    return this.State.selectedYear;
   }
 
   get showDeleteTransactions(): boolean {
@@ -155,11 +170,9 @@ class AccountantStore extends VuexModule {
       const selectedIds: string[] =
         (type === undefined)
         ? [
-          ...this.State.selectedPendingIds,
-          ...this.State.selectedTransactionIds,
-        ] : (type === TransactionType.Pending)
-          ? this.State.selectedPendingIds
-          : this.State.selectedTransactionIds;
+          ...this.getSelectedIds(TransactionType.Pending),
+          ...this.getSelectedIds(TransactionType.Transaction),
+        ] : this.getSelectedIds(type);
 
       selectedIds.forEach((id) => {
         if (this.State.floatingTransactions[id]) {
@@ -171,17 +184,58 @@ class AccountantStore extends VuexModule {
     };
   }
 
+  get getSelectedIds() {
+    return (type: TransactionType): string[] =>
+      (type === TransactionType.Pending)
+        ? _.keys(this.State.selectedPendingIds)
+        : _.keys(this.State.selectedTransactionIds);
+  }
+
+  get getSelectedSize() {
+    return (type: TransactionType): number => this.getSelectedIds(type).length;
+  }
+
   get getSelectedTransactions() {
     return (type: TransactionType): ITransaction[] => {
       const transactions: ITransaction[] = [];
-      const selectedIds: string[] = (type === TransactionType.Pending)
-        ? this.State.selectedPendingIds
-        : this.State.selectedTransactionIds;
+      const selectedIds: string[] = this.getSelectedIds(type);
 
       selectedIds.forEach((id) =>
         transactions.push(this.getTransaction(id)));
 
       return transactions;
+    };
+  }
+
+  get getTotal() {
+    return (params: {
+      category?: ExpenseCategory,
+      startDate: string,
+      endDate: string,
+    }): number => {
+      const { category, startDate, endDate } = params;
+      let transactions: ITransaction[] = this.chartTransactions.filter((t) => startDate <= t.date && t.date <= endDate);
+
+      if (!category) {
+        return _.sumBy(transactions, (t) => t.amount);
+      } else {
+        transactions = this.chartTransactions
+          .filter((t) => t.expenseCategory === category && startDate <= t.date && t.date <= endDate);
+        return  _.sumBy(transactions, (t) => t.amount);
+      }
+    };
+  }
+
+  get getProportion() {
+    return (params: {
+      category?: ExpenseCategory,
+      startDate: string,
+      endDate: string,
+    }): number => {
+      return this.getTotal(params) / this.getTotal({
+        startDate: params.startDate,
+        endDate: params.endDate,
+      });
     };
   }
 
@@ -191,9 +245,7 @@ class AccountantStore extends VuexModule {
 
   get getTransactions() {
     return (type: TransactionType): ITransaction[] =>
-      (type === TransactionType.Pending)
-        ? this.transactions.filter((t) => this.getTransactionState(t.id) === TransactionState.Pending)
-        : this.transactions.filter((t) => this.getTransactionState(t.id) !== TransactionState.Pending);
+      this.transactions.filter((t) => this.getTransactionType(t.id) === type);
   }
 
   get getTransactionState() {
@@ -230,8 +282,8 @@ class AccountantStore extends VuexModule {
 
   get isSelected() {
     return (id: string): boolean =>
-      this.State.selectedPendingIds.includes(id) ||
-      this.State.selectedTransactionIds.includes(id);
+      (this.State.selectedPendingIds[id] === true) ||
+      (this.State.selectedTransactionIds[id] === true);
   }
 
   get isVerified() {
@@ -269,20 +321,14 @@ class AccountantStore extends VuexModule {
 
     this.context.commit('DeleteTransaction', id);
 
-    if (this.State.selectedPendingIds.length <= 0 && type === TransactionType.Pending) {
-      this.context.commit('ToggleDelete', { show: false });
-    } else if (this.State.selectedTransactionIds.length <= 0 && type === TransactionType.Transaction) {
+    if (this.getSelectedSize(type) <= 0) {
       this.context.commit('ToggleDelete', { show: false });
     }
   }
 
   @Action
   public async deleteTransactionsAsync(): Promise<void> {
-    const selectedIds: string[] =
-      (this.State.selectedDeleteTransactionType === TransactionType.Pending)
-        ? this.State.selectedPendingIds
-        : this.State.selectedTransactionIds;
-
+    const selectedIds: string[] = this.getSelectedIds(this.State.selectedDeleteTransactionType!);
     if (selectedIds.length <= 0) {
       return;
     }
@@ -307,6 +353,11 @@ class AccountantStore extends VuexModule {
     this.context.commit('ToggleDelete', { show: false });
   }
 
+  @Action
+  public toggleShowAllTransactions(): void {
+    this.context.commit('ShowAllTransactions', !this.State.showAllTransactions);
+  }
+
   // @Action({ rawError: true })
   @Action
   public async initAsync(): Promise<void> {
@@ -326,10 +377,10 @@ class AccountantStore extends VuexModule {
     }
 
     // failed to get account transactions
-    result = sharedManager.handleApiResponse(getTransactionsResponse, path);
-    if (result.success === false) {
-      return;
-    }
+    // result = sharedManager.handleApiResponse(getTransactionsResponse, path);
+    // if (result.success === false) {
+    //   return;
+    // }
 
     // failed to get users
     result = sharedManager.handleApiResponse(getUsersResponse, path);
@@ -359,8 +410,8 @@ class AccountantStore extends VuexModule {
 
   @Action
   public async mergeTransactionsAsync(): Promise<void> {
-    const transactionId: string = this.State.selectedTransactionIds[0];
-    const pendingId: string = this.State.selectedPendingIds[0];
+    const transactionId: string = this.getSelectedTransactions(TransactionType.Transaction)[0].id;
+    const pendingId: string = this.getSelectedTransactions(TransactionType.Pending)[0].id;
 
     const response: AxiosResponse<IMergeTransactionResponseContractV1 | any>
       = await loaderAction.sendAsync(() => goldStoneClient.mergeTransactionsAsync(transactionId, pendingId));
@@ -396,12 +447,7 @@ class AccountantStore extends VuexModule {
       type,
     });
 
-    if (type === TransactionType.Pending && this.State.selectedPendingIds.length <= 0) {
-      this.context.commit('ToggleEdit', {
-        show: false,
-        type,
-      });
-    } else if (type === TransactionType.Transaction && this.State.selectedTransactionIds.length <= 0) {
+    if (this.getSelectedSize(type) <= 0) {
       this.context.commit('ToggleEdit', {
         show: false,
         type,
@@ -521,11 +567,7 @@ class AccountantStore extends VuexModule {
     }
     if (show === true) {
       // add floating transactions if they do not exist
-      if (type === TransactionType.Pending) {
-        this.context.commit('SetFloatingTransactions', this.State.selectedPendingIds);
-      } else {
-        this.context.commit('SetFloatingTransactions', this.State.selectedTransactionIds);
-      }
+      this.context.commit('SetFloatingTransactions', this.getSelectedIds(type));
     }
 
     this.context.commit('ToggleEdit', params);
@@ -538,8 +580,8 @@ class AccountantStore extends VuexModule {
 
   @Action
   public unselectAll(type?: TransactionType): void {
-    if (this.State.selectedPendingIds.length <= 0 &&
-        this.State.selectedTransactionIds.length <= 0) {
+    if (this.getSelectedSize(TransactionType.Pending) <= 0 &&
+        this.getSelectedSize(TransactionType.Transaction) <= 0) {
       return;
     }
 
@@ -680,18 +722,18 @@ class AccountantStore extends VuexModule {
       Vue.delete(this.State.floatingTransactions, id);
     }
 
-    if (this.State.selectedPendingIds.includes(id) === true) {
-      this.State.selectedPendingIds.splice(this.State.selectedPendingIds.indexOf(id), 1);
+    if (this.State.selectedPendingIds[id]) {
+      Vue.delete(this.State.selectedPendingIds, id);
     } else {
-      this.State.selectedTransactionIds.splice(this.State.selectedTransactionIds.indexOf(id), 1);
+      Vue.delete(this.State.selectedTransactionIds, id);
     }
   }
 
   @Mutation
   private DeleteTransactions(type: TransactionType): void {
     const selectedIds: string[] = (type === TransactionType.Pending)
-      ? this.State.selectedPendingIds
-      : this.State.selectedTransactionIds;
+      ? _.keys(this.State.selectedPendingIds)
+      : _.keys(this.State.selectedTransactionIds);
 
     selectedIds.forEach((id) => {
       Vue.delete(this.State.transactions, id);
@@ -702,10 +744,15 @@ class AccountantStore extends VuexModule {
     });
 
     if (type === TransactionType.Pending) {
-      this.State.selectedPendingIds = [];
+      this.State.selectedPendingIds = {};
     } else {
-      this.State.selectedTransactionIds = [];
+      this.State.selectedTransactionIds = {};
     }
+  }
+
+  @Mutation
+  private ShowAllTransactions(expand: boolean): void {
+    this.State.showAllTransactions = expand;
   }
 
   @Mutation
@@ -728,8 +775,8 @@ class AccountantStore extends VuexModule {
   }): void {
     const { transaction, pendingId } = params;
 
-    this.State.selectedPendingIds = [];
-    this.State.selectedTransactionIds = [];
+    this.State.selectedPendingIds = {};
+    this.State.selectedTransactionIds = {};
 
     Vue.delete(this.State.transactions, pendingId);
 
@@ -748,9 +795,9 @@ class AccountantStore extends VuexModule {
     const { id, type } = params;
 
     if (type === TransactionType.Pending) {
-      this.State.selectedPendingIds.splice(this.State.selectedPendingIds.indexOf(id), 1);
+      Vue.delete(this.State.selectedPendingIds, id);
     } else {
-      this.State.selectedTransactionIds.splice(this.State.selectedTransactionIds.indexOf(id), 1);
+      Vue.delete(this.State.selectedTransactionIds, id);
     }
   }
 
@@ -786,9 +833,9 @@ class AccountantStore extends VuexModule {
     });
 
     if (type === TransactionType.Pending) {
-      this.State.selectedPendingIds = [];
+      this.State.selectedPendingIds = {};
     } else {
-      this.State.selectedTransactionIds = [];
+      this.State.selectedTransactionIds = {};
     }
   }
 
@@ -800,16 +847,16 @@ class AccountantStore extends VuexModule {
     const { id, type } = params;
 
     if (type === TransactionType.Pending) {
-      if (this.State.selectedPendingIds.includes(id) === true) {
-        this.State.selectedPendingIds.splice(this.State.selectedPendingIds.indexOf(id), 1);
+      if (this.State.selectedPendingIds[id] === true) {
+        Vue.delete(this.State.selectedPendingIds, id);
       } else {
-        this.State.selectedPendingIds.push(id);
+        Vue.set(this.State.selectedPendingIds, id, true);
       }
     } else {
-      if (this.State.selectedTransactionIds.includes(id) === true) {
-        this.State.selectedTransactionIds.splice(this.State.selectedTransactionIds.indexOf(id), 1);
+      if (this.State.selectedTransactionIds[id] === true) {
+        Vue.delete(this.State.selectedTransactionIds, id);
       } else {
-        this.State.selectedTransactionIds.push(id);
+        Vue.set(this.State.selectedTransactionIds, id, true);
       }
     }
   }
@@ -863,21 +910,22 @@ class AccountantStore extends VuexModule {
   @Mutation
   private UnselectAll(type?: TransactionType): void {
     if (type === TransactionType.Pending) {
-      this.State.selectedPendingIds = [];
+      this.State.selectedPendingIds = {};
     } else if (type === TransactionType.Transaction) {
-      this.State.selectedTransactionIds = [];
+      this.State.selectedTransactionIds = {};
     } else {
-      this.State.selectedPendingIds = [];
-      this.State.selectedTransactionIds = [];
+      this.State.selectedPendingIds = {};
+      this.State.selectedTransactionIds = {};
     }
   }
 
   @Mutation
   private VerifyAll(ids: string[]): void {
     this.State.showEditTransactions = true;
-    this.State.selectedTransactionIds = [
-      ...ids,
-    ];
+
+    ids.forEach((id) => {
+      Vue.set(this.State.selectedTransactionIds, id, true);
+    });
   }
 
   @Mutation
@@ -916,7 +964,7 @@ class AccountantStore extends VuexModule {
       };
     });
 
-    this.State.selectedTransactionIds = [];
+    this.State.selectedTransactionIds = {};
   }
 }
 

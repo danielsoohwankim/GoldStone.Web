@@ -8,7 +8,7 @@
     <EditCatalog />
     <div class="edit-button">
       <md-button 
-        class="md-primary md-raised"
+        class="md-primary"
         @click="toggleEditCatalog()"
         :disabled="tenant.canEditCatalog === false"
       >Edit
@@ -86,7 +86,6 @@ export default class Assets extends Vue {
 
 <style lang="scss" scoped>
 .edit-button {
-  padding-top: 10px;
   position: absolute;
   right: 10px;
 }
