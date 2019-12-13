@@ -9,7 +9,10 @@
     <div class="bar">
       <ChartBar />
     </div>
-    <div class="separator"></div>
+    <div class="separator">
+      <ChartLegend />
+      <br />
+    </div>
   </div>
 </template>
 
@@ -18,15 +21,17 @@ import { Vue, Prop, Component } from 'vue-property-decorator';
 import ChartBar from './ChartBar.vue';
 import ChartColumn from './ChartColumn.vue';
 import ChartDonut from './ChartDonut.vue';
+import ChartLegend from './ChartLegend.vue';
 
 @Component({
   components: {
     ChartBar,
     ChartColumn,
     ChartDonut,
+    ChartLegend,
   },
 })
-export default class Accountant extends Vue {
+export default class ChartLayout extends Vue {
   // data
 
   // computed
@@ -37,18 +42,20 @@ export default class Accountant extends Vue {
 
 <style lang="scss" scoped>
 .donut {
-  width: 20%;
   float: left;
+  width: 20%;
 }
 
 .column {
-  width: 39%;
   float: left;
+  margin-left: 10px;
+  width: 45%;
 }
 
 .bar {
-  width: 41%;
   float: left;
+  margin-left: -50px;
+  width: 35%;
 }
 
 .separator {

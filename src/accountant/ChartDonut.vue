@@ -21,7 +21,6 @@ import LayoutConstants from '@/layout/_constants';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
-import { DATE_FORMAT } from '@/shared/Date';
 
 @Component({
   components: {
@@ -40,27 +39,10 @@ export default class ChartDonut extends Vue {
       height: '85%',
     },
     height: AccountantConstants.Chart.Height,
-    // legend: {
-    //   position: 'bottom',
-    //   textStyle: {
-    //     color: textColor,
-    //     fontSize: 12,
-    //   },
-    //   pagingTextStyle: {
-    //     color: textColor
-    //   },
-    //   scrollArrows:{
-    //     activeColor: palette.primary.main,
-    //     inactiveColor: palette.disabled,
-    //   },
-    // },
     legend: 'none',
     pieHole: 0.4,
     pieSliceBorderColor: '',
     pieSliceText: 'percent',
-    pieSliceTextStyle: {
-      // color: textColor,
-    },
     slices: [],
     title: 'Distribution',
     titleTextStyle: {
@@ -73,14 +55,6 @@ export default class ChartDonut extends Vue {
   // styles
 
   // computed
-  get endDate(): string {
-    return moment(this.startDate).endOf('month').format(DATE_FORMAT);
-  }
-
-  get startDate(): string {
-    // month is zero indexed
-    return moment([accountant.selectedYear, accountant.selectedMonth]).format(DATE_FORMAT);
-  }
   // get selectedCatalogs() {
   //   return assets.getCatalogs(this.selectedChartId);
   // }
@@ -132,6 +106,10 @@ export default class ChartDonut extends Vue {
 
   private drawChart(): void {
     const data = new this.google.visualization.DataTable();
+    const startDate: string =
+      sharedManager.getStartDay(accountant.selectedYear, accountant.selectedMonth);
+    const endDate: string =
+      sharedManager.getLastDay(accountant.selectedYear, accountant.selectedMonth);
 
     data.addColumn('string', 'Category');
     data.addColumn('number', 'Amount');
@@ -140,13 +118,13 @@ export default class ChartDonut extends Vue {
     this.chartCategories.forEach((category) => {
       const total: number = accountant.getTotal({
         category,
-        startDate: this.startDate,
-        endDate: this.endDate,
+        startDate,
+        endDate,
       });
       const percentage: number = accountant.getProportion({
         category,
-        startDate: this.startDate,
-        endDate: this.endDate,
+        startDate,
+        endDate,
       });
       const row = [
         category,

@@ -80,9 +80,8 @@ class GoldStoneClient {
     this.setJwtToken();
 
     try {
-      // return await api.get(`${transactionsPath(tenant.id)}
-      // ?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
-      return getTransactionsResponse;
+      return await api.get(`${transactionsPath(tenant.id)}?startDate=${startDate.toString()}&endDate=${endDate.toString()}`);
+      // return getTransactionsResponse;
     } catch (e) {
       return e.response;
     }

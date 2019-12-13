@@ -6,6 +6,7 @@ import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import { goldStoneException } from '@/shared/GoldStoneException';
 import SharedConstants from '@/shared/_constants';
+import { DATE_FORMAT } from '@/shared/Date';
 import tenant from '@/tenant/_store';
 
 class SharedManager {
@@ -32,7 +33,19 @@ class SharedManager {
   }
 
   public getMonthAbbr(month: number): string {
-    return moment().month(month).format('MMM');
+    return moment().month(month - 1).format('MMM');
+  }
+
+  public getMonthStr(month: number): string {
+    return moment().month(month - 1).format('MMMM');
+  }
+
+  public getStartDay(year: number, month: number): string {
+    return moment([year, month - 1]).format(DATE_FORMAT);
+  }
+
+  public getLastDay(year: number, month: number): string {
+    return moment().year(year).month(month - 1).endOf('month').format(DATE_FORMAT);
   }
 
   public getUtcNowDateTime(): Date {

@@ -21,7 +21,7 @@ import LayoutConstants from '@/layout/_constants';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
-import { DATE_FORMAT } from '@/shared/Date';
+import { Date } from '@/shared/Date';
 
 @Component({
   components: {
@@ -76,23 +76,6 @@ export default class ChartColumn extends Vue {
   // styles
 
   // computed
-  get curEndDate(): string {
-    return moment(this.curStartDate).endOf('month').format(DATE_FORMAT);
-  }
-
-  get curStartDate(): string {
-    // month is zero indexed
-    return moment([accountant.selectedYear, accountant.selectedMonth]).format(DATE_FORMAT);
-  }
-
-  get prevEndDate(): string {
-    return moment(this.prevStartDate).endOf('month').format(DATE_FORMAT);
-  }
-
-  get prevStartDate(): string {
-    // month is zero indexed
-    return moment([accountant.selectedYear, accountant.selectedMonth - 1]).format(DATE_FORMAT);
-  }
 
   // methods
   public getTooltipString(
@@ -119,6 +102,14 @@ export default class ChartColumn extends Vue {
 
   private drawChart(): void {
     const data = new this.google.visualization.DataTable();
+    const curStartDate: string =
+      sharedManager.getStartDay(accountant.selectedYear, accountant.selectedMonth);
+    const curEndDate: string =
+      sharedManager.getLastDay(accountant.selectedYear, accountant.selectedMonth);
+    const prevStartDate: string =
+      (new Date(curStartDate)).addMonths(-1).toString();
+    const prevEndDate: string =
+      (new Date(curStartDate)).addDays(-1).toString();
 
     data.addColumn('string', 'Category');
     data.addColumn('number', sharedManager.getMonthAbbr(accountant.selectedMonth - 1));
@@ -132,13 +123,13 @@ export default class ChartColumn extends Vue {
     this.chartCategories.forEach((category) => {
       const prevTotal: number = accountant.getTotal({
         category,
-        startDate: this.prevStartDate,
-        endDate: this.prevEndDate,
+        startDate: prevStartDate,
+        endDate: prevEndDate,
       });
       const curTotal: number = accountant.getTotal({
         category,
-        startDate: this.curStartDate,
-        endDate: this.curEndDate,
+        startDate: curStartDate,
+        endDate: curEndDate,
       });
       const color: string = AccountantConstants.Category.Colors[layout.theme][category];
       const row = [
@@ -161,7 +152,7 @@ export default class ChartColumn extends Vue {
   }
 
   private setOptions(): void {
-    this.options.annotations.textStyle.auraColor = AccountantConstants.Chart.Colors[layout.theme].Aura;
+    this.options.annotations.textStyle.auraColor = AccountantConstants.Chart.Colors[layout.theme].AuraColumn;
     this.options.hAxis.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
     this.options.titleTextStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
     this.options.vAxis.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;

@@ -27,7 +27,8 @@ interface IChart {
 }
 
 interface IChartColor {
-  Aura: string;
+  AuraBar: string;
+  AuraColumn: string;
   Border: string;
   Text: string;
   Title: string;
@@ -56,14 +57,14 @@ export default class AccountantConstants {
   public static Category: ICategory = {
     Colors: {
       Dark: {
-        Grocery: '#28a745',
-        Meal: '#17a2b8',
-        Others: '#6c757d',
-        Recreation: '#007bff',
-        Shopping: '#dc3545',
-        Special: '#343a40',
-        Utility: '#990099',
-        Vehicle: '#ffc107',
+        Grocery: colors.green[600],
+        Meal: colors.cyan[500],
+        Others: colors.blueGrey[300],
+        Recreation: colors.lightBlue[700],
+        Shopping: colors.red[600],
+        Special: '',
+        Utility: colors.orange[500],
+        Vehicle: colors.yellow[500],
       },
       Light: {
         Grocery: '#28a745',
@@ -81,19 +82,21 @@ export default class AccountantConstants {
   public static Chart: IChart = {
     Colors: {
       Dark: {
-        Aura: colors.grey[300],
+        AuraBar: '#303030',
+        AuraColumn: colors.grey[200],
         Border: colors.grey[500],
         Text: colors.grey[400],
         Title: colors.grey[300],
       },
       Light: {
-        Aura: '',
+        AuraBar: '',
+        AuraColumn: '',
         Border: '',
         Text: '',
         Title: '',
       },
     },
-    Height: 500,
+    Height: 450,
   };
 
   public static Layout: ILayout = {

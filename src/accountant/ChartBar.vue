@@ -21,7 +21,7 @@ import LayoutConstants from '@/layout/_constants';
 import { Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import sharedManager from '@/shared/_manager';
-import { DATE_FORMAT } from '@/shared/Date';
+import { Date } from '@/shared/Date';
 
 @Component({
   components: {
@@ -34,70 +34,47 @@ export default class ChartBar extends Vue {
   private gchart;
   private google;
   private options = {
+    animation: {
+      startup: true,
+      duration: 1000,
+      easing: 'out',
+    },
+    annotations: {
+      textStyle: {
+        color: '',
+        bold: true,
+        auraColor: '',
+      },
+      alwaysOutside: true,
+    },
+    backgroundColor: '',
+    bar: { groupWidth: '60%' },
+    chartArea: {
+      width: '78%',
+      height: '80%',
+    },
+    hAxis: {
+      textStyle: {
+        color: '',
+      },
+      format: '$###,##0',
+      viewWindowMode: 'maximized',
+    },
+    height: AccountantConstants.Chart.Height,
+    isStacked: true,
+    legend: 'none',
+    series: [],
     title: 'Monthly Total',
-      titleTextStyle: {
-        fontSize: 22,
-        color: 'white',
+    titleTextStyle: {
+      fontSize: 22,
+      color: '',
+    },
+    tooltip: { isHtml: true }, // Use an HTML tooltip.
+    vAxis: {
+      textStyle: {
+        color: '',
       },
-      backgroundColor: '',
-      // legend: {
-      //   textStyle: {
-      //     color: textColor,
-      //     fontSize: 11,
-      //   },
-      //   position: 'bottom',
-      //   pagingTextStyle: {
-      //     color: textColor
-      //   },
-      //   scrollArrows:{
-      //     activeColor: palette.primary.main,
-      //     inactiveColor: palette.disabled,
-      //   },
-      // },
-      legend: 'none',
-      chartArea: {
-        width: '80%',
-        height: '80%',
-      },
-      bar: { groupWidth: '60%' },
-      isStacked: true,
-      tooltip: { isHtml: true }, // Use an HTML tooltip.
-      hAxis: {
-        textStyle: {
-          color: 'white',
-        },
-        format: '$###,##0',
-        viewWindowMode: 'maximized',
-      },
-      vAxis: {
-        textStyle: {
-          color: 'white',
-        },
-      },
-      series: (() => {
-        const series: any = [];
-
-        this.chartCategories.forEach((category) => {
-          series.push({
-            color: AccountantConstants.Chart.Colors[layout.theme][category],
-          });
-        });
-
-        return series;
-      })(),
-      annotations: {
-        textStyle: {
-          color: 'white',
-          bold: true,
-          auraColor: '#303030',
-        },
-        alwaysOutside: true,
-      },
-      animation: {
-        startup: true,
-        duration: 1000,
-        easing: 'out',
-      },
+    },
   };
 
   // styles
@@ -122,8 +99,12 @@ export default class ChartBar extends Vue {
     });
     data.addColumn({ type: 'string', role: 'annotation' });
 
-    for (let i: number = 2; i >= 0; i--) {
-      const row = this.getChartRow(accountant.selectedYear, accountant.selectedMonth - i);
+    const currentStartDay: string = sharedManager.getStartDay(accountant.selectedYear, accountant.selectedMonth);
+    for (let i: number = -2; i <= 0; i++) {
+      const startDate: Date = (new Date(currentStartDay)).addMonths(i);
+      const endDate: Date = startDate.addMonths(1).addDays(-1);
+      const row = this.getChartRow(startDate, endDate);
+
       data.addRows([row]);
     }
 
@@ -132,16 +113,15 @@ export default class ChartBar extends Vue {
     this.gchart.draw(data, this.options);
   }
 
-  private getChartRow(year: number, month: number) {
-    const startDate = moment().year(year).month(month - 1).format(DATE_FORMAT);
-    const endDate = moment(startDate).endOf('month').format(DATE_FORMAT);
+  private getChartRow(startDate: Date, endDate: Date) {
+    const month: number = startDate.getMonth();
 
     const row: any = [ sharedManager.getMonthAbbr(month) ];
     this.chartCategories.forEach((category) => {
       const total: number = accountant.getTotal({
         category,
-        startDate,
-        endDate,
+        startDate: startDate.toString(),
+        endDate: endDate.toString(),
       });
 
       row.push(total);
@@ -149,11 +129,11 @@ export default class ChartBar extends Vue {
     });
 
     const monthlyTotal: number = accountant.getTotal({
-      startDate,
-      endDate,
+      startDate: startDate.toString(),
+      endDate: endDate.toString(),
     });
 
-    row.push(sharedManager.toCurrencyString(monthlyTotal)); // annotation
+    row.push('$' + sharedManager.toCurrencyString(monthlyTotal)); // annotation
 
     return row;
   }
@@ -167,13 +147,24 @@ export default class ChartBar extends Vue {
 
     return `
       <div style="color: black; margin: 7px; font-size: 13px; font-family: Arial, Helvetica, sans-serif;">
-        <b>${month}</b><br style="line-height: 18px;" />${category}:&nbsp;<b>${amount}</b>
+        <b>${sharedManager.getMonthStr(month)}</b><br style="line-height: 18px;" />${category}:&nbsp;<b>$${amountStr}</b>
       </div>
       `;
   }
 
   private setOptions(): void {
-    //
+    const series: any = this.chartCategories.map((category) => {
+      return {
+        color: AccountantConstants.Category.Colors[layout.theme][category],
+      };
+    });
+
+    this.options.series = series;
+    this.options.annotations.textStyle.auraColor = AccountantConstants.Chart.Colors[layout.theme].AuraBar;
+    this.options.annotations.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
+    this.options.hAxis.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
+    this.options.titleTextStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
+    this.options.vAxis.textStyle.color = AccountantConstants.Chart.Colors[layout.theme].Text;
   }
 }
 </script>

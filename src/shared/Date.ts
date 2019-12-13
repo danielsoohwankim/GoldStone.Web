@@ -60,6 +60,14 @@ export class Date implements IDate {
     return this.date.toString() === date.toString();
   }
 
+  public getMonth(): number {
+    return Number(this.date.split('-')[1]);
+  }
+
+  public getYear(): number {
+    return Number(this.date.split('-')[0]);
+  }
+
   public toJsDate() {
     return moment(this.date).toDate();
   }

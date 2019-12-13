@@ -68,7 +68,7 @@ const initialState: IAccountantState = {
   selectedDeleteTransactionType: undefined,
   selectedPendingIds: {},
   selectedTransactionIds: {},
-  selectedMonth: moment().month(),
+  selectedMonth: moment().month() + 1,
   selectedYear: moment().year(),
   showAllTransactions: false,
   showDeleteTransactions: false,
@@ -361,8 +361,9 @@ class AccountantStore extends VuexModule {
   // @Action({ rawError: true })
   @Action
   public async initAsync(): Promise<void> {
-    const startDate: Date = Date.Today().addDays(-5);
-    const endDate: Date = Date.Today();
+    const twoMonthsAgo: Date = Date.Today().addMonths(-2);
+    const startDate: Date = new Date(sharedManager.getStartDay(twoMonthsAgo.getYear(), twoMonthsAgo.getMonth()));
+    const endDate: Date = new Date(sharedManager.getLastDay(Date.Today().getYear(), Date.Today().getMonth()));
     const getAccountsPromise = goldStoneClient.getAccountsAsync(false, true);
     const getTransactionsPromise = goldStoneClient.getTransactionsAsync(startDate, endDate);
     const getUsersPromise = goldStoneClient.getUsersAsync();
@@ -377,10 +378,10 @@ class AccountantStore extends VuexModule {
     }
 
     // failed to get account transactions
-    // result = sharedManager.handleApiResponse(getTransactionsResponse, path);
-    // if (result.success === false) {
-    //   return;
-    // }
+    result = sharedManager.handleApiResponse(getTransactionsResponse, path);
+    if (result.success === false) {
+      return;
+    }
 
     // failed to get users
     result = sharedManager.handleApiResponse(getUsersResponse, path);
