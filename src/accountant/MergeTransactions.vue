@@ -85,8 +85,13 @@
         <md-button @click="accountant.toggleMerge(false)">Close</md-button>
         <md-button
           class="md-accent"
-          @click="accountant.mergeTransactionsAsync()"
+          @click="accountant.mergeTransactionsAsync(false)"
         >Merge
+        </md-button>
+        <md-button
+          class="md-primary"
+          @click="accountant.mergeTransactionsAsync(true)"
+        >Merge &amp; Verify
         </md-button>
       </md-dialog-actions>
     </md-dialog>

@@ -104,10 +104,10 @@ class LayoutStore extends VuexModule {
   public setPage(page: Page): void {
     if (Menus.IsValidPath(router.currentRoute.path) === true &&
         router.currentRoute.name &&
-        this.context.getters.menu.name !== router.currentRoute.name) {
+        this.menu.name !== router.currentRoute.name) {
       this.context.commit('SetMenu', router.currentRoute.name);
     }
-    if (this.context.getters.page === page) {
+    if (this.page === page) {
       return;
     }
 

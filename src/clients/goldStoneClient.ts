@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
 import { ExpenseCategory } from '@/accountant/_data';
-import { storageTools } from '@/shared/_tools';
 import { Date } from '@/shared/Date';
 import tenant from '@/tenant/_store';
 import { UserRole } from '@/tenant/_data';
@@ -19,6 +18,10 @@ const usersPath = (tenantId: string): string => `${basePath(tenantId)}/users`;
 
 const api = axios.create({
   baseURL: baseUrl,
+});
+const credentialApi = axios.create({
+  baseURL: baseUrl,
+  withCredentials: true, // requred to receive cookie from server
 });
 
 class GoldStoneClient {
@@ -83,12 +86,16 @@ class GoldStoneClient {
     }
   }
 
-  public async mergeTransactionsAsync(transactionId: string, pendingId: string)
-  : Promise<AxiosResponse<IMergeTransactionResponseContractV1 | any>> {
+  public async mergeTransactionsAsync(
+    transactionId: string,
+    pendingId: string,
+    verifiedDate?: string,
+  ): Promise<AxiosResponse<IMergeTransactionResponseContractV1 | any>> {
     this.setJwtToken();
 
     const data: IMergeTransactionsRequestContractV1 = {
       pendingTransactionId: pendingId,
+      verifiedDate,
     };
 
     try {
@@ -144,20 +151,30 @@ class GoldStoneClient {
     }
   }
 
-  public async signIn(token: string): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
-    this.setJwtToken(token);
+  public async signIn(googleToken?: string): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
+    if (googleToken) {
+      // sign in using google token
+      credentialApi.defaults.headers.common[authorizationHeader] = bearerToken(googleToken);
+    }
 
     try {
-      return await api.post(`/${version}/signin`);
+      return await credentialApi.post(`/${version}/signin`);
     } catch (e) {
       return e.response;
     }
   }
 
-  private setJwtToken(token?: string): void {
-    const accessToken: string = (token) ? token : storageTools.getToken();
+  public async signOut(): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
+    try {
+      return await credentialApi.post(`/${version}/signout`);
+    } catch (e) {
+      return e.response;
+    }
+  }
 
-    api.defaults.headers.common[authorizationHeader] = bearerToken(accessToken);
+  private setJwtToken(): void {
+    api.defaults.headers.common[authorizationHeader]
+      = bearerToken(tenant.accessToken);
   }
 }
 
@@ -206,6 +223,7 @@ export interface IGetUserResponseContractV1 {
 
 export interface IMergeTransactionsRequestContractV1 {
   pendingTransactionId: string;
+  verifiedDate?: string;
 }
 
 export interface IMergeTransactionResponseContractV1 {

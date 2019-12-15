@@ -13,6 +13,7 @@ import { storageTools } from '@/shared/_tools';
 import router from '@/router';
 
 interface ITenantState {
+  accessToken: string;
   currentUserId: string;
   tenantId: string;
   users: { [ key: string]: IUser };
@@ -25,6 +26,7 @@ export interface IUser {
 }
 
 const initialState: ITenantState = {
+  accessToken: '',
   currentUserId: '',
   tenantId: '',
   users: {},
@@ -38,6 +40,10 @@ const initialState: ITenantState = {
 })
 class TenantStore extends VuexModule {
   private State: ITenantState = _.cloneDeep(initialState);
+
+  get accessToken(): string {
+    return this.State.accessToken;
+  }
 
   get canEditCatalog(): boolean {
     return (this.currentUser)
@@ -74,7 +80,7 @@ class TenantStore extends VuexModule {
   }
 
   @Action
-  public async signIn(token?: string): Promise<void> {
+  public async signIn(googleToken?: string): Promise<void> {
     layout.toggleSignInButton(false);
 
     // 404
@@ -86,20 +92,8 @@ class TenantStore extends VuexModule {
       return;
     }
 
-    // send the user to sign in page
-    if (!token && storageTools.hasToken() === false) {
-      // tslint:disable-next-line
-      console.log(`user doesn't have token`);
-      layout.setPage(Page.Home);
-      layout.toggleSignInButton(true);
-
-      return;
-    }
-
-    token = (token) ? token : storageTools.getToken();
-
     const response = await loaderAction.sendAsync(
-      () => goldStoneClient.signIn(token!));
+      () => goldStoneClient.signIn(googleToken));
 
     if (!response || response.status !== HttpStatus.OK) {
       // tslint:disable-next-line
@@ -125,8 +119,7 @@ class TenantStore extends VuexModule {
       role: userRole,
     };
 
-    storageTools.setToken(accessToken);
-    this.context.commit('Init', { currentUser, tenantId });
+    this.context.commit('Init', { accessToken, currentUser, tenantId });
 
     layout.setPage(Page.Default);
 
@@ -159,7 +152,13 @@ class TenantStore extends VuexModule {
       return;
     }
 
-    storageTools.removeToken();
+    const response = await loaderAction.sendAsync(() => goldStoneClient.signOut());
+    if (response.status !== HttpStatus.NO_CONTENT) {
+      // something's worng??
+      // tslint:disable-next-line
+      console.log(response);
+    }
+
     assets.clear();
     layout.clear(true);
     this.context.commit('Clear');
@@ -183,10 +182,15 @@ class TenantStore extends VuexModule {
   }
 
   @Mutation
-  private Init(params: { currentUser: IUser; tenantId: string; }): void {
-    const { currentUser, tenantId } = params;
+  private Init(params: {
+    accessToken: string;
+    currentUser: IUser;
+    tenantId: string;
+  }): void {
+    const { accessToken, currentUser, tenantId } = params;
     const { id } = currentUser;
 
+    this.State.accessToken = accessToken;
     this.State.currentUserId = id;
     this.State.users = _.keyBy([ currentUser ], (u) => u.id);
     this.State.tenantId = tenantId;

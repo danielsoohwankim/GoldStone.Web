@@ -30,7 +30,6 @@ class Device {
 
 export const device = new Device();
 
-const tokenKey: string = 'tkn';
 const pathKey: string = 'path';
 
 // @ts-ignore
@@ -42,12 +41,6 @@ class StorageTools {
     return path !== null && path !== '';
   }
 
-  public hasToken(): boolean {
-    const token = window.sessionStorage.getItem(tokenKey);
-
-    return token !== null && token !== '';
-  }
-
   public getPath(): string {
     if (this.hasPath() === false) {
       throw new goldStoneException('path does not exist in storage');
@@ -56,24 +49,8 @@ class StorageTools {
     return window.sessionStorage.getItem(pathKey)!;
   }
 
-  public getToken(): string {
-    if (this.hasToken() === false) {
-      throw new goldStoneException('token does not exist in storage');
-    }
-
-    return window.sessionStorage.getItem(tokenKey)!;
-  }
-
   public removePath(): void {
     window.sessionStorage.removeItem(pathKey);
-  }
-
-  public removeToken(): void {
-    window.sessionStorage.removeItem(tokenKey);
-  }
-
-  public setToken(token: string): void {
-    window.sessionStorage.setItem(tokenKey, token);
   }
 }
 

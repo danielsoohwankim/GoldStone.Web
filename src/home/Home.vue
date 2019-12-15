@@ -26,7 +26,7 @@
 import { Vue, Component } from 'vue-property-decorator';
 import GSignInButton from 'vue-google-signin-button';
 import layoutStore from '@/layout/_store';
-import tenantStore from '@/tenant/_store';
+import tenant from '@/tenant/_store';
 import { device } from '@/shared/_tools';
 
 Vue.use(GSignInButton);
@@ -55,9 +55,9 @@ export default class Home extends Vue {
     // `googleUser` is the GoogleUser object that represents the just-signed-in user.
     // See https://developers.google.com/identity/sign-in/web/reference#users
     const profile = googleUser.getBasicProfile(); // etc etc
-    const token = googleUser.getAuthResponse().id_token;
+    const googleToken = googleUser.getAuthResponse().id_token;
 
-    await tenantStore.signIn(token);
+    await tenant.signIn(googleToken);
   }
 
   public onSignInError(error) {

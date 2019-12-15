@@ -410,12 +410,14 @@ class AccountantStore extends VuexModule {
   }
 
   @Action
-  public async mergeTransactionsAsync(): Promise<void> {
+  public async mergeTransactionsAsync(verify: boolean): Promise<void> {
     const transactionId: string = this.getSelectedTransactions(TransactionType.Transaction)[0].id;
     const pendingId: string = this.getSelectedTransactions(TransactionType.Pending)[0].id;
+    const verifiedDate = (verify === true) ? sharedManager.getUtcNowDateTimeStr() : undefined;
 
     const response: AxiosResponse<IMergeTransactionResponseContractV1 | any>
-      = await loaderAction.sendAsync(() => goldStoneClient.mergeTransactionsAsync(transactionId, pendingId));
+      = await loaderAction.sendAsync(() =>
+          goldStoneClient.mergeTransactionsAsync(transactionId, pendingId, verifiedDate));
 
     const result = sharedManager.handleApiResponse(response, path);
     if (result.success === false) {
@@ -761,7 +763,7 @@ class AccountantStore extends VuexModule {
   }
 
   @Mutation
-  private Clear(showSignInButton: boolean): void {
+  private Clear(): void {
     const state: IAccountantState = _.cloneDeep(initialState);
 
     this.State = state;

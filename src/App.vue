@@ -61,9 +61,8 @@ export default class App extends Vue {
     if (Menus.IsValidPath(path) === false) {
       layout.setPage(Page.NotFound);
       return;
-    } else if (storageTools.hasToken() === true) {
-      await tenant.signIn(storageTools.getToken());
     } else {
+      // sign in using cookie
       await tenant.signIn();
     }
   }
