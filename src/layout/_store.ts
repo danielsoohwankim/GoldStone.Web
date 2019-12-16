@@ -4,6 +4,7 @@ import LayoutConstants from './_constants';
 import { IMenu, Menus, Page, Theme } from './_data';
 import store from '@/shared/_store';
 import router from '@/router';
+import { storageTools } from '@/shared/_tools';
 
 interface ILayoutState {
   menu: IMenu;
@@ -114,9 +115,19 @@ class LayoutStore extends VuexModule {
     this.context.commit('SetPage', page);
   }
 
-  @Action({commit: 'SetTheme'})
-  public setTheme(theme: Theme): Theme {
-    return theme;
+  @Action
+  public setTheme(theme: Theme): void {
+    if (theme === this.State.theme) {
+      return;
+    }
+
+    const setting = storageTools.getUserSetting();
+    storageTools.setUserSetting({
+      ...setting,
+      theme,
+    });
+
+    this.context.commit('SetTheme', theme);
   }
 
   @Action
