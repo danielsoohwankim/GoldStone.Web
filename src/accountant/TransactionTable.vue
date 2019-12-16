@@ -116,7 +116,7 @@
 
 <script lang="ts">
 import { Vue, Prop, Component, Watch } from 'vue-property-decorator';
-import AccountConstants from './_constants';
+import AccountantConstants from './_constants';
 import { ExpenseCategory, TransactionState, TransactionType } from './_data';
 import manager from './_manager';
 import accountant, { ITransaction } from './_store';
@@ -162,7 +162,7 @@ export default class TransactionTable extends Vue {
 
       return (accountant.showAllTransactions === true)
         ? transactions
-        : transactions.splice(0, AccountConstants.Transactions.TableSize);
+        : transactions.splice(0, AccountantConstants.Transactions.TableSize);
     } else {
       const transactions: ITransaction[] = accountant.getTransactions(this.type);
       return this.searchByName(transactions, this.search);
@@ -227,7 +227,7 @@ export default class TransactionTable extends Vue {
     }
 
     return {
-      color: AccountConstants.Layout.Colors[layout.theme][state],
+      color: AccountantConstants.Layout.Colors[layout.theme][state],
     };
   }
 
@@ -243,7 +243,7 @@ export default class TransactionTable extends Vue {
     }
 
     return {
-      color: AccountConstants.Layout.Colors[layout.theme].Selected,
+      color: AccountantConstants.Layout.Colors[layout.theme].Selected,
       fontWeight: 'bold',
     };
   }

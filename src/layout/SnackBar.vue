@@ -47,7 +47,7 @@ export default class SnackBar extends Vue {
   // styles
   get messageStyle(): object {
     return {
-      color: LayoutConstants.Layout.Colors[layout.theme].Text,
+      color: LayoutConstants.Layout.Colors[layout.theme].SnackBarText,
     };
   }
 

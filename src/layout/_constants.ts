@@ -15,6 +15,7 @@ interface ILayoutColor {
   Gold: string;
   Primary: string;
   SnackBar: string;
+  SnackBarText: string;
   Stone: string;
   Text: string;
 }
@@ -46,7 +47,8 @@ export default class LayoutConstants {
         Font: '#000',
         Gold: '#907200',
         Primary: colors.cyan[200],
-        SnackBar: colors.grey[300],
+        SnackBar: colors.blueGrey[500],
+        SnackBarText: 'white',
         Stone: '#8a898d',
         Text: 'black',
       },
@@ -57,7 +59,8 @@ export default class LayoutConstants {
         Font: '#fff',
         Gold: '#907200',
         Primary: colors.lightBlue[200],
-        SnackBar: colors.grey[800],
+        SnackBar: colors.blueGrey[600],
+        SnackBarText: 'white',
         Stone: '#8a898d',
         Text: 'white',
       },

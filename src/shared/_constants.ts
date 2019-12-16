@@ -34,8 +34,8 @@ export default class SharedConstants {
   public static Layout: ILayout = {
     Colors: {
       Light: {
-        Failure: '',
-        Success: '',
+        Failure: colors.red.a200,
+        Success: colors.green.a200,
         Text: 'black',
       },
       Dark: {

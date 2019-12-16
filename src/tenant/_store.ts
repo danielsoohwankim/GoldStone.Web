@@ -1,11 +1,11 @@
 import { VuexModule, Module, Mutation, Action, getModule } from 'vuex-module-decorators';
 import _ from 'lodash';
 import HttpStatus from 'http-status-codes';
-import { UserRole } from './_data';
+import { UserRole, IUserSetting } from './_data';
 import assets from '@/assets/_store';
 import goldStoneClient from '@/clients/goldStoneClient';
 import { ISignInResponseContractV1 } from '@/clients/GoldStoneClient';
-import { Menus, Page } from '@/layout/_data';
+import { Menus, Page, Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import loaderAction from '@/layout/loaderAction';
 import store from '@/shared/_store';
@@ -119,7 +119,22 @@ class TenantStore extends VuexModule {
       role: userRole,
     };
 
-    this.context.commit('Init', { accessToken, currentUser, tenantId });
+    if (storageTools.hasUserSetting() === false) {
+      storageTools.setUserSetting({
+        theme: Theme.Light,
+      });
+    }
+
+    const userSetting: IUserSetting = storageTools.getUserSetting();
+    const { theme } = userSetting;
+
+    layout.setTheme(theme);
+
+    this.context.commit('Init', {
+      accessToken,
+      currentUser,
+      tenantId,
+    });
 
     layout.setPage(Page.Default);
 

@@ -1,4 +1,5 @@
 import { goldStoneException } from './GoldStoneException';
+import { IUserSetting } from '@/tenant/_data';
 
 // @ts-ignore
 // tslint:disable-next-line
@@ -31,6 +32,7 @@ class Device {
 export const device = new Device();
 
 const pathKey: string = 'path';
+const settingKey: string = 'setting';
 
 // @ts-ignore
 // tslint:disable-next-line
@@ -41,16 +43,36 @@ class StorageTools {
     return path !== null && path !== '';
   }
 
+  public hasUserSetting(): boolean {
+    const setting = window.localStorage.getItem(settingKey);
+
+    return setting !== null && setting !== '';
+  }
+
   public getPath(): string {
     if (this.hasPath() === false) {
-      throw new goldStoneException('path does not exist in storage');
+      throw new goldStoneException('Path does not exist in storage');
     }
 
     return window.sessionStorage.getItem(pathKey)!;
   }
 
+  public getUserSetting(): IUserSetting {
+    if (this.hasUserSetting() === false) {
+      throw new goldStoneException('User setting does not exist in storage');
+    }
+
+    const setting = window.localStorage.getItem(settingKey);
+
+    return JSON.parse(setting!) as IUserSetting;
+  }
+
   public removePath(): void {
     window.sessionStorage.removeItem(pathKey);
+  }
+
+  public setUserSetting(setting: IUserSetting): void {
+    window.localStorage.setItem(settingKey, JSON.stringify(setting));
   }
 }
 

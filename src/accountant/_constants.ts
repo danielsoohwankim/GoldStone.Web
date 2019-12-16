@@ -110,17 +110,17 @@ export default class AccountantConstants {
   public static Layout: ILayout = {
     Colors: {
       Dark: {
-        Pending: '#ffcf44',
+        Pending: colors.yellow[600],
         Selected: '#000',
-        Settled: '#ffcf44',
+        Settled: colors.yellow[600],
         Merged: colors.lightBlue[200],
         Verified: '',
       },
       Light: {
-        Pending: '',
+        Pending: colors.amber[500],
         Selected: '#fff',
-        Settled: '',
-        Merged: '',
+        Settled: colors.amber[500],
+        Merged: colors.lightBlue[500],
         Verified: '',
       },
     },
