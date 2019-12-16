@@ -29,7 +29,7 @@ const initialState: ILayoutState = {
     message: '',
     show: false,
   },
-  theme: Theme.Dark,
+  theme: Theme.Light,
 };
 
 export interface ISnackBar {
