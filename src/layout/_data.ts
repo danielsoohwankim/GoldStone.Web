@@ -59,6 +59,23 @@ export class Menus {
     }
   }
 
+  public static GetMenuNameByPath = (path: string): string => {
+    switch (path.toLowerCase()) {
+      case '/':
+      case Menus.Dashboard.path:
+        return Menus.Dashboard.name;
+
+      case Menus.Assets.path:
+        return Menus.Assets.name;
+
+      case Menus.Accountant.path:
+        return Menus.Accountant.name;
+
+      default:
+        throw new Error(`invalid menu path ${path}`);
+    }
+  }
+
   private static paths: Set<string>
     = new Set([
       `/`,

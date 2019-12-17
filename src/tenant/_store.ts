@@ -143,8 +143,17 @@ class TenantStore extends VuexModule {
     }
     // needed here not within the store to use the latest router route value
     if (router.currentRoute.name !== layout.menu.name) {
-      layout.setMenu(router.currentRoute.name!);
-      return;
+      // hitting refresh in a short interval causes name to be null
+      if (!router.currentRoute.name) {
+        let path: string = window.location.pathname;
+        path = (path.charAt(path.length - 1) === '/')
+          ? path.slice(0, -1) : path;
+        const menuName: string = Menus.GetMenuNameByPath(path);
+console.log('aaa', menuName);
+        layout.setMenu(menuName);
+      } else {
+        layout.setMenu(router.currentRoute.name);
+      }
     }
   }
 
