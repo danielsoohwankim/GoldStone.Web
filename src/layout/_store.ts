@@ -98,6 +98,10 @@ class LayoutStore extends VuexModule {
 
   @Action
   public setMenu(menuName: string): void {
+    if (this.menu.name === menuName) {
+      return;
+    }
+
     this.context.commit('SetMenu', menuName);
   }
 

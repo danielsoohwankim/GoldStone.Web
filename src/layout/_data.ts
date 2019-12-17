@@ -36,7 +36,7 @@ export class Menus {
   };
 
   public static IsValidPath(name: string | null | undefined): boolean {
-    if (!name) {
+    if (name === undefined || name === null) {
       return false;
     }
 
@@ -61,6 +61,7 @@ export class Menus {
 
   public static GetMenuNameByPath = (path: string): string => {
     switch (path.toLowerCase()) {
+      case '':
       case '/':
       case Menus.Dashboard.path:
         return Menus.Dashboard.name;
@@ -78,7 +79,8 @@ export class Menus {
 
   private static paths: Set<string>
     = new Set([
-      `/`,
+      '',
+      '/',
       Menus.Dashboard.path,
       Menus.Assets.path,
       Menus.Accountant.path,

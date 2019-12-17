@@ -80,15 +80,17 @@ class TenantStore extends VuexModule {
   }
 
   @Action
-  public async signIn(googleToken?: string): Promise<void> {
+  public async signIn(params: {
+    googleToken?: string,
+    path: string,
+  }): Promise<void> {
+    const { googleToken, path } = params;
+
     layout.toggleSignInButton(false);
 
     // 404
-    if (Menus.IsValidPath(router.currentRoute.path) === false) {
-      if (layout.page !== Page.NotFound) {
-        layout.setPage(Page.NotFound);
-      }
-
+    if (Menus.IsValidPath(path) === false) {
+      layout.setPage(Page.NotFound);
       return;
     }
 
@@ -99,9 +101,7 @@ class TenantStore extends VuexModule {
       // tslint:disable-next-line
       console.log(response);
 
-      if (layout.page !== Page.Home) {
-        layout.setPage(Page.Home);
-      }
+      layout.setPage(Page.Home);
       layout.toggleSignInButton(true);
 
       return;
@@ -136,25 +136,10 @@ class TenantStore extends VuexModule {
       tenantId,
     });
 
-    layout.setPage(Page.Default);
+    const menuName: string = Menus.GetMenuNameByPath(path);
 
-    if (Menus.IsValidPath(router.currentRoute.path) === false) {
-      return;
-    }
-    // needed here not within the store to use the latest router route value
-    if (router.currentRoute.name !== layout.menu.name) {
-      // hitting refresh in a short interval causes name to be null
-      if (!router.currentRoute.name) {
-        let path: string = window.location.pathname;
-        path = (path.charAt(path.length - 1) === '/')
-          ? path.slice(0, -1) : path;
-        const menuName: string = Menus.GetMenuNameByPath(path);
-console.log('aaa', menuName);
-        layout.setMenu(menuName);
-      } else {
-        layout.setMenu(router.currentRoute.name);
-      }
-    }
+    layout.setPage(Page.Default);
+    layout.setMenu(menuName);
   }
 
   /**
