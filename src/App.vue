@@ -46,7 +46,10 @@ export default class App extends Vue {
    * vue router will then change it to '/assets'.
    */
   public async mounted(): Promise<void> {
-    let path: string = this.$route.path;
+    let path: string = window.location.pathname;
+    // remove trailing slash if it exists
+    path = (path.charAt(path.length - 1) === '/')
+      ? path.slice(0, -1) : path;
     /**
      * In order to correctly navigate to the path user entered from gh-pages,
      * we need to use 404.html that sets the path on session storage.
@@ -63,7 +66,9 @@ export default class App extends Vue {
       return;
     } else {
       // sign in using cookie
-      await tenant.signIn();
+      await tenant.signIn({
+        path,
+      });
     }
   }
 

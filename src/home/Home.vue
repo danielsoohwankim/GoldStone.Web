@@ -57,7 +57,10 @@ export default class Home extends Vue {
     const profile = googleUser.getBasicProfile(); // etc etc
     const googleToken = googleUser.getAuthResponse().id_token;
 
-    await tenant.signIn(googleToken);
+    await tenant.signIn({
+      googleToken,
+      path: this.$router.currentRoute.path,
+    });
   }
 
   public onSignInError(error) {
