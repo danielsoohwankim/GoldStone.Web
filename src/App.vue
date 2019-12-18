@@ -73,6 +73,21 @@ export default class App extends Vue {
   }
 
   // computed
+  get route() {
+    return this.$route;
+  }
+
+  @Watch('route')
+  public onRouteChange(newRoute, oldRoute): void {
+    if (layout.page !== Page.Default) {
+      return;
+    }
+    // handle back button menu changes
+    const menuName: string = newRoute.name;
+    layout.setMenu(menuName);
+  }
+
+  // methods
 }
 </script>
 
