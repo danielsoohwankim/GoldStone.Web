@@ -558,14 +558,14 @@ class AccountantStore extends VuexModule {
 
     const transactions: ITransaction[] = response.data.map((c) => manager.convertToTransaction(c));
 
+    this.context.commit('SetSelectedMonth', month);
+    this.context.commit('SetTransactions', transactions);
+
     layout.setSnackBar({
       isSuccess: true,
       message: `Fetched ${transactions.length} transactions for ${this.selectedYear}-${this.selectedMonth}`,
       show: true,
     });
-
-    this.context.commit('SetSelectedMonth', month);
-    this.context.commit('SetTransactions', transactions);
   }
 
   @Action
@@ -584,14 +584,14 @@ class AccountantStore extends VuexModule {
 
     const transactions: ITransaction[] = response.data.map((c) => manager.convertToTransaction(c));
 
+    this.context.commit('SetSelectedYear', year);
+    this.context.commit('SetTransactions', transactions);
+
     layout.setSnackBar({
       isSuccess: true,
       message: `Fetched ${transactions.length} transactions for ${this.selectedYear}-${this.selectedMonth}`,
       show: true,
     });
-
-    this.context.commit('SetSelectedYear', year);
-    this.context.commit('SetTransactions', transactions);
   }
 
   @Action
