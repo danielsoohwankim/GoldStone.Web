@@ -91,6 +91,7 @@ export enum Page {
   Default = 'Default',
   Home = 'Home',
   NotFound = 'NotFound',
+  Privacy = 'Privacy',
 }
 
 export enum Theme {
