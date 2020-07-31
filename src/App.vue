@@ -6,6 +6,9 @@
     <div v-else-if="layout.page === Page.Home">
       <Home />
     </div>
+    <div v-else-if="layout.page === Page.Colorman">
+      <Colorman />
+    </div>
     <div v-else-if="layout.page === Page.Privacy">
       <Privacy />
     </div>
@@ -19,7 +22,8 @@
 <script lang="ts">
 import { Vue, Component, Watch } from 'vue-property-decorator';
 import NotFound from '@/404/NotFound.vue';
-import Privacy from '@/privacy/Privacy.vue';
+import Colorman from '@/colorman/Colorman.vue';
+import Privacy from '@/colorman/Privacy.vue';
 import { Menus, Page, Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
 import Layout from '@/layout/Layout.vue';
@@ -34,6 +38,7 @@ import tenant from '@/tenant/_store';
     Loader,
     NotFound,
     Home,
+    Colorman,
     Privacy,
   },
 })
@@ -66,8 +71,11 @@ export default class App extends Vue {
       this.$router.push(path);
     }
 
-    if (path === '/colorman/privacy') {
+    if (path.includes('/colorman/privacy') === true) {
       layout.setPage(Page.Privacy);
+      return;
+    } else if (path.includes('/colorman') === true) {
+      layout.setPage(Page.Colorman);
       return;
     } else if (Menus.IsValidPath(path) === false) {
       layout.setPage(Page.NotFound);
