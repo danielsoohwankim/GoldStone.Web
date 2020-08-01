@@ -1,0 +1,9 @@
+<script>
+  var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  var url = 'https://play.google.com/store/apps/details?id=com.GoldStone.Colorman';
+  // iOS detection from: http://stackoverflow.com/a/9039885/177710
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+    url = 'https://apps.apple.com/us/app/id1523943271';
+  }
+  window.location.href = url;
+</script>
