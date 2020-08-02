@@ -92,6 +92,7 @@ export enum Page {
   Home = 'Home',
   NotFound = 'NotFound',
   Colorman = 'Colorman',
+  Redirect = 'Redirect',
   Privacy = 'Privacy',
 }
 

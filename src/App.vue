@@ -9,6 +9,9 @@
     <div v-else-if="layout.page === Page.Colorman">
       <Colorman />
     </div>
+    <div v-else-if="layout.page === Page.Redirect">
+      <Redirect />
+    </div>
     <div v-else-if="layout.page === Page.Privacy">
       <Privacy />
     </div>
@@ -23,6 +26,7 @@
 import { Vue, Component, Watch } from 'vue-property-decorator';
 import NotFound from '@/404/NotFound.vue';
 import Colorman from '@/colorman/Colorman.vue';
+import Redirect from '@/colorman/Redirect.vue';
 import Privacy from '@/colorman/Privacy.vue';
 import { Menus, Page, Theme } from '@/layout/_data';
 import layout from '@/layout/_store';
@@ -39,6 +43,7 @@ import tenant from '@/tenant/_store';
     NotFound,
     Home,
     Colorman,
+    Redirect,
     Privacy,
   },
 })
@@ -71,11 +76,14 @@ export default class App extends Vue {
       this.$router.push(path);
     }
 
-    if (path.includes('/colorman/privacy') === true) {
+    if (path === '/colorman') {
+      layout.setPage(Page.Colorman);
+      return;
+    } else if (path === '/colorman/privacy') {
       layout.setPage(Page.Privacy);
       return;
-    } else if (path.includes('/colorman') === true) {
-      layout.setPage(Page.Colorman);
+    } else if (path === '/colorman/redirect') {
+      layout.setPage(Page.Redirect);
       return;
     } else if (Menus.IsValidPath(path) === false) {
       layout.setPage(Page.NotFound);
