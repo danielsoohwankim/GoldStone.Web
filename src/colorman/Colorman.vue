@@ -1,6 +1,8 @@
 <template>
-  <div>
-    Redirecting...
+  <div @click="redirect()">
+    <div>
+      <img src="./background.png">
+    </div>
   </div>
 </template>
 
@@ -10,7 +12,7 @@ import detect from 'detect.js';
 
 @Component
 export default class Colorman extends Vue {
-  public mounted(): void {
+  public redirect(): void {
     const ua = detect.parse(navigator.userAgent);
     const os: string = (ua.os.family && ua.os.family !== null) ? ua.os.family.toLowerCase() : '';
     let url: string = 'https://play.google.com/store/apps/details?id=com.GoldStone.Colorman';

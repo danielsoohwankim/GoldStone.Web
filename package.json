@@ -11,7 +11,9 @@
     "test:unit": "vue-cli-service test:unit",
     "add-domain": "echo goldstone.life > dist/CNAME",
     "add-404": "cp ./src/404/404.html ./dist",
-    "add-colorman": "cp ./src/colorman/colorman.html ./dist",
+    "add-colorman": "npm run add-colorman-html && npm run add-colorman-bg",
+    "add-colorman-html": "cp ./src/colorman/colorman.html ./dist",
+    "add-colorman-bg": "cp ./src/colorman/background.png ./dist",
     "gh-pages": "gh-pages -d dist"
   },
   "dependencies": {
