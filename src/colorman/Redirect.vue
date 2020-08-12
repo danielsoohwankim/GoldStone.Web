@@ -31,7 +31,7 @@ export default class Redirect extends Vue {
   }
 
   private getLocale(): string {
-    const locale: string | null = this.getQueryVariable('lang');
+    const locale: string | null = this.getQueryVariable('locale');
     return (!locale) ? 'us' : locale;
   }
 
