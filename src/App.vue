@@ -82,7 +82,7 @@ export default class App extends Vue {
     } else if (path === '/colorman/privacy') {
       layout.setPage(Page.Privacy);
       return;
-    } else if (path === '/colorman/redirect') {
+    } else if (path.includes('/colorman/redirect') === true) {
       layout.setPage(Page.Redirect);
       return;
     } else if (Menus.IsValidPath(path) === false) {
