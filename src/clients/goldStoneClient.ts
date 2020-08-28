@@ -152,13 +152,20 @@ class GoldStoneClient {
   }
 
   public async signIn(googleToken?: string): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
+    const headers = {};
     if (googleToken) {
       // sign in using google token
-      credentialApi.defaults.headers.common[authorizationHeader] = bearerToken(googleToken);
+      // credentialApi.defaults.headers.common[authorizationHeader] = bearerToken(googleToken);
+      // return await credentialApi.post(`/${version}/signin`);
+      headers[authorizationHeader] = bearerToken(googleToken);
     }
 
     try {
-      return await credentialApi.post(`/${version}/signin`);
+      return await axios(`${baseUrl}/${version}/signin`, {
+        method: 'post',
+        headers,
+        withCredentials: true,
+      });
     } catch (e) {
       return e.response;
     }
@@ -166,7 +173,11 @@ class GoldStoneClient {
 
   public async signOut(): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
     try {
-      return await credentialApi.post(`/${version}/signout`);
+      // return await credentialApi.post(`/${version}/signout`);
+      return await axios(`${baseUrl}/${version}/signout`, {
+        method: 'post',
+        withCredentials: true,
+      });
     } catch (e) {
       return e.response;
     }
