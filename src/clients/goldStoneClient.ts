@@ -19,10 +19,6 @@ const usersPath = (tenantId: string): string => `${basePath(tenantId)}/users`;
 const api = axios.create({
   baseURL: baseUrl,
 });
-const credentialApi = axios.create({
-  baseURL: baseUrl,
-  withCredentials: true, // requred to receive cookie from server
-});
 
 class GoldStoneClient {
   public async getAccountsAsync(
@@ -152,13 +148,18 @@ class GoldStoneClient {
   }
 
   public async signIn(googleToken?: string): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
+    const headers = {};
     if (googleToken) {
       // sign in using google token
-      credentialApi.defaults.headers.common[authorizationHeader] = bearerToken(googleToken);
+      headers[authorizationHeader] = bearerToken(googleToken);
     }
 
     try {
-      return await credentialApi.post(`/${version}/signin`);
+      return await axios(`${baseUrl}/${version}/signin`, {
+        method: 'post',
+        headers,
+        withCredentials: true,
+      });
     } catch (e) {
       return e.response;
     }
@@ -166,7 +167,10 @@ class GoldStoneClient {
 
   public async signOut(): Promise<AxiosResponse<ISignInResponseContractV1 | any>> {
     try {
-      return await credentialApi.post(`/${version}/signout`);
+      return await axios(`${baseUrl}/${version}/signout`, {
+        method: 'post',
+        withCredentials: true,
+      });
     } catch (e) {
       return e.response;
     }
