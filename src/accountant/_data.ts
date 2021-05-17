@@ -1,4 +1,5 @@
 export enum ExpenseCategory {
+  GoldStone = 'GoldStone',
   Grocery = 'Grocery',
   Meal = 'Meal',
   Recreation = 'Recreation',

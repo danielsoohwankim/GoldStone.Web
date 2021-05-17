@@ -8,6 +8,7 @@ interface ICategory {
 }
 
 interface ICategoryColor {
+  GoldStone: string;
   Grocery: string;
   Meal: string;
   Others: string;
@@ -61,6 +62,7 @@ export default class AccountantConstants {
   public static Category: ICategory = {
     Colors: {
       Dark: {
+        GoldStone: colors.brown[300],
         Grocery: colors.green[600],
         Meal: colors.cyan[500],
         Others: colors.blueGrey[300],
@@ -71,6 +73,7 @@ export default class AccountantConstants {
         Vehicle: colors.yellow[500],
       },
       Light: {
+        GoldStone: '#d7ccc8',
         Grocery: '#28a745',
         Meal: '#17a2b8',
         Others: '#6c757d',
