@@ -62,10 +62,10 @@ export default class AccountantConstants {
   public static Category: ICategory = {
     Colors: {
       Dark: {
-        GoldStone: colors.brown[300],
+        GoldStone: colors.blueGrey[300],
         Grocery: colors.green[600],
         Meal: colors.cyan[500],
-        Others: colors.blueGrey[300],
+        Others: colors.deepPurple[400],
         Recreation: colors.lightBlue[700],
         Shopping: colors.red[600],
         Special: '',
@@ -73,14 +73,14 @@ export default class AccountantConstants {
         Vehicle: colors.yellow[500],
       },
       Light: {
-        GoldStone: '#d7ccc8',
+        GoldStone: '#6c757d',
         Grocery: '#28a745',
         Meal: '#17a2b8',
-        Others: '#6c757d',
+        Others: '#7E57C2',
         Recreation: '#007bff',
         Shopping: '#dc3545',
         Special: '#343a40',
-        Utility: '#990099',
+        Utility: '#F57C00',
         Vehicle: '#ffc107',
       },
     },
